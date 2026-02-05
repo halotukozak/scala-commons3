@@ -1,52 +1,61 @@
 package com.avsystem.commons
 package analyzer
 
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 import scala.collection.mutable
-import scala.tools.nsc.Global
 
-class ValueEnumExhaustiveMatch(g: Global) extends AnalyzerRule(g, "valueEnumExhaustiveMatch") {
+class ValueEnumExhaustiveMatch() extends CheckingRule("valueEnumExhaustiveMatch"):
+  private def extractValueEnumTypes(using Context): (Type, Symbol) =
+    val valueEnumType = resolveClassType("com.avsystem.commons.misc.ValueEnum")
+    val companionType = resolveClassType("com.avsystem.commons.misc.ValueEnumCompanion")
+    val companionSym = if companionType != NoType then companionType.typeSymbol else NoSymbol
+    (valueEnumType, companionSym)
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val (valueEnumType, companionSym) = extractValueEnumTypes
+    if valueEnumType == NoType || !companionSym.exists then return
 
-  lazy val valueEnumTpe: Type = classType("com.avsystem.commons.misc.ValueEnum")
-  lazy val ExistentialType(_, TypeRef(miscPackageTpe, valueEnumCompanionSym, _)) =
-    classType("com.avsystem.commons.misc.ValueEnumCompanion")
-
-  def analyze(unit: CompilationUnit): Unit = if (valueEnumTpe != NoType) {
-    unit.body.foreach(analyzeTree {
-      case tree @ Match(selector, cases) if selector.tpe <:< valueEnumTpe =>
-        val expectedCompanionTpe = TypeRef(miscPackageTpe, valueEnumCompanionSym, List(selector.tpe))
-        val companion = selector.tpe.typeSymbol.companion
-        val companionTpe = companion.toType
-        if (companionTpe <:< expectedCompanionTpe) {
-          val unmatched = new mutable.LinkedHashSet[Symbol]
-          companionTpe.decls.iterator
-            .filter(s => s.isVal && s.isFinal && !s.isLazy && s.typeSignature <:< selector.tpe)
-            .map(_.getterIn(companion))
-            .filter(_.isPublic)
-            .foreach(unmatched.add)
-
-          def findMatchedEnums(pattern: Tree): Unit = pattern match {
-            case Bind(_, body) => findMatchedEnums(body)
-            case Alternative(patterns) => patterns.foreach(findMatchedEnums)
-            case Ident(termNames.WILDCARD) => unmatched.clear()
-            case _: Ident | _: Select => unmatched.remove(pattern.symbol)
-            case _: Literal =>
-            case _ => unmatched.clear()
-          }
-
-          cases.iterator.foreach {
-            case CaseDef(pattern, EmptyTree, _) => findMatchedEnums(pattern)
-            case _ => unmatched.clear()
-          }
-
-          if (unmatched.nonEmpty) {
-            val what =
-              if (unmatched.size > 1) "inputs: " + unmatched.map(_.nameString).mkString(", ")
-              else "input: " + unmatched.head.nameString
-            report(tree.pos, "match may not be exhaustive.\nIt would fail on the following " + what)
-          }
-        }
-    })
-  }
-}
+    object MatchChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case matchTree @ tpd.Match(selector, cases) if selector.tpe <:< valueEnumType =>
+            val selectorType = selector.tpe
+            val companionObj = selectorType.typeSymbol.companionModule
+            
+            if companionObj.exists then
+              val uncovered = mutable.LinkedHashSet.empty[Symbol]
+              
+              companionObj.info.decls.foreach: member =>
+                if member.is(Flags.Final) && member.is(Flags.Method) && 
+                   !member.is(Flags.Lazy) && member.info.resultType <:< selectorType then
+                  if member.isPublic then uncovered += member
+              
+              def recordMatchedEnums(pattern: tpd.Tree): Unit = pattern match
+                case tpd.Bind(_, body) => recordMatchedEnums(body)
+                case tpd.Alternative(patterns) => patterns.foreach(recordMatchedEnums)
+                case tpd.Ident(name) if name.toString == "_" => uncovered.clear()
+                case ref: tpd.RefTree if ref.symbol.exists => uncovered -= ref.symbol
+                case tpd.Literal(_) =>
+                case _ => uncovered.clear()
+              
+              cases.foreach:
+                case tpd.CaseDef(pattern, tpd.EmptyTree, _) => recordMatchedEnums(pattern)
+                case _ => uncovered.clear()
+              
+              if uncovered.nonEmpty then
+                val enumList = if uncovered.size > 1 then
+                  "inputs: " + uncovered.map(_.name.toString).mkString(", ")
+                else
+                  "input: " + uncovered.head.name.toString
+                emitReport(
+                  matchTree.srcPos,
+                  s"match may not be exhaustive.\nIt would fail on the following $enumList"
+                )
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    MatchChecker.traverse(unitTree)

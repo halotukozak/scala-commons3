@@ -1,21 +1,30 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 
-class CheckBincompat(g: Global) extends AnalyzerRule(g, "bincompat") {
+class CheckBincompat() extends CheckingRule("bincompat"):
+  private def extractBincompatAnnotation(using Context): Type =
+    resolveClassType("com.avsystem.commons.annotation.bincompat")
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val bincompatType = extractBincompatAnnotation
+    if bincompatType == NoType then return
 
-  private lazy val bincompatAnnotType = classType("com.avsystem.commons.annotation.bincompat")
-
-  def analyze(unit: CompilationUnit): Unit =
-    unit.body.foreach(analyzeTree {
-      case tree @ (_: Ident | _: Select | _: New)
-          if tree.symbol != null && tree.symbol.annotations.exists(_.tree.tpe <:< bincompatAnnotType) =>
-        report(
-          tree.pos,
-          "Symbols annotated as @bincompat exist only for binary compatibility " + "and should not be used directly",
-        )
-    })
-}
+    object BincompatChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case ref: tpd.RefTree if ref.symbol.exists && ref.symbol.annotations.exists(_.symbol.typeRef <:< bincompatType) =>
+            emitReport(
+              ref.srcPos,
+              "Symbols annotated as @bincompat exist only for binary compatibility " +
+                "and should not be used directly"
+            )
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    BincompatChecker.traverse(unitTree)

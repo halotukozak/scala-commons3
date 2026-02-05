@@ -1,30 +1,31 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
+import printing.Texts.Text
 
-class ShowAst(g: Global) extends AnalyzerRule(g, "showAst", Level.Error) {
+class ShowAst() extends CheckingRule("showAst", SeverityLevel.Fatal):
+  private def extractShowAstAnnotation(using Context): Type =
+    resolveClassType("com.avsystem.commons.annotation.showAst")
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val showAstType = extractShowAstAnnotation
+    if showAstType == NoType then return
 
-  lazy val showAstAnnotType: Type = classType("com.avsystem.commons.annotation.showAst")
-
-  def analyze(unit: CompilationUnit): Unit = if (showAstAnnotType != NoType) {
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case Annotated(annot, arg) if annot.tpe <:< showAstAnnotType =>
-            report(arg.pos, showCode(arg))
-          case Typed(expr, tpt) if tpt.tpe.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(expr.pos, showCode(expr))
-          case _: MemberDef if tree.symbol.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(tree.pos, showCode(tree))
+    object AstShower extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case tpd.Annotated(arg, annot) if annot.symbol.typeRef <:< showAstType =>
+            emitReport(arg.srcPos, arg.show)
+          case tpd.Typed(expr, tpt) if tpt.tpe.typeSymbol.annotations.exists(_.symbol.typeRef <:< showAstType) =>
+            emitReport(expr.srcPos, expr.show)
+          case defTree: tpd.MemberDef if defTree.symbol.annotations.exists(_.symbol.typeRef <:< showAstType) =>
+            emitReport(defTree.srcPos, defTree.show)
           case _ =>
-        }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
-    }
-    analyzeTree(unit.body)
-  }
-}
+        traverseChildren(tree)
+    AstShower.traverse(unitTree)

@@ -1,46 +1,58 @@
 package com.avsystem.commons
 package analyzer
 
-import com.avsystem.commons.analyzer.AnalyzerTest.ScalaInterpolator
+import dotty.tools.dotc.Main
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.reporting.*
+
+import java.io.{File, PrintWriter}
+import java.nio.file.Files
+import scala.collection.mutable.ListBuffer
 import org.scalactic.source.Position
 import org.scalatest.Assertions
 
-import scala.reflect.internal.util.BatchSourceFile
-import scala.tools.nsc.plugins.Plugin
-import scala.tools.nsc.{Global, Settings}
+trait AnalyzerTest extends Assertions:
+  
+  private val diagnostics = ListBuffer.empty[(Int, String)]
+  
+  private def compileSource(sourceCode: String, pluginOpts: List[String] = List("+_")): Unit =
+    diagnostics.clear()
+    
+    val tempDir = Files.createTempDirectory("analyzer-test").toFile
+    val srcFile = new File(tempDir, "test.scala")
+    val pw = new PrintWriter(srcFile)
+    pw.write(sourceCode)
+    pw.close()
+    
+    val reporter = new Reporter:
+      def doReport(dia: Diagnostic)(using Context): Unit =
+        diagnostics += ((dia.level, dia.msg.message))
 
-trait AnalyzerTest { this: Assertions =>
-  val settings = new Settings
-  settings.usejavacp.value = true
-  settings.Yrangepos.value = true
-  settings.pluginOptions.value ++= List("AVSystemAnalyzer:+_")
+    val opts = pluginOpts.map(opt => s"-P:AVSystemAnalyzer:$opt").toArray ++ Array(
+      "-classpath", System.getProperty("java.class.path"),
+      "-usejavacp",
+      "-d", tempDir.getAbsolutePath,
+      srcFile.getAbsolutePath
+    )
+    
+    try
+      Main.process(opts, reporter, null)
+    finally
+      srcFile.delete()
+      tempDir.delete()
 
-  val compiler: Global = new Global(settings) { global =>
-    override protected def loadRoughPluginsList(): List[Plugin] =
-      new AnalyzerPlugin(global) :: super.loadRoughPluginsList()
-  }
+  def compile(source: String): Unit =
+    compileSource(source)
 
-  def compile(source: String): Unit = {
-    compiler.reporter.reset()
-    val run = new compiler.Run
-    run.compileSources(List(new BatchSourceFile("test.scala", source)))
-  }
+  def assertErrors(count: Int, source: String)(using Position): Unit =
+    compileSource(source)
+    val errCount = diagnostics.count(_._1 == 2)
+    assert(errCount == count, s"Expected $count errors but got $errCount. Diagnostics: ${diagnostics.map(_._2).mkString(", ")}")
 
-  def assertErrors(errors: Int, source: String)(using Position): Unit = {
-    compile(source)
-    assert(compiler.reporter.errorCount == errors)
-  }
+  def assertNoErrors(source: String)(using Position): Unit =
+    compileSource(source)
+    val errCount = diagnostics.count(_._1 == 2)
+    assert(errCount == 0, s"Expected no errors but got $errCount. Diagnostics: ${diagnostics.map(_._2).mkString(", ")}")
 
-  def assertNoErrors(source: String)(using Position): Unit = {
-    compile(source)
-    assert(!compiler.reporter.hasErrors)
-  }
-
-  implicit final def stringContextToScalaInterpolator(sc: StringContext): ScalaInterpolator = new ScalaInterpolator(sc)
-}
-
-object AnalyzerTest {
-  final class ScalaInterpolator(private val sc: StringContext) extends AnyVal {
+  extension (sc: StringContext)
     def scala(args: Any*): String = s"object TopLevel {${sc.s(args*)}}"
-  }
-}

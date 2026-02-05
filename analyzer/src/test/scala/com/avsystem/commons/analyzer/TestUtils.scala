@@ -3,29 +3,26 @@ package analyzer
 
 import com.avsystem.commons.annotation.{atLeast, explicitGenerics, macroPrivate}
 
-import scala.reflect.macros.blackbox
-
-object TestUtils {
+object TestUtils:
   def need3Params(@atLeast(3) args: Any*) = ()
 
   @macroPrivate
   def macroPrivateMethod = 42
 
-  def invokeMacroPrivateMethod: Int = macro invokeMacroPrivateMethodImpl
+  inline def invokeMacroPrivateMethod: Int = ${ invokeMacroPrivateMethodImpl }
 
-  def invokeMacroPrivateMethodImpl(c: blackbox.Context): c.Tree = {
-    import c.universe.*
-    q"${c.prefix}.macroPrivateMethod"
-  }
+  import scala.quoted.*
+  def invokeMacroPrivateMethodImpl(using Quotes): Expr[Int] =
+    import quotes.reflect.*
+    Select.unique(This(Symbol.requiredModule("com.avsystem.commons.analyzer.TestUtils")).asExpr.asTerm, "macroPrivateMethod").asExprOf[Int]
 
-  object Extractor {
+  object Extractor:
     @macroPrivate def unapply(any: Any): Option[Any] = None
-  }
-
-  def genericMacroImpl[T](c: blackbox.Context)(arg: c.Tree): c.Tree = arg
 
   @explicitGenerics
   def genericMethod[T](arg: T): T = arg
+  
   @explicitGenerics
-  def genericMacro[T](arg: T): T = macro genericMacroImpl[T]
-}
+  inline def genericMacro[T](arg: T): T = ${ genericMacroImpl[T]('arg) }
+  
+  def genericMacroImpl[T: Type](arg: Expr[T])(using Quotes): Expr[T] = arg

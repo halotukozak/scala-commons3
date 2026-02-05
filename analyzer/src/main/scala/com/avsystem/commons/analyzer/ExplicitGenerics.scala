@@ -1,35 +1,40 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 
-class ExplicitGenerics(g: Global) extends AnalyzerRule(g, "explicitGenerics") {
+class ExplicitGenerics() extends CheckingRule("explicitGenerics"):
+  private def extractExplicitGenericsAnnotation(using Context): Type =
+    resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val explicitGenAnnotType = extractExplicitGenericsAnnotation
+    if explicitGenAnnotType == NoType then return
 
-  lazy val explicitGenericsAnnotTpe: Type = classType("com.avsystem.commons.annotation.explicitGenerics")
-
-  def analyze(unit: CompilationUnit): Unit = if (explicitGenericsAnnotTpe != NoType) {
-    def requiresExplicitGenerics(sym: Symbol): Boolean =
-      sym != NoSymbol && (sym :: sym.overrides).flatMap(_.annotations).exists(_.tree.tpe <:< explicitGenericsAnnotTpe)
-
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case t @ TypeApply(pre, args) if requiresExplicitGenerics(pre.symbol) =>
-            val inferredTypeParams = args.forall {
-              case tt: TypeTree => tt.original == null || tt.original == EmptyTree
-              case _ => false
-            }
-            if (inferredTypeParams) {
-              report(t.pos, s"${pre.symbol} requires that its type arguments are explicit (not inferred)")
-            }
-          case _ =>
-        }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
-    }
-    analyzeTree(unit.body)
-  }
-}
+    object ExplicitGenericsChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case app @ tpd.TypeApply(fn, typeArgs) =>
+            val fnSym = fn.symbol
+            if fnSym.exists then
+              val requiresExplicit = (fnSym :: fnSym.allOverriddenSymbols.toList).exists: s =>
+                s.annotations.exists(_.symbol.typeRef <:< explicitGenAnnotType)
+              
+              if requiresExplicit then
+                val allInferred = typeArgs.forall:
+                  case tt: tpd.TypeTree => !tt.span.exists || tt.span.isZeroExtent
+                  case _ => false
+                
+                if allInferred then
+                  emitReport(
+                    app.srcPos,
+                    s"${fnSym} requires that its type arguments are explicit (not inferred)"
+                  )
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    ExplicitGenericsChecker.traverse(unitTree)

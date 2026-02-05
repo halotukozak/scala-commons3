@@ -1,26 +1,33 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 
-final class NothingAsFunctionArgument(g: Global) extends AnalyzerRule(g, "nothingAsFunctionArgument") {
-
-  import global.*
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach(analyzeTree { case Apply(f: Tree, args: List[Tree]) =>
-    args.zip(f.tpe.params).foreach {
-      case (arg, param) if definitions.isFunctionType(param.tpe) && arg.tpe <:< definitions.NothingTpe =>
-        report(
-          arg.pos,
-          s"""
-               |A value of type `Nothing` was passed where a function is expected.
-               |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
-               |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${show(
-              param.tpe
-            )}]`).
-               |""".stripMargin,
-        )
-      case (_, _) =>
-    }
-  })
-}
+class NothingAsFunctionArgument() extends CheckingRule("nothingAsFunctionArgument"):
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    object NothingChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case app @ tpd.Apply(fn, args) =>
+            val methodSym = fn.symbol
+            if methodSym.exists && methodSym.is(Flags.Method) then
+              val params = methodSym.info.paramInfoss.flatten
+              args.zip(params).foreach:
+                case (arg, paramInfo) if defn.isFunctionType(paramInfo) && arg.tpe <:< defn.NothingType =>
+                  emitReport(
+                    arg.srcPos,
+                    s"""
+                       |A value of type `Nothing` was passed where a function is expected.
+                       |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
+                       |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${paramInfo.show}]`).
+                       |""".stripMargin
+                  )
+                case _ =>
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    NothingChecker.traverse(unitTree)

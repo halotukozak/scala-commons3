@@ -1,21 +1,23 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
 
-class FinalValueClasses(g: Global) extends AnalyzerRule(g, "finalValueClasses", Level.Warn) {
+class FinalValueClasses() extends CheckingRule("finalValueClasses", SeverityLevel.Warning):
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val anyValClass = defn.AnyValClass
 
-  import global.*
-
-  private lazy val anyValTpe = typeOf[AnyVal]
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case cd: ClassDef if !cd.mods.hasFlag(Flag.FINAL) =>
-      val tpe = cd.symbol.typeSignature
-
-      if (tpe.baseClasses.contains(anyValTpe.typeSymbol)) {
-        report(cd.pos, "Value classes should be marked as final")
-      }
-    case _ =>
-  }
-}
+    object ValueClassChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case classDef: tpd.TypeDef if classDef.symbol.isClass && !classDef.symbol.is(Flags.Final) =>
+            val classType = classDef.symbol.info
+            if classType.baseClasses.contains(anyValClass) then
+              emitReport(classDef.srcPos, "Value classes should be marked as final")
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    ValueClassChecker.traverse(unitTree)

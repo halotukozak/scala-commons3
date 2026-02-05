@@ -235,16 +235,15 @@ lazy val js = project
   )
   .settings(aggregateProjectSettings)
 
-//todo: migrate to scala 3 compiler plugin API
-//lazy val analyzer = project
-//  .dependsOn(core % Test)
-//  .settings(
-//    jvmCommonSettings,
-//    libraryDependencies ++= Seq(
-//      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-//      "io.monix" %% "monix" % monixVersion % Test,
-//    ),
-//  )
+lazy val analyzer = project
+  .dependsOn(core % Test)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+      "io.monix" %% "monix" % monixVersion % Test,
+    ),
+  )
 
 def mkSourceDirs(base: File, scalaBinary: String, conf: String): Seq[File] = Seq(
   base / "src" / conf / "scala",

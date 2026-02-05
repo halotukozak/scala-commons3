@@ -1,20 +1,26 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
 
-class FindUsages(g: Global) extends AnalyzerRule(g, "findUsages") {
+class FindUsages() extends CheckingRule("findUsages"):
+  private def parseRejectedSymbols: Set[String] =
+    if ruleArgument == null then Set.empty
+    else ruleArgument.nn.split(";").toSet
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val rejectedSet = parseRejectedSymbols
+    if rejectedSet.isEmpty then return
 
-  lazy val rejectedSymbols: Set[String] =
-    if (argument == null) Set.empty else argument.split(";").toSet
-
-  override def analyze(unit: CompilationUnit): Unit = if (rejectedSymbols.nonEmpty) {
-    unit.body.foreach { tree =>
-      if (tree.symbol != null && rejectedSymbols.contains(tree.symbol.fullName)) {
-        report(tree.pos, s"found usage of ${tree.symbol.fullName}")
-      }
-    }
-  }
-}
+    object UsageFinder extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        if tree.symbol.exists then
+          val fullName = tree.symbol.fullName.toString
+          if rejectedSet.contains(fullName) then
+            emitReport(tree.srcPos, s"found usage of $fullName")
+        traverseChildren(tree)
+    UsageFinder.traverse(unitTree)

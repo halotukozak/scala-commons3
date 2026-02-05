@@ -1,40 +1,53 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
+import Constants.*
+import Decorators.*
 
-class VarargsAtLeast(g: Global) extends AnalyzerRule(g, "varargsAtLeast") {
+class VarargsAtLeast() extends CheckingRule("varargsAtLeast"):
+  private def extractAtLeastAnnotation(using Context): Type =
+    resolveClassType("com.avsystem.commons.annotation.atLeast")
 
-  import global._
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    val atLeastAnnotType = extractAtLeastAnnotation
+    if atLeastAnnotType == NoType then return
 
-  lazy val atLeastAnnotTpe: Type = classType("com.avsystem.commons.annotation.atLeast")
-
-  def analyze(unit: CompilationUnit): Unit = if (atLeastAnnotTpe != NoType) {
-    def isVarargParam(tree: Tree) = tree match {
-      case Typed(_, Ident(typeNames.WILDCARD_STAR)) => true
-      case _ => false
-    }
-
-    unit.body.foreach(analyzeTree {
-      case t @ Apply(fun, args)
-          if fun.tpe != null &&
-            fun.tpe.params.lastOption.map(_.tpe.typeSymbol).contains(definitions.RepeatedParamClass) &&
-            !args.lastOption.exists(isVarargParam) =>
-
-        val required =
-          fun.tpe.params.last.annotations
-            .find(_.tree.tpe <:< atLeastAnnotTpe)
-            .map(_.tree.children.tail)
-            .collect { case List(Literal(Constant(n: Int))) =>
-              n
-            }
-            .getOrElse(0)
-
-        val actual = args.size - fun.tpe.params.size + 1
-
-        if (actual < required) {
-          report(t.pos, s"This method requires at least $required arguments for its repeated parameter, $actual passed.")
-        }
-    })
-  }
-}
+    object VarargsChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case app @ tpd.Apply(fn, args) =>
+            val methodSym = fn.symbol
+            if methodSym.exists && methodSym.is(Flags.Method) then
+              val params = methodSym.info.paramInfoss.flatten
+              if params.nonEmpty && params.last.isRepeatedParam then
+                val lastIsVararg = args.lastOption.exists:
+                  case tpd.Typed(_, tpt) => 
+                    tpt match
+                      case tpd.Ident(name) => name.toString.contains("*")
+                      case _ => false
+                  case _ => false
+                
+                if !lastIsVararg then
+                  val lastParamSym = methodSym.paramSymss.flatten.last
+                  val requiredCount = lastParamSym.annotations.find(ann => ann.symbol.typeRef <:< atLeastAnnotType).map: annot =>
+                    annot.tree match
+                      case tpd.Apply(_, List(tpd.Literal(Constant(n: Int)))) => n
+                      case _ => 0
+                  .getOrElse(0)
+                  
+                  val providedCount = args.length - params.length + 1
+                  
+                  if providedCount < requiredCount then
+                    emitReport(
+                      app.srcPos,
+                      s"This method requires at least $requiredCount arguments for its repeated parameter, $providedCount passed."
+                    )
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    VarargsChecker.traverse(unitTree)

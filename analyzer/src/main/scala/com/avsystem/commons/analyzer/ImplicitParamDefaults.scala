@@ -1,23 +1,23 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
 
-class ImplicitParamDefaults(g: Global) extends AnalyzerRule(g, "implicitParamDefaults", Level.Warn) {
-
-  import global.*
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case dd: DefDef =>
-      dd.vparamss.foreach { paramList =>
-        if (paramList.nonEmpty && paramList.head.mods.hasFlag(Flag.IMPLICIT)) {
-          paramList.foreach { param =>
-            if (param.rhs != EmptyTree) {
-              report(param.pos, "Implicit parameters should not have default values")
-            }
-          }
-        }
-      }
-    case _ =>
-  }
-}
+class ImplicitParamDefaults() extends CheckingRule("implicitParamDefaults", SeverityLevel.Warning):
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    object DefaultParamChecker extends tpd.TreeTraverser:
+      override def traverse(tree: tpd.Tree)(using Context): Unit =
+        tree match
+          case defDef: tpd.DefDef if defDef.symbol.is(Flags.Method) =>
+            defDef.termParamss.foreach: paramClause =>
+              if paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit) then
+                paramClause.foreach: param =>
+                  if !param.rhs.isEmpty then
+                    emitReport(param.srcPos, "Implicit parameters should not have default values")
+            traverseChildren(tree)
+          case _ => traverseChildren(tree)
+    DefaultParamChecker.traverse(unitTree)

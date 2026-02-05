@@ -1,29 +1,37 @@
 package com.avsystem.commons
 package analyzer
 
+import dotty.tools.dotc.*
+import ast.tpd
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 import scala.annotation.tailrec
-import scala.tools.nsc.Global
 
-class BasePackage(g: Global) extends AnalyzerRule(g, "basePackage") {
+class BasePackage() extends CheckingRule("basePackage"):
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+    if ruleArgument == null then return
+    
+    val requiredPkg = ruleArgument
 
-  import global._
+    object ImportSkipper:
+      @tailrec
+      def skipImports(trees: List[tpd.Tree]): List[tpd.Tree] = trees match
+        case (_: tpd.Import) :: tail => skipImports(tail)
+        case other => other
 
-  object SkipImports {
-    @tailrec def unapply(stats: List[Tree]): Some[List[Tree]] = stats match {
-      case Import(_, _) :: tail => unapply(tail)
-      case stats => Some(stats)
-    }
-  }
+    @tailrec
+    def validatePackage(tree: tpd.Tree): Unit = tree match
+      case pkgDef: tpd.PackageDef if pkgDef.symbol.isPackageObject || pkgDef.pid.symbol.fullName.toString == requiredPkg =>
+        // Valid
+      case pkgDef: tpd.PackageDef =>
+        val nonImports = ImportSkipper.skipImports(pkgDef.stats)
+        if nonImports.length == 1 then
+          validatePackage(nonImports.head)
+        else
+          emitReport(pkgDef.srcPos, s"`$requiredPkg` must be one of the base packages in this file")
+      case other =>
+        emitReport(other.srcPos, s"`$requiredPkg` must be one of the base packages in this file")
 
-  def analyze(unit: CompilationUnit): Unit = if (argument != null) {
-    val requiredBasePackage = argument
-
-    @tailrec def validate(tree: Tree): Unit = tree match {
-      case PackageDef(pid, _) if pid.symbol.hasPackageFlag && pid.symbol.fullName == requiredBasePackage =>
-      case PackageDef(_, SkipImports(List(stat))) => validate(stat)
-      case t => report(t.pos, s"`$requiredBasePackage` must be one of the base packages in this file")
-    }
-
-    validate(unit.body)
-  }
-}
+    validatePackage(unitTree)
