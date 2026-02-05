@@ -46,8 +46,9 @@ class AnalyzerPlugin extends StandardPlugin:
               report.error(s"Unrecognized AVS analyzer rule: $ruleName")
     
     val analyzerPhase = AnalyzerPhaseImpl(ruleInstances)
-    phases.map: phaseList =>
-      phaseList :+ analyzerPhase
+    // Insert the analyzer phase as a separate phase group
+    // The runsAfter/runsBefore constraints will handle the ordering
+    phases :+ List(analyzerPhase)
 
   private def createAllRuleInstances(): List[CheckingRule] = List(
     ImportJavaUtil(),
@@ -78,7 +79,14 @@ class AnalyzerPhaseImpl(rulesList: List[CheckingRule]) extends PluginPhase:
   override val runsBefore = Set("patmat")
 
   override def transformUnit(unitTree: ast.tpd.Tree)(using ctx: Context): ast.tpd.Tree =
+    // Access the untyped tree for rules that need it (like ImportJavaUtil)
+    val untpdTree = ctx.compilationUnit.untpdTree
+    
     rulesList.foreach: currentRule =>
       if currentRule.currentSeverity != SeverityLevel.Disabled then
-        currentRule.performCheck(unitTree)
+        // For ImportJavaUtil, pass the untyped tree
+        if currentRule.ruleName == "importJavaUtil" then
+          currentRule.asInstanceOf[ImportJavaUtil].performCheckOnUntpd(untpdTree)
+        else
+          currentRule.performCheck(unitTree)
     unitTree

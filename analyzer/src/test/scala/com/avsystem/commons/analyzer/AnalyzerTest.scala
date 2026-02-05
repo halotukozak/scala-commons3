@@ -1,8 +1,9 @@
 package com.avsystem.commons
 package analyzer
 
-import dotty.tools.dotc.Main
+import dotty.tools.dotc.{Main, Compiler, Driver}
 import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Phases.Phase
 import dotty.tools.dotc.reporting.*
 
 import java.io.{File, PrintWriter}
@@ -15,7 +16,7 @@ trait AnalyzerTest extends Assertions:
   
   private val diagnostics = ListBuffer.empty[(Int, String)]
   
-  private def compileSource(sourceCode: String, pluginOpts: List[String] = List("+_")): Unit =
+  private def compileSource(sourceCode: String, pluginOpts: List[String] = List("-_")): Unit =
     diagnostics.clear()
     
     val tempDir = Files.createTempDirectory("analyzer-test").toFile
@@ -24,19 +25,30 @@ trait AnalyzerTest extends Assertions:
     pw.write(sourceCode)
     pw.close()
     
-    val reporter = new Reporter:
+    val classPathValue = System.getProperty("java.class.path")
+    
+    class CustomDriver extends Driver:
+      override def newCompiler(using Context): Compiler =
+        new Compiler:
+          override lazy val phases: List[List[Phase]] =
+            val analyzerPlugin = new AnalyzerPlugin
+            val basePhases = super.phases
+            analyzerPlugin.init(pluginOpts, basePhases)
+    
+    val customDriver = new CustomDriver
+    
+    val reporterInstance = new Reporter:
       def doReport(dia: Diagnostic)(using Context): Unit =
         diagnostics += ((dia.level, dia.msg.message))
 
-    val opts = pluginOpts.map(opt => s"-P:AVSystemAnalyzer:$opt").toArray ++ Array(
-      "-classpath", System.getProperty("java.class.path"),
-      "-usejavacp",
+    val opts = Array(
+      "-classpath", classPathValue,
       "-d", tempDir.getAbsolutePath,
       srcFile.getAbsolutePath
     )
     
     try
-      Main.process(opts, reporter, null)
+      customDriver.process(opts, reporterInstance)
     finally
       srcFile.delete()
       tempDir.delete()
@@ -44,13 +56,13 @@ trait AnalyzerTest extends Assertions:
   def compile(source: String): Unit =
     compileSource(source)
 
-  def assertErrors(count: Int, source: String)(using Position): Unit =
-    compileSource(source)
+  def assertErrors(count: Int, source: String, pluginOpts: List[String] = List("-_"))(using Position): Unit =
+    compileSource(source, pluginOpts)
     val errCount = diagnostics.count(_._1 == 2)
     assert(errCount == count, s"Expected $count errors but got $errCount. Diagnostics: ${diagnostics.map(_._2).mkString(", ")}")
 
-  def assertNoErrors(source: String)(using Position): Unit =
-    compileSource(source)
+  def assertNoErrors(source: String, pluginOpts: List[String] = List("-_"))(using Position): Unit =
+    compileSource(source, pluginOpts)
     val errCount = diagnostics.count(_._1 == 2)
     assert(errCount == 0, s"Expected no errors but got $errCount. Diagnostics: ${diagnostics.map(_._2).mkString(", ")}")
 
