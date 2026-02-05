@@ -4,5 +4,30 @@ package analyzer
 import org.scalatest.funsuite.AnyFunSuite
 
 final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest:
-  test("placeholder test"):
-    assertNoErrors(scala"val x = 1")
+  test("any2stringadd should be rejected"):
+    assertErrors(
+      1,
+      scala"""
+             |val any: Any = ???
+             |any + "fag"
+             |""".stripMargin,
+      List("-_", "+any2stringadd")
+    )
+
+  test("toString should not be rejected"):
+    assertNoErrors(
+      scala"""
+             |val any: Any = ???
+             |any.toString + "fag"
+             |""".stripMargin,
+      List("-_", "+any2stringadd")
+    )
+
+  test("string interpolation should not be rejected"):
+    assertNoErrors(
+      scala"""
+             |val any: Any = ???
+             |s"$${any}fag"
+             |""".stripMargin,
+      List("-_", "+any2stringadd")
+    )

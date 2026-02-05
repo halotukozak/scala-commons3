@@ -4,5 +4,34 @@ package analyzer
 import org.scalatest.funsuite.AnyFunSuite
 
 final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest:
-  test("placeholder test"):
-    assertNoErrors(scala"val x = 1")
+  test("too few varargs parameters should be rejected"):
+    assertErrors(
+      1,
+      scala"""
+             |import com.avsystem.commons.analyzer.TestUtils
+             |
+             |TestUtils.need3Params(1, 2)
+             |""".stripMargin,
+      List("-_", "+varargsAtLeast")
+    )
+
+  test("enough varargs parameters should not be rejected"):
+    assertNoErrors(
+      scala"""
+             |import com.avsystem.commons.analyzer.TestUtils
+             |
+             |TestUtils.need3Params(1, 2, 3)
+             |TestUtils.need3Params(1, 2, 3, 4)
+             |""".stripMargin,
+      List("-_", "+varargsAtLeast")
+    )
+
+  test("collection passed as varargs parameter should not be rejected"):
+    assertNoErrors(
+      scala"""
+             |import com.avsystem.commons.analyzer.TestUtils
+             |
+             |TestUtils.need3Params(List(1,2): _*)
+             |""".stripMargin,
+      List("-_", "+varargsAtLeast")
+    )
