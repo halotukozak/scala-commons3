@@ -208,7 +208,7 @@ lazy val root = project
     ideExcludedDirectories := Seq(baseDirectory.value / ".bloop"),
     ScalaUnidoc / unidoc / scalacOptions += "-Ymacro-expand:none",
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
-//      analyzer,
+      analyzer,
       `core-js`,
 //      comprof,
     ),
@@ -217,7 +217,7 @@ lazy val root = project
 lazy val jvm = project
   .in(file(".jvm"))
   .aggregate(
-//    analyzer,
+    analyzer,
     core,
     jetty,
 //    mongo,
