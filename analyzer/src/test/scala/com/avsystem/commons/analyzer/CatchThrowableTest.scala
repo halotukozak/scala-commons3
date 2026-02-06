@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
-  test("catching Throwable should be rejected"):
+final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
+  test("catching Throwable should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -15,8 +15,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("catching specific exceptions should be allowed"):
+  test("catching specific exceptions should be allowed") {
     assertNoErrors(scala"""
              |try {
              |  println("test")
@@ -26,8 +27,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |  case e: IllegalArgumentException => println(e)
              |}
              |""".stripMargin)
+  }
 
-  test("catching Throwable with other exceptions should be rejected"):
+  test("catching Throwable with other exceptions should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -39,8 +41,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("catching Throwable in nested catch block should be rejected"):
+  test("catching Throwable in nested catch block should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -53,8 +56,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("catching Throwable using custom extractor should be allowed"):
+  test("catching Throwable using custom extractor should be allowed") {
     assertNoErrors(scala"""
              |import  com.avsystem.commons.CommonAliases._
              |
@@ -73,8 +77,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |  case scala.util.control.NonFatal(t) => println(t)
              |}
              |""".stripMargin)
+  }
 
-  test("catching non-Throwable with pattern match should be allowed"):
+  test("catching non-Throwable with pattern match should be allowed") {
     assertNoErrors(
       scala"""
              |try {
@@ -89,8 +94,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin
     )
+  }
 
-  test("catching Throwable with pattern match should be rejected"):
+  test("catching Throwable with pattern match should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -101,8 +107,9 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("catching Throwable using custom handler should be allowed"):
+  test("catching Throwable using custom handler should be allowed") {
     assertNoErrors(scala"""
              |object CustomHandler {
              |  def apply[T](): PartialFunction[Throwable, T] = ???
@@ -112,3 +119,5 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest:
              |  println("test")
              |} catch CustomHandler()
              |""".stripMargin)
+  }
+}

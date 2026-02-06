@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
-  test("implicit final class extending AnyVal should pass"):
+final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
+  test("implicit final class extending AnyVal should pass") {
     assertNoErrors(
       scala"""
              |implicit final class GoodImplicitClass(val x: Int) extends AnyVal {
@@ -13,8 +13,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class not extending AnyVal should fail"):
+  test("implicit class not extending AnyVal should fail") {
     assertErrors(
       1,
       scala"""
@@ -24,8 +25,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class with type parameter not extending AnyVal should fail"):
+  test("implicit class with type parameter not extending AnyVal should fail") {
     assertErrors(
       1,
       scala"""
@@ -35,8 +37,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("regular class should not be affected"):
+  test("regular class should not be affected") {
     assertNoErrors(
       scala"""
              |class RegularClass(val x: Int) {
@@ -45,8 +48,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class with implicit parameter should not be affected"):
+  test("implicit class with implicit parameter should not be affected") {
     assertNoErrors(
       scala"""
              |implicit final class ImplicitClassWithImplicitParameter(val x: Int)(implicit dummy: DummyImplicit) {
@@ -55,8 +59,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class extending other classes should not be affected"):
+  test("implicit class extending other classes should not be affected") {
     assertNoErrors(
       scala"""
              |class SomeClass
@@ -72,8 +77,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class extending AnyVal with traits should be handled correctly"):
+  test("implicit class extending AnyVal with traits should be handled correctly") {
     assertErrors(
       1,
       scala"""
@@ -87,8 +93,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("nested implicit class not extending AnyVal should pass"):
+  test("nested implicit class not extending AnyVal should pass") {
     assertNoErrors(
       scala"""
              |class Outer {
@@ -99,8 +106,9 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
 
-  test("implicit class for value class should not be affected"):
+  test("implicit class for value class should not be affected") {
     assertNoErrors(
       scala"""
              |implicit final class ValueClass(x: com.avsystem.commons.misc.Timestamp) {
@@ -109,10 +117,12 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+implicitValueClasses")
     )
+  }
+}
 
-final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest:
+final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
 
-  test("nested implicit class not extending AnyVal should fail"):
+  test("nested implicit class not extending AnyVal should fail") {
     assertErrors(
       1,
       scala"""
@@ -124,8 +134,9 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
 
-  test("nested implicit class with type parameter not extending AnyVal should fail"):
+  test("nested implicit class with type parameter not extending AnyVal should fail") {
     assertErrors(
       1,
       scala"""
@@ -137,8 +148,9 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
 
-  test("deeply nested implicit class not extending AnyVal should fail"):
+  test("deeply nested implicit class not extending AnyVal should fail") {
     assertErrors(
       1,
       scala"""
@@ -152,8 +164,9 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
 
-  test("regular class should not be affected"):
+  test("regular class should not be affected") {
     assertNoErrors(
       scala"""
              |class RegularClass(val x: Int) {
@@ -162,8 +175,9 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
 
-  test("implicit class extending other classes should not be affected"):
+  test("implicit class extending other classes should not be affected") {
     assertNoErrors(
       scala"""
              |class Outer {
@@ -181,8 +195,9 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
 
-  test("implicit class extending AnyVal with traits should be handled correctly"):
+  test("implicit class extending AnyVal with traits should be handled correctly") {
     assertErrors(
       1,
       scala"""
@@ -198,3 +213,5 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |""".stripMargin,
       List("-_", "+implicitValueClasses:all")
     )
+  }
+}

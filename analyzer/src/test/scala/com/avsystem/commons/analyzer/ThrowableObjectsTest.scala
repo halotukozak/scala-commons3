@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class ThrowableObjectsTest extends AnyFunSuite with AnalyzerTest:
-  test("throwable objects with stack trace should be rejected"):
+final class ThrowableObjectsTest extends AnyFunSuite with AnalyzerTest {
+  test("throwable objects with stack trace should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -12,3 +12,5 @@ final class ThrowableObjectsTest extends AnyFunSuite with AnalyzerTest:
              |object noStackTraceThrowableObject extends Throwable with scala.util.control.NoStackTrace
              |""".stripMargin,
     )
+  }
+}

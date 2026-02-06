@@ -3,7 +3,7 @@ package analyzer
 
 import org.scalatest.wordspec.AnyWordSpec
 
-final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest:
+final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest {
 
   "The ThrownExceptionNotInFunction rule" should {
     "detect improper usage of thrown exceptions" when {
@@ -270,3 +270,4 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest:
       }
     }
   }
+}

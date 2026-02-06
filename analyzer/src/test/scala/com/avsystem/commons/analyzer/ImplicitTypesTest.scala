@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class ImplicitTypesTest extends AnyFunSuite with AnalyzerTest:
-  test("implicit definitions without explicit types should be rejected"):
+final class ImplicitTypesTest extends AnyFunSuite with AnalyzerTest {
+  test("implicit definitions without explicit types should be rejected") {
     assertErrors(
       2,
       scala"""
@@ -16,3 +16,5 @@ final class ImplicitTypesTest extends AnyFunSuite with AnalyzerTest:
              |implicit final class wtf(private val x: Int) extends AnyVal
              |""".stripMargin,
     )
+  }
+}

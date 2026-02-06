@@ -7,20 +7,24 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FindUsages() extends CheckingRule("findUsages"):
+class FindUsages() extends CheckingRule("findUsages") {
   private def parseRejectedSymbols: Set[String] =
-    if ruleArgument == null then Set.empty
+    if (ruleArgument == null) Set.empty
     else ruleArgument.nn.split(";").toSet
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
     val rejectedSet = parseRejectedSymbols
-    if rejectedSet.isEmpty then return
+    if (rejectedSet.isEmpty) return
 
-    object UsageFinder extends tpd.TreeTraverser:
-      override def traverse(tree: tpd.Tree)(using Context): Unit =
-        if tree.symbol.exists then
+    object UsageFinder extends tpd.TreeTraverser {
+      override def traverse(tree: tpd.Tree)(using Context): Unit = {
+        if (tree.symbol.exists) {
           val fullName = tree.symbol.fullName.toString
-          if rejectedSet.contains(fullName) then
-            emitReport(tree.srcPos, s"found usage of $fullName")
+          if (rejectedSet.contains(fullName)) emitReport(tree.srcPos, s"found usage of $fullName")
+        }
         traverseChildren(tree)
+      }
+    }
     UsageFinder.traverse(unitTree)
+  }
+}

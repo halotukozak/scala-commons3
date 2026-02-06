@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
-  test("final case class should pass"):
+final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest {
+  test("final case class should pass") {
     assertNoErrors(scala"""
              |final case class GoodCaseClass(x: Int, y: String) {
              |  def double: Int = x * 2
@@ -12,8 +12,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalCaseClasses")
     )
+  }
 
-  test("case class not marked as final should fail"):
+  test("case class not marked as final should fail") {
     assertErrors(
       1,
       scala"""
@@ -22,8 +23,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("generic case class not marked as final should fail"):
+  test("generic case class not marked as final should fail") {
     assertErrors(
       1,
       scala"""
@@ -32,8 +34,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("regular class should not be affected"):
+  test("regular class should not be affected") {
     assertNoErrors(scala"""
              |class RegularClass(val x: Int, val y: String) {
              |  def double: Int = x * 2
@@ -41,8 +44,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalCaseClasses")
     )
+  }
 
-  test("regular class with case-like constructor should not be affected"):
+  test("regular class with case-like constructor should not be affected") {
     assertNoErrors(scala"""
              |class RegularClass2(x: Int, y: String) {
              |  def double: Int = x * 2
@@ -50,9 +54,10 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalCaseClasses")
     )
+  }
 
   // SI-4440 https://github.com/scala/bug/issues/4440
-  test("inner case class in trait should not be affected due to SI-4440"):
+  test("inner case class in trait should not be affected due to SI-4440") {
     assertNoErrors(
       scala"""
              |trait Outer {
@@ -62,8 +67,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin
     )
+  }
 
-  test("inner case class in class should not be affected due to SI-4440"):
+  test("inner case class in class should not be affected due to SI-4440") {
     assertNoErrors(
       scala"""
              |class Outer2 {
@@ -73,8 +79,9 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin
     )
+  }
 
-  test("sealed case class should not be affected"):
+  test("sealed case class should not be affected") {
     assertNoErrors(
       scala"""
              |sealed case class SealedCaseClass(x: Int) {
@@ -86,3 +93,5 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin
     )
+  }
+}

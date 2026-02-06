@@ -49,8 +49,9 @@ class SimpleValueOutput(
   newListRepr: => mutable.Builder[Any, BSeq[Any]],
 ) extends OutputAndSimpleOutput {
 
-  def this(consumer: Any => Unit) =
+  def this(consumer: Any => Unit) = {
     this(consumer, new MHashMap[String, Any], new ListBuffer[Any])
+  }
 
   override def writeNull(): Unit = consumer(null)
   override def writeBoolean(boolean: Boolean): Unit = consumer(boolean)

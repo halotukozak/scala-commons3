@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest:
-  test("inferred generic should be rejected"):
+final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
+  test("inferred generic should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -14,8 +14,9 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+explicitGenerics")
     )
+  }
 
-  test("inferred generic in macro should be rejected"):
+  test("inferred generic in macro should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -25,8 +26,9 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+explicitGenerics")
     )
+  }
 
-  test("explicit generic should not be rejected"):
+  test("explicit generic should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.analyzer.TestUtils
@@ -35,8 +37,9 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+explicitGenerics")
     )
+  }
 
-  test("explicit generic in macro should not be rejected"):
+  test("explicit generic in macro should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.analyzer.TestUtils
@@ -45,3 +48,5 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+explicitGenerics")
     )
+  }
+}

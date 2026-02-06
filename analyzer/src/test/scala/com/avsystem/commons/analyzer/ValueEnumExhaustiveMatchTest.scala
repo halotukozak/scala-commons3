@@ -3,7 +3,7 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
+final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
   def source(caseDefs: String): String =
     scala"""
            |import com.avsystem.commons.misc._
@@ -22,7 +22,7 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
            |}
            |""".stripMargin
 
-  test("should report two unmatched enum values"):
+  test("should report two unmatched enum values") {
     assertErrors(
       1,
       source(
@@ -32,8 +32,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       ),
     )
+  }
 
-  test("should report one unmatched enum value"):
+  test("should report one unmatched enum value") {
     assertErrors(
       1,
       source(
@@ -43,8 +44,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       ),
     )
+  }
 
-  test("should report one unmatched by alternative enum value"):
+  test("should report one unmatched by alternative enum value") {
     assertErrors(
       1,
       source(
@@ -53,8 +55,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       ),
     )
+  }
 
-  test("should not report unmatched values on wildcard"):
+  test("should not report unmatched values on wildcard") {
     assertNoErrors(
       source(
         """
@@ -62,8 +65,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       )
     )
+  }
 
-  test("should not report unmatched values with guard"):
+  test("should not report unmatched values with guard") {
     assertNoErrors(
       source(
         """
@@ -71,8 +75,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       )
     )
+  }
 
-  test("should not report no unmatched values in alternative"):
+  test("should not report no unmatched values in alternative") {
     assertNoErrors(
       source(
         """
@@ -80,8 +85,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       )
     )
+  }
 
-  test("should not report no unmatched values"):
+  test("should not report no unmatched values") {
     assertNoErrors(
       source(
         """
@@ -91,3 +97,5 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest:
       """.stripMargin
       )
     )
+  }
+}

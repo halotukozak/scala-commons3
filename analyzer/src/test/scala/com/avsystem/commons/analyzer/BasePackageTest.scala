@@ -3,17 +3,18 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
+final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
 
-  test("base package only"):
+  test("base package only") {
     // language=Scala
     assertNoErrors("""
         |package com.avsystem.commons
         |
         |object bar
         |""".stripMargin)
+  }
 
-  test("chained base package"):
+  test("chained base package") {
     assertNoErrors(
       // language=Scala
       """
@@ -23,8 +24,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin
     )
+  }
 
-  test("base package with chained subpackage"):
+  test("base package with chained subpackage") {
     assertNoErrors(
       // language=Scala
       """
@@ -34,8 +36,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin
     )
+  }
 
-  test("base package object"):
+  test("base package object") {
     assertNoErrors(
       // language=Scala
       """
@@ -44,8 +47,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |package object commons
         |""".stripMargin
     )
+  }
 
-  test("base package object with imports"):
+  test("base package object with imports") {
     assertNoErrors(
       // language=Scala
       """
@@ -57,8 +61,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |package object commons
         |""".stripMargin
     )
+  }
 
-  test("no base package"):
+  test("no base package") {
     assertErrors(
       1,
       // language=Scala
@@ -66,8 +71,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin,
     )
+  }
 
-  test("no base package with imports"):
+  test("no base package with imports") {
     assertErrors(
       1,
       // language=Scala
@@ -78,8 +84,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin,
     )
+  }
 
-  test("wrong base package"):
+  test("wrong base package") {
     assertErrors(
       1,
       // language=Scala
@@ -89,8 +96,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin,
     )
+  }
 
-  test("unchained subpackage"):
+  test("unchained subpackage") {
     assertErrors(
       1,
       // language=Scala
@@ -100,8 +108,9 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin,
     )
+  }
 
-  test("unchained subpackage with imports"):
+  test("unchained subpackage with imports") {
     assertErrors(
       1,
       // language=Scala
@@ -114,3 +123,5 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest:
         |object bar
         |""".stripMargin,
     )
+  }
+}

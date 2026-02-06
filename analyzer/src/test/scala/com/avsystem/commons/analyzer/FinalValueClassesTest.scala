@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
-  test("final value class should pass"):
+final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
+  test("final value class should pass") {
     assertNoErrors(scala"""
              |final class GoodValueClass(val x: Int) extends AnyVal {
              |  def double: Int = x * 2
@@ -12,8 +12,9 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalValueClasses")
     )
+  }
 
-  test("value class not marked as final should fail"):
+  test("value class not marked as final should fail") {
     assertErrors(
       1,
       scala"""
@@ -22,8 +23,9 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("generic value class not marked as final should fail"):
+  test("generic value class not marked as final should fail") {
     assertErrors(
       1,
       scala"""
@@ -32,8 +34,9 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
 
-  test("regular class with multiple parameters should not be affected"):
+  test("regular class with multiple parameters should not be affected") {
     assertNoErrors(scala"""
              |class RegularClass(val x: Int, val y: Int) {
              |  def double: Int = x * 2
@@ -41,8 +44,9 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalValueClasses")
     )
+  }
 
-  test("regular class not extending AnyVal should not be affected"):
+  test("regular class not extending AnyVal should not be affected") {
     assertNoErrors(scala"""
              |class RegularClass2(val x: Int) {
              |  def double: Int = x * 2
@@ -50,3 +54,5 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest:
              |""",
       List("-_", "+finalValueClasses")
     )
+  }
+}

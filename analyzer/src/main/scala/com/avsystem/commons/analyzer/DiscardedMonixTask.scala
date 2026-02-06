@@ -8,18 +8,19 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class DiscardedMonixTask() extends CheckingRule("discardedMonixTask"):
-  private def extractMonixTaskType(using Context): Type =
+class DiscardedMonixTask() extends CheckingRule("discardedMonixTask") {
+  private def extractMonixTaskType(using Context): Type = {
     val taskType = resolveClassType("monix.eval.Task")
-    if taskType == NoType then NoType
+    if (taskType == NoType) NoType
     else taskType.appliedTo(defn.AnyType)
+  }
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
     val monixTaskType = extractMonixTaskType
-    if monixTaskType == NoType then return
+    if (monixTaskType == NoType) return
 
-    object DiscardChecker:
-      def checkForDiscard(tree: tpd.Tree, isDiscarded: Boolean): Unit = tree match
+    object DiscardChecker {
+      def checkForDiscard(tree: tpd.Tree, isDiscarded: Boolean): Unit = tree match {
         case t if !isDiscarded && t.tpe != null && t.tpe =:= defn.UnitType =>
           checkForDiscard(t, isDiscarded = true)
 
@@ -28,9 +29,10 @@ class DiscardedMonixTask() extends CheckingRule("discardedMonixTask"):
           checkForDiscard(expr, isDiscarded)
 
         case tpd.Template(_, _, _, body) =>
-          body match
+          body match {
             case trees: List[tpd.Tree @unchecked] => trees.foreach(checkForDiscard(_, isDiscarded = true))
             case _ => ()
+          }
 
         case tpd.If(_, thenBranch, elseBranch) =>
           checkForDiscard(thenBranch, isDiscarded)
@@ -39,7 +41,7 @@ class DiscardedMonixTask() extends CheckingRule("discardedMonixTask"):
         case tpd.Try(body, handlers, finalizer) =>
           checkForDiscard(body, isDiscarded)
           handlers.foreach(checkForDiscard(_, isDiscarded))
-          if !finalizer.isEmpty then checkForDiscard(finalizer, isDiscarded = true)
+          if (!finalizer.isEmpty) checkForDiscard(finalizer, isDiscarded = true)
 
         case tpd.CaseDef(_, _, body) =>
           checkForDiscard(body, isDiscarded)
@@ -58,18 +60,24 @@ class DiscardedMonixTask() extends CheckingRule("discardedMonixTask"):
           checkForDiscard(prefix, isDiscarded = false)
           checkForDiscard(defDef.rhs, isDiscarded)
 
-        case ref: tpd.RefTree if isDiscarded && ref.tpe != null && 
-             ref.tpe <:< monixTaskType && !(ref.tpe <:< defn.NullType) =>
+        case ref: tpd.RefTree
+            if isDiscarded && ref.tpe != null && ref.tpe <:< monixTaskType && !(ref.tpe <:< defn.NullType) =>
           emitReport(
             ref.srcPos,
-            "discarded Monix Task - this is probably a mistake because the Task must be run for its side effects"
+            "discarded Monix Task - this is probably a mistake because the Task must be run for its side effects",
           )
 
         case other =>
-          object SubTreeTraverser extends tpd.TreeTraverser:
-            override def traverse(tree: tpd.Tree)(using Context): Unit =
+          object SubTreeTraverser extends tpd.TreeTraverser {
+            override def traverse(tree: tpd.Tree)(using Context): Unit = {
               checkForDiscard(tree, isDiscarded = false)
               traverseChildren(tree)
+            }
+          }
           SubTreeTraverser.traverse(other)
-    
+      }
+    }
+
     DiscardChecker.checkForDiscard(unitTree, isDiscarded = false)
+  }
+}

@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest:
-  test("macro private method invoked directly should be rejected"):
+final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
+  test("macro private method invoked directly should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -16,8 +16,9 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+macroPrivate")
     )
+  }
 
-  test("macro private extractor used directly should be rejected"):
+  test("macro private extractor used directly should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -31,8 +32,9 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+macroPrivate")
     )
+  }
 
-  test("macro private method invoked by macro-generated code should not be rejected"):
+  test("macro private method invoked by macro-generated code should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.analyzer.TestUtils
@@ -43,8 +45,9 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+macroPrivate")
     )
+  }
 
-  test("definitions of macro private symbols themselves should not be rejected"):
+  test("definitions of macro private symbols themselves should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.annotation.macroPrivate
@@ -58,3 +61,5 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+macroPrivate")
     )
+  }
+}

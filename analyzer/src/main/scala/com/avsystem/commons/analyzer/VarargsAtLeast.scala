@@ -10,44 +10,57 @@ import Types.*
 import Constants.*
 import Decorators.*
 
-class VarargsAtLeast() extends CheckingRule("varargsAtLeast"):
+class VarargsAtLeast() extends CheckingRule("varargsAtLeast") {
   private def extractAtLeastAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.atLeast")
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
     val atLeastAnnotType = extractAtLeastAnnotation
-    if atLeastAnnotType == NoType then return
+    if (atLeastAnnotType == NoType) return
 
-    object VarargsChecker extends tpd.TreeTraverser:
+    object VarargsChecker extends tpd.TreeTraverser {
       override def traverse(tree: tpd.Tree)(using Context): Unit =
-        tree match
+        tree match {
           case app @ tpd.Apply(fn, args) =>
             val methodSym = fn.symbol
-            if methodSym.exists && methodSym.is(Flags.Method) then
+            if (methodSym.exists && methodSym.is(Flags.Method)) {
               val params = methodSym.info.paramInfoss.flatten
-              if params.nonEmpty && params.last.isRepeatedParam then
-                val lastIsVararg = args.lastOption.exists:
-                  case tpd.Typed(_, tpt) => 
-                    tpt match
+              if (params.nonEmpty && params.last.isRepeatedParam) {
+                val lastIsVararg = args.lastOption.exists {
+                  case tpd.Typed(_, tpt) =>
+                    tpt match {
                       case tpd.Ident(name) => name.toString.contains("*")
                       case _ => false
+                    }
                   case _ => false
-                
-                if !lastIsVararg then
+                }
+
+                if (!lastIsVararg) {
                   val lastParamSym = methodSym.paramSymss.flatten.last
-                  val requiredCount = lastParamSym.annotations.find(ann => ann.symbol.typeRef <:< atLeastAnnotType).map: annot =>
-                    annot.tree match
-                      case tpd.Apply(_, List(tpd.Literal(Constant(n: Int)))) => n
-                      case _ => 0
-                  .getOrElse(0)
-                  
+                  val requiredCount = lastParamSym.annotations
+                    .find(ann => ann.symbol.typeRef <:< atLeastAnnotType)
+                    .map { annot =>
+                      annot.tree match {
+                        case tpd.Apply(_, List(tpd.Literal(Constant(n: Int)))) => n
+                        case _ => 0
+                      }
+                    }
+                    .getOrElse(0)
+
                   val providedCount = args.length - params.length + 1
-                  
-                  if providedCount < requiredCount then
+
+                  if (providedCount < requiredCount)
                     emitReport(
                       app.srcPos,
-                      s"This method requires at least $requiredCount arguments for its repeated parameter, $providedCount passed."
+                      s"This method requires at least $requiredCount arguments for its repeated parameter, $providedCount passed.",
                     )
+                }
+              }
+            }
             traverseChildren(tree)
           case _ => traverseChildren(tree)
+        }
+    }
     VarargsChecker.traverse(unitTree)
+  }
+}

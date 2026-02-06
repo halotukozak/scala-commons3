@@ -7,17 +7,21 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FinalValueClasses() extends CheckingRule("finalValueClasses", SeverityLevel.Warning):
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
+class FinalValueClasses() extends CheckingRule("finalValueClasses", SeverityLevel.Warning) {
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
     val anyValClass = defn.AnyValClass
 
-    object ValueClassChecker extends tpd.TreeTraverser:
+    object ValueClassChecker extends tpd.TreeTraverser {
       override def traverse(tree: tpd.Tree)(using Context): Unit =
-        tree match
+        tree match {
           case classDef: tpd.TypeDef if classDef.symbol.isClass && !classDef.symbol.is(Flags.Final) =>
             val classType = classDef.symbol.info
-            if classType.baseClasses.contains(anyValClass) then
+            if (classType.baseClasses.contains(anyValClass))
               emitReport(classDef.srcPos, "Value classes should be marked as final")
             traverseChildren(tree)
           case _ => traverseChildren(tree)
+        }
+    }
     ValueClassChecker.traverse(unitTree)
+  }
+}

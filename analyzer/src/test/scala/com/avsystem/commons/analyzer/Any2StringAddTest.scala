@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest:
-  test("any2stringadd should be rejected"):
+final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest {
+  test("any2stringadd should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -13,8 +13,9 @@ final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+any2stringadd")
     )
+  }
 
-  test("toString should not be rejected"):
+  test("toString should not be rejected") {
     assertNoErrors(
       scala"""
              |val any: Any = ???
@@ -22,8 +23,9 @@ final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+any2stringadd")
     )
+  }
 
-  test("string interpolation should not be rejected"):
+  test("string interpolation should not be rejected") {
     assertNoErrors(
       scala"""
              |val any: Any = ???
@@ -31,3 +33,5 @@ final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+any2stringadd")
     )
+  }
+}

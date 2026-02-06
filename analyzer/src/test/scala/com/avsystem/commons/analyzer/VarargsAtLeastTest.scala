@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest:
-  test("too few varargs parameters should be rejected"):
+final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
+  test("too few varargs parameters should be rejected") {
     assertErrors(
       1,
       scala"""
@@ -14,8 +14,9 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+varargsAtLeast")
     )
+  }
 
-  test("enough varargs parameters should not be rejected"):
+  test("enough varargs parameters should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.analyzer.TestUtils
@@ -25,8 +26,9 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+varargsAtLeast")
     )
+  }
 
-  test("collection passed as varargs parameter should not be rejected"):
+  test("collection passed as varargs parameter should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.analyzer.TestUtils
@@ -35,3 +37,5 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest:
              |""".stripMargin,
       List("-_", "+varargsAtLeast")
     )
+  }
+}

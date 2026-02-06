@@ -3,7 +3,7 @@ package analyzer
 
 import com.avsystem.commons.annotation.{atLeast, explicitGenerics, macroPrivate}
 
-object TestUtils:
+object TestUtils {
   def need3Params(@atLeast(3) args: Any*) = ()
 
   @macroPrivate
@@ -12,12 +12,14 @@ object TestUtils:
   inline def invokeMacroPrivateMethod: Int = ${ invokeMacroPrivateMethodImpl }
 
   import scala.quoted.*
-  def invokeMacroPrivateMethodImpl(using Quotes): Expr[Int] =
+  def invokeMacroPrivateMethodImpl(using Quotes): Expr[Int] = {
     import quotes.reflect.*
     Select.unique(This(Symbol.requiredModule("com.avsystem.commons.analyzer.TestUtils")).asExpr.asTerm, "macroPrivateMethod").asExprOf[Int]
+  }
 
-  object Extractor:
+  object Extractor {
     @macroPrivate def unapply(any: Any): Option[Any] = None
+  }
 
   @explicitGenerics
   def genericMethod[T](arg: T): T = arg
@@ -26,3 +28,4 @@ object TestUtils:
   inline def genericMacro[T](arg: T): T = ${ genericMacroImpl[T]('arg) }
   
   def genericMacroImpl[T: Type](arg: Expr[T])(using Quotes): Expr[T] = arg
+}

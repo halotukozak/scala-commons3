@@ -3,8 +3,8 @@ package analyzer
 
 import org.scalatest.funsuite.AnyFunSuite
 
-final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest:
-  test("definitions of @bincompat annotated symbols should not be rejected"):
+final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest {
+  test("definitions of @bincompat annotated symbols should not be rejected") {
     assertNoErrors(
       scala"""
              |import com.avsystem.commons.annotation.bincompat
@@ -16,8 +16,9 @@ final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin
     )
+  }
 
-  test("usage of @bincompat annotated symbols should be rejected"):
+  test("usage of @bincompat annotated symbols should be rejected") {
     assertErrors(
       3,
       scala"""
@@ -38,3 +39,5 @@ final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest:
              |}
              |""".stripMargin,
     )
+  }
+}
