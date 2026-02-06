@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import Constants.*
 
-class ConstantDeclarations extends AnalyzerRule("constantDeclarations", Level.Off) {
+object ConstantDeclarations extends AnalyzerRule("constantDeclarations", Level.Off) {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case valDef: ValDef if valDef.symbol.exists && valDef.symbol.owner.isEffectivelyFinal =>
       val valSym = valDef.symbol

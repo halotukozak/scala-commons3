@@ -28,13 +28,12 @@ abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level
   def updateArgument(arg: String): Unit =
     ruleArgument = arg
 
-  protected def resolveClassType(fqn: String)(using Context): Type =
-    try {
-      val classSym = requiredClass(fqn)
-      classSym.typeRef
-    } catch {
-      case _: Exception => NoType
-    }
+  protected def resolveClassType(fqn: String)(using Context): Option[TypeRef] = try {
+    val classSym = requiredClass(fqn)
+    Some(classSym.typeRef).filter(_ != NoType)
+  } catch {
+    case NonFatal(_) => None
+  }
 
   protected def traverseAndCheck(checkFn: PartialFunction[tpd.Tree, Unit])(tree: tpd.Tree)(using Context): Unit =
     try

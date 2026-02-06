@@ -10,16 +10,18 @@ import Types.*
 import scala.collection.mutable
 
 object ValueEnumExhaustiveMatch extends AnalyzerRule("valueEnumExhaustiveMatch") {
-  private def extractValueEnumTypes(using Context): (Type, Symbol) = {
+  private def extractValueEnumTypes(using Context) = {
     val valueEnumType = resolveClassType("com.avsystem.commons.misc.ValueEnum")
     val companionType = resolveClassType("com.avsystem.commons.misc.ValueEnumCompanion")
-    val companionSym = if (companionType != NoType) companionType.typeSymbol else NoSymbol
-    (valueEnumType, companionSym)
+    val companionSym = companionType match {
+      case Some(companionType) => companionType.typeSymbol
+      case None => NoSymbol
+    }
+    valueEnumType.map((_, companionSym)).filter(_._2.exists)
   }
 
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    val (valueEnumType, companionSym) = extractValueEnumTypes
-    if (valueEnumType != NoType && companionSym.exists) {
+  def performCheck(unitTree: Tree)(using Context): Unit = extractValueEnumTypes.foreach {
+    (valueEnumType, companionSym) =>
       checkChildren(unitTree) {
         case matchTree @ Match(selector, cases) if selector.tpe <:< valueEnumType =>
           val selectorType = selector.tpe
@@ -65,6 +67,5 @@ object ValueEnumExhaustiveMatch extends AnalyzerRule("valueEnumExhaustiveMatch")
           }
         case _ =>
       }
-    }
   }
 }

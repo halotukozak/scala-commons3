@@ -8,20 +8,17 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class CheckBincompat extends AnalyzerRule("bincompat") {
-  private def extractBincompatAnnotation(using Context): Type =
-    resolveClassType("com.avsystem.commons.annotation.bincompat")
+object CheckBincompat extends AnalyzerRule("bincompat") {
+  private def extractBincompatAnnotation(using Context) = resolveClassType("com.avsystem.commons.annotation.bincompat")
 
-  def performCheck(unitTree: Tree)(using Context): Unit =
-    val bincompatType = extractBincompatAnnotation
-    if bincompatType != NoType then
-      checkChildren(unitTree) {
-        case ref: RefTree if ref.symbol.exists && ref.symbol.annotations.exists(_.symbol.typeRef <:< bincompatType) =>
-          emitReport(
-            ref.srcPos,
-            "Symbols annotated as @bincompat exist only for binary compatibility " +
-              "and should not be used directly"
-          )
-        case _ =>
-      }
+  def performCheck(unitTree: Tree)(using Context): Unit = extractBincompatAnnotation.foreach { bincompatType =>
+    checkChildren(unitTree) {
+      case ref: RefTree if ref.symbol.exists && ref.symbol.annotations.exists(_.symbol.typeRef <:< bincompatType) =>
+        emitReport(
+          ref.srcPos,
+          "Symbols annotated as @bincompat exist only for binary compatibility " + "and should not be used directly",
+        )
+      case _ =>
+    }
+  }
 }

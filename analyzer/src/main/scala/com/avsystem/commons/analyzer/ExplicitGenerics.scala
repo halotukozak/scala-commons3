@@ -9,12 +9,10 @@ import Symbols.*
 import Types.*
 
 object ExplicitGenerics extends AnalyzerRule("explicitGenerics") {
-  private def extractExplicitGenericsAnnotation(using Context): Type =
+  private def extractExplicitGenericsAnnotation(using Context) =
     resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    val explicitGenAnnotType = extractExplicitGenericsAnnotation
-    if (explicitGenAnnotType != NoType) {
+  def performCheck(unitTree: Tree)(using Context): Unit = extractExplicitGenericsAnnotation.foreach { explicitGenAnnotType =>
       checkChildren(unitTree) {
         case app @ TypeApply(fn, typeArgs) =>
           val fnSym = fn.symbol
@@ -40,5 +38,4 @@ object ExplicitGenerics extends AnalyzerRule("explicitGenerics") {
         case _ =>
       }
     }
-  }
 }

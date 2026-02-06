@@ -13,8 +13,7 @@ class AnalyzerPlugin extends StandardPlugin {
   override val description = "AVSystem custom Scala static analyzer"
 
   def init(options: List[String], phases: List[List[Phase]])(using Context): List[List[Phase]] = {
-    val ruleInstances = createAllRuleInstances()
-    val ruleMapping = ruleInstances.map(r => r.ruleName -> r).toMap
+    val ruleMapping = rules.map(r => r.ruleName -> r).toMap
 
     options.foreach { option =>
       if (option.startsWith("requireJDK=")) {
@@ -34,7 +33,7 @@ class AnalyzerPlugin extends StandardPlugin {
         val nameWithArg = if (severityLevel != Level.Warn) option.drop(1) else option
 
         if (nameWithArg == "_") {
-          ruleInstances.foreach(_.updateSeverity(severityLevel))
+          rules.foreach(_.updateSeverity(severityLevel))
         } else {
           val parts = nameWithArg.split(":", 2)
           val ruleName = parts(0)
@@ -51,32 +50,32 @@ class AnalyzerPlugin extends StandardPlugin {
       }
     }
 
-    val analyzerPhase = AnalyzerPhaseImpl(ruleInstances)
+    val analyzerPhase = AnalyzerPhaseImpl(rules)
     // Insert the analyzer phase as a separate phase group
     // The runsAfter/runsBefore constraints will handle the ordering
     phases :+ List(analyzerPhase)
   }
 
-  private def createAllRuleInstances(): List[AnalyzerRule] = List(
-    ImportJavaUtil(),
-    VarargsAtLeast(),
-    CheckMacroPrivate(),
-    ExplicitGenerics(),
-    ValueEnumExhaustiveMatch(),
-    ShowAst(),
-    FindUsages(),
-    CheckBincompat(),
-    ThrowableObjects(),
-    DiscardedMonixTask(),
-    NothingAsFunctionArgument(),
-    ConstantDeclarations(),
-    BasePackage(),
-    ImplicitValueClasses(),
-    FinalValueClasses(),
-    FinalCaseClasses(),
-    ImplicitParamDefaults(),
-    CatchThrowable(),
-    ImplicitFunctionParams(),
+  private val rules: List[AnalyzerRule] = List(
+    ImportJavaUtil,
+    VarargsAtLeast,
+    CheckMacroPrivate,
+    ExplicitGenerics,
+    ValueEnumExhaustiveMatch,
+    ShowAst,
+    FindUsages,
+    CheckBincompat,
+    ThrowableObjects,
+    DiscardedMonixTask,
+    NothingAsFunctionArgument,
+    ConstantDeclarations,
+    BasePackage,
+    ImplicitValueClasses,
+    FinalValueClasses,
+    FinalCaseClasses,
+    ImplicitParamDefaults,
+    CatchThrowable,
+    ImplicitFunctionParams,
   )
 }
 
@@ -93,7 +92,7 @@ class AnalyzerPhaseImpl(rulesList: List[AnalyzerRule]) extends PluginPhase {
       if (currentRule.currentSeverity != Level.Off) {
         // For ImportJavaUtil, pass the untyped tree
         if (currentRule.ruleName == "importJavaUtil") {
-          currentRule.asInstanceOf[ImportJavaUtil].performCheckOnUntpd(untpdTree)
+          currentRule.asInstanceOf[ImportJavaUtil.type].performCheckOnUntpd(untpdTree)
         } else
           currentRule.performCheck(unitTree)
       }
