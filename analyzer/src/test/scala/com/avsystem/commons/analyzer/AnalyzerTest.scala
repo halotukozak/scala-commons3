@@ -77,4 +77,7 @@ trait AnalyzerTest extends Assertions {
   extension (sc: StringContext) {
     def scala(args: Any*): String = s"object TopLevel {${sc.s(args*)}}"
   }
+
+  def onlyRule(name: String): List[String] = List("-_", s"+$name")
+  def onlyRuleWithArg(name: String, arg: String): List[String] = List("-_", s"+$name:$arg")
 }

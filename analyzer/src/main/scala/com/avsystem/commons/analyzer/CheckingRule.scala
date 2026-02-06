@@ -15,7 +15,7 @@ import java.io.{PrintWriter, StringWriter}
 import scala.util.control.NonFatal
 
 enum SeverityLevel {
-  case Disabled, Information, Warning, Fatal
+  case Disabled, Information, Warning, Error
 }
 
 abstract class CheckingRule(val ruleName: String, initialSeverity: SeverityLevel = SeverityLevel.Warning) {
@@ -46,19 +46,28 @@ abstract class CheckingRule(val ruleName: String, initialSeverity: SeverityLevel
         report.error(s"Analyzer rule $this failed: ${stringWriter.toString}", tree.srcPos)
     }
 
+  protected def checkChildren(tree: tpd.Tree)(checkFn: tpd.Tree => Unit)(using Context): Unit = {
+    object Checker extends tpd.TreeTraverser {
+      override def traverse(t: tpd.Tree)(using Context): Unit = {
+        checkFn(t)
+        traverseChildren(t)
+      }
+    }
+    Checker.traverse(tree)
+  }
+
   private def prefixMessage(msg: String): String = s"[AVS] $msg"
 
   protected final def emitReport(
     position: SrcPos,
     message: String,
     severity: SeverityLevel = currentSeverity,
-  )(using Context,
-  ): Unit =
+  )(using Context): Unit =
     severity match {
       case SeverityLevel.Disabled =>
       case SeverityLevel.Information => report.inform(prefixMessage(message), position)
       case SeverityLevel.Warning => report.warning(prefixMessage(message), position)
-      case SeverityLevel.Fatal => report.error(prefixMessage(message), position)
+      case SeverityLevel.Error => report.error(prefixMessage(message), position)
     }
 
   def performCheck(unitTree: tpd.Tree)(using Context): Unit

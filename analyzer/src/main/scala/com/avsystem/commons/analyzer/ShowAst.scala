@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import printing.Texts.Text
 
-class ShowAst() extends CheckingRule("showAst", SeverityLevel.Fatal) {
+class ShowAst() extends CheckingRule("showAst", SeverityLevel.Error) {
   private def extractShowAstAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.showAst")
 

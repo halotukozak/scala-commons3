@@ -27,7 +27,7 @@ class AnalyzerPlugin extends StandardPlugin {
         val severityLevel = optionString.charAt(0) match {
           case '-' => SeverityLevel.Disabled
           case '*' => SeverityLevel.Information
-          case '+' => SeverityLevel.Fatal
+          case '+' => SeverityLevel.Error
           case _ => SeverityLevel.Warning
         }
 

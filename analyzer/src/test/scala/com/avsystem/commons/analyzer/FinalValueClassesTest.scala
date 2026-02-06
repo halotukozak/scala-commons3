@@ -10,7 +10,7 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalValueClasses")
+      onlyRule("finalValueClasses")
     )
   }
 
@@ -22,6 +22,7 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
+      onlyRule("finalValueClasses")
     )
   }
 
@@ -33,6 +34,7 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
+      onlyRule("finalValueClasses")
     )
   }
 
@@ -42,7 +44,7 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalValueClasses")
+      onlyRule("finalValueClasses")
     )
   }
 
@@ -52,7 +54,7 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalValueClasses")
+      onlyRule("finalValueClasses")
     )
   }
 }
