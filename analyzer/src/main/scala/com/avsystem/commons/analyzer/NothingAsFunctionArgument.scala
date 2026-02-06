@@ -15,13 +15,13 @@ class NothingAsFunctionArgument(using Context) extends AnalyzerRuleOnTyped("noth
       if (methodSym.exists && methodSym.is(Flags.Method)) {
         val params = methodSym.info.paramInfoss.flatten
         args.zip(params).foreach {
-          case (arg, paramInfo) if defn.isFunctionType(paramInfo) && arg.tpe <:< defn.NothingType =>
+          case (arg, param) if defn.isFunctionType(param) && arg.tpe <:< defn.NothingType =>
             emitReport(
               arg.srcPos,
               s"""
                  |A value of type `Nothing` was passed where a function is expected.
                  |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
-                 |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${paramInfo.show}]`).
+                 |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${param.show}]`).
                  |""".stripMargin,
             )
           case _ =>

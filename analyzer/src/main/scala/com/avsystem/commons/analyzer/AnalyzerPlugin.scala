@@ -30,22 +30,20 @@ class AnalyzerPlugin extends StandardPlugin {
           case '+' => Level.Error
           case _ => Level.Warn
         }
-
         val nameArg = if (level != Level.Warn) option.drop(1) else option
-
         if (nameArg == "_") {
           rules.foreach(_.level = level)
         } else {
-          val parts = nameArg.split(":", 2)
-          val ruleName = parts(0)
-          val ruleArg = if (parts.length > 1) parts(1) else null
-
-          rulesByName.get(ruleName) match {
-            case Some(ruleInstance) =>
-              ruleInstance.level = level
-              ruleInstance.ruleArgument = ruleArg
+          val (name, arg) = nameArg.split(":", 2) match {
+            case Array(n, a) => (n, a)
+            case Array(n) => (n, null)
+          }
+          rulesByName.get(name) match {
+            case Some(rule) =>
+              rule.level = level
+              rule.argument = arg
             case None =>
-              report.error(s"Unrecognized AVS analyzer rule: $ruleName")
+              report.error(s"Unrecognized AVS analyzer rule: $$name")
           }
         }
       }

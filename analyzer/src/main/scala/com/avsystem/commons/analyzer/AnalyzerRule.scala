@@ -21,7 +21,7 @@ enum Level {
 
 sealed trait AnalyzerRule(using Context)(val ruleName: String, defaultLevel: Level = Level.Warn) {
   var level: Level = defaultLevel
-  var ruleArgument: String | Null = null
+  var argument: String | Null = null
 
   protected def resolveClassType(fqn: String): Option[TypeRef] = try {
     val classSym = requiredClass(fqn)

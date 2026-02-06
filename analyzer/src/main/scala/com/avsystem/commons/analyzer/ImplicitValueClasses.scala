@@ -8,7 +8,7 @@ import dotty.tools.dotc.core.Contexts.*
 import dotty.tools.dotc.core.Symbols.*
 
 class ImplicitValueClasses(using Context) extends AnalyzerRuleOnTyped("implicitValueClasses", Level.Warn) {
-  private lazy val shouldReportNested: Boolean = ruleArgument match {
+  private lazy val shouldReportNested: Boolean = argument match {
     case "all" => true
     case "top-level-only" | null => false
     case other => throw IllegalArgumentException(s"Unknown ImplicitValueClasses option: $other")

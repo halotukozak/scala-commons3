@@ -2,25 +2,21 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd.*
-import core.*
-import Contexts.*
-import Symbols.*
-import Types.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
 class ImplicitFunctionParams(using Context) extends AnalyzerRuleOnTyped("implicitFunctionParams", Level.Warn) {
   def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
-    case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
-      defDef.termParamss
-        .filter(paramClause => paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit))
-        .foreach { paramClause =>
-          paramClause.foreach { param =>
-            val paramType = param.tpt.tpe
-            if (
-              paramType != null && (defn.isFunctionType(paramType) || paramType.typeSymbol == defn.PartialFunctionClass)
-            ) emitReport(param.srcPos, "Implicit parameters should not have any function type")
-          }
-        }
+    case dd: DefDef if dd.symbol.is(Flags.Method) =>
+      for {
+        paramClause <- dd.termParamss
+        if paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit)
+        param <- paramClause
+        paramType = param.tpt.tpe
+        if paramType != null && (defn.isFunctionType(paramType) || paramType.typeSymbol == defn.PartialFunctionClass)
+      } emitReport(param.srcPos, "Implicit parameters should not have any function type")
     case _ =>
   }
 }
