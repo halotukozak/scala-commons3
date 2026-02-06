@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import scala.collection.mutable
 
-class ValueEnumExhaustiveMatch() extends CheckingRule("valueEnumExhaustiveMatch") {
+class ValueEnumExhaustiveMatch() extends AnalyzerRule("valueEnumExhaustiveMatch") {
   private def extractValueEnumTypes(using Context): (Type, Symbol) = {
     val valueEnumType = resolveClassType("com.avsystem.commons.misc.ValueEnum")
     val companionType = resolveClassType("com.avsystem.commons.misc.ValueEnumCompanion")

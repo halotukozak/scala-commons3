@@ -10,7 +10,7 @@ import Types.*
 import Constants.*
 import Decorators.*
 
-class VarargsAtLeast() extends CheckingRule("varargsAtLeast") {
+class VarargsAtLeast() extends AnalyzerRule("varargsAtLeast") {
   private def extractAtLeastAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.atLeast")
 

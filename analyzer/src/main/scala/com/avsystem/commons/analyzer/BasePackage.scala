@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import scala.annotation.tailrec
 
-class BasePackage() extends CheckingRule("basePackage") {
+class BasePackage() extends AnalyzerRule("basePackage") {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     if (ruleArgument != null) {
       val requiredPkg = ruleArgument

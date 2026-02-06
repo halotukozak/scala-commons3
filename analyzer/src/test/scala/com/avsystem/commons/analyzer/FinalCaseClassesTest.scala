@@ -10,7 +10,7 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalCaseClasses")
+      onlyRule("finalCaseClasses")
     )
   }
 
@@ -42,7 +42,7 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalCaseClasses")
+      onlyRule("finalCaseClasses")
     )
   }
 
@@ -52,7 +52,7 @@ final class FinalCaseClassesTest extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""",
-      List("-_", "+finalCaseClasses")
+      onlyRule("finalCaseClasses")
     )
   }
 

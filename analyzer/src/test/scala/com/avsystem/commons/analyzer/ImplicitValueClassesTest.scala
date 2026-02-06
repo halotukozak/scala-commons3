@@ -11,7 +11,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -23,7 +23,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -35,7 +35,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -46,7 +46,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -57,7 +57,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -75,7 +75,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -91,7 +91,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -104,7 +104,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 
@@ -115,7 +115,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |  def sth: Long = x.millis
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses")
+      onlyRule("implicitValueClasses")
     )
   }
 }
@@ -132,7 +132,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |  }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 
@@ -146,7 +146,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              | }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 
@@ -162,7 +162,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              | }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 
@@ -173,7 +173,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              | def double: Int = x * 2
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 
@@ -193,7 +193,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              | }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 
@@ -211,7 +211,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              | }
              |}
              |""".stripMargin,
-      List("-_", "+implicitValueClasses:all")
+      onlyRuleWithArg("implicitValueClasses", "all")
     )
   }
 }

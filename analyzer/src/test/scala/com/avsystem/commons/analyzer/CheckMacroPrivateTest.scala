@@ -14,7 +14,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |  TestUtils.macroPrivateMethod
              |}
              |""".stripMargin,
-      List("-_", "+macroPrivate")
+      onlyRule("macroPrivate")
     )
   }
 
@@ -30,7 +30,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |  }
              |}
              |""".stripMargin,
-      List("-_", "+macroPrivate")
+      onlyRule("macroPrivate")
     )
   }
 
@@ -43,7 +43,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |  TestUtils.invokeMacroPrivateMethod
              |}
              |""".stripMargin,
-      List("-_", "+macroPrivate")
+      onlyRule("macroPrivate")
     )
   }
 
@@ -59,7 +59,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |  }
              |}
              |""".stripMargin,
-      List("-_", "+macroPrivate")
+      onlyRule("macroPrivate")
     )
   }
 }

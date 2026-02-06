@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import Constants.*
 
-class ConstantDeclarations() extends CheckingRule("constantDeclarations", Level.Off) {
+class ConstantDeclarations() extends AnalyzerRule("constantDeclarations", Level.Off) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

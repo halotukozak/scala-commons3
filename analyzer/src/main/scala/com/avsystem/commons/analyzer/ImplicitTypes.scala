@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class ImplicitTypes() extends CheckingRule("implicitTypes") {
+class ImplicitTypes() extends AnalyzerRule("implicitTypes") {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

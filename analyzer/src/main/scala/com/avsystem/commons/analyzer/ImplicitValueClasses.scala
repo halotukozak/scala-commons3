@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class ImplicitValueClasses() extends CheckingRule("implicitValueClasses", Level.Warn) {
+class ImplicitValueClasses() extends AnalyzerRule("implicitValueClasses", Level.Warn) {
   private def shouldReportNested: Boolean =
     ruleArgument match {
       case "all" => true

@@ -64,7 +64,7 @@ final class ConstantDeclarationsTest extends AnyFunSuite with AnalyzerTest {
              |  val a: Int = 42
              |}
              |""",
-      List("-_", "+constantDeclarations")
+      onlyRule("constantDeclarations")
     )
   }
 

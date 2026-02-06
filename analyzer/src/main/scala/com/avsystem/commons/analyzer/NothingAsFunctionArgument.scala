@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class NothingAsFunctionArgument() extends CheckingRule("nothingAsFunctionArgument") {
+class NothingAsFunctionArgument() extends AnalyzerRule("nothingAsFunctionArgument") {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

@@ -6,7 +6,7 @@ import ast.{tpd, untpd}
 import core.*
 import Contexts.*
 
-class ImportJavaUtil() extends CheckingRule("importJavaUtil") {
+class ImportJavaUtil() extends AnalyzerRule("importJavaUtil") {
   def performCheck(unitTree: tpd.Tree)(using Context): Unit =
     // This method is not used; use performCheckOnUntpd instead
     ()

@@ -12,7 +12,7 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMethod(123)
              |""".stripMargin,
-      List("-_", "+explicitGenerics")
+      onlyRule("explicitGenerics")
     )
   }
 
@@ -24,7 +24,7 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMacro(123)
              |""".stripMargin,
-      List("-_", "+explicitGenerics")
+      onlyRule("explicitGenerics")
     )
   }
 
@@ -35,7 +35,7 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMethod[Int](123)
              |""".stripMargin,
-      List("-_", "+explicitGenerics")
+      onlyRule("explicitGenerics")
     )
   }
 
@@ -46,7 +46,7 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMacro[Int](123)
              |""".stripMargin,
-      List("-_", "+explicitGenerics")
+      onlyRule("explicitGenerics")
     )
   }
 }

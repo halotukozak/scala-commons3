@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class ExplicitGenerics() extends CheckingRule("explicitGenerics") {
+class ExplicitGenerics() extends AnalyzerRule("explicitGenerics") {
   private def extractExplicitGenericsAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 

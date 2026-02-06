@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FinalCaseClasses() extends CheckingRule("finalCaseClasses", Level.Warn) {
+class FinalCaseClasses() extends AnalyzerRule("finalCaseClasses", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

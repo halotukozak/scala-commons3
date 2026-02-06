@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class CheckMacroPrivate() extends CheckingRule("macroPrivate") {
+class CheckMacroPrivate() extends AnalyzerRule("macroPrivate") {
   private def extractMacroPrivateAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.macroPrivate")
 

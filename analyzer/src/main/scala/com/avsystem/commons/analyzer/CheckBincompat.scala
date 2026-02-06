@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class CheckBincompat() extends CheckingRule("bincompat"):
+class CheckBincompat() extends AnalyzerRule("bincompat"):
   private def extractBincompatAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.bincompat")
 

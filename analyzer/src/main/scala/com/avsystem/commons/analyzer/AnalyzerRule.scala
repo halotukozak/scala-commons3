@@ -18,7 +18,7 @@ enum Level {
   case Off, Info, Warn, Error
 }
 
-abstract class CheckingRule(val ruleName: String, initialSeverity: Level = Level.Warn) {
+abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level.Warn) {
   var currentSeverity: Level = initialSeverity
   var ruleArgument: String | Null = null
 

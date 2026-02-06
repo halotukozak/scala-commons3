@@ -57,7 +57,7 @@ class AnalyzerPlugin extends StandardPlugin {
     phases :+ List(analyzerPhase)
   }
 
-  private def createAllRuleInstances(): List[CheckingRule] = List(
+  private def createAllRuleInstances(): List[AnalyzerRule] = List(
     ImportJavaUtil(),
     VarargsAtLeast(),
     CheckMacroPrivate(),
@@ -80,7 +80,7 @@ class AnalyzerPlugin extends StandardPlugin {
   )
 }
 
-class AnalyzerPhaseImpl(rulesList: List[CheckingRule]) extends PluginPhase {
+class AnalyzerPhaseImpl(rulesList: List[AnalyzerRule]) extends PluginPhase {
   val phaseName = "avsAnalyze"
   override val runsAfter = Set("typer")
   override val runsBefore = Set("patmat")
