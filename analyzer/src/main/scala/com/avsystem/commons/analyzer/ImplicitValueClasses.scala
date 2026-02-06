@@ -2,7 +2,7 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd
+import ast.tpd.*
 import core.*
 import Contexts.*
 import Symbols.*
@@ -16,54 +16,51 @@ class ImplicitValueClasses() extends CheckingRule("implicitValueClasses", Severi
       case other => throw IllegalArgumentException(s"Unknown ImplicitValueClasses option: $other")
     }
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
+  def performCheck(unitTree: Tree)(using Context): Unit = {
     val anyValClass = defn.AnyValClass
     val objectClass = defn.ObjectClass
     val anyClass = defn.AnyClass
     val defaultBaseClasses = Set(anyClass, anyValClass, objectClass)
 
-    object ImplicitClassChecker extends tpd.TreeTraverser {
-      override def traverse(tree: tpd.Tree)(using Context): Unit =
-        tree match {
-          case classDef: tpd.TypeDef if classDef.symbol.is(Flags.Implicit) && classDef.symbol.isClass =>
-            val classType = classDef.symbol.info
-            val baseClassSet = classType.baseClasses.toSet
+    checkChildren(unitTree) { tree =>
+      tree match {
+        case classDef: TypeDef if classDef.symbol.is(Flags.Implicit) && classDef.symbol.isClass =>
+          val classType = classDef.symbol.info
+          val baseClassSet = classType.baseClasses.toSet
 
-            val hasAnyValParent = baseClassSet.contains(anyValClass)
+          val hasAnyValParent = baseClassSet.contains(anyValClass)
 
-            val hasNonDefaultBase = baseClassSet.exists { base =>
-              def isUniversalTrait = base.is(Flags.Trait) && base.asClass.superClass == anyClass
-              base != classDef.symbol && !defaultBaseClasses.contains(base) && !isUniversalTrait
+          val hasNonDefaultBase = baseClassSet.exists { base =>
+            def isUniversalTrait = base.is(Flags.Trait) && base.asClass.superClass == anyClass
+            base != classDef.symbol && !defaultBaseClasses.contains(base) && !isUniversalTrait
+          }
+
+          val primaryConstructor = classDef.symbol.primaryConstructor
+          val constructorParamLists = if (primaryConstructor.exists) primaryConstructor.info.paramInfoss else Nil
+          val hasExactlyOneParam = constructorParamLists match {
+            case List(List(param)) => true
+            case _ => false
+          }
+
+          val paramIsValueClass = primaryConstructor.exists &&
+            primaryConstructor.info.paramInfoss.flatten.headOption.exists { paramType =>
+              paramType.typeSymbol.is(Flags.Trait) || paramType.typeSymbol.isDerivedValueClass
             }
 
-            val primaryConstructor = classDef.symbol.primaryConstructor
-            val constructorParamLists = if (primaryConstructor.exists) primaryConstructor.info.paramInfoss else Nil
-            val hasExactlyOneParam = constructorParamLists match {
-              case List(List(param)) => true
-              case _ => false
+          if (!hasAnyValParent && !hasNonDefaultBase && hasExactlyOneParam && !paramIsValueClass) {
+            val nestedInNonStaticContext = !classDef.symbol.isStatic
+
+            val message = "Implicit classes should always extend AnyVal to become value classes" +
+              (if (nestedInNonStaticContext) ". Nested classes should be extracted to top-level objects" else "")
+
+            if (shouldReportNested || !nestedInNonStaticContext) {
+              emitReport(classDef.srcPos, message)
+            } else {
+              emitReport(classDef.srcPos, message, severity = SeverityLevel.Information)
             }
-
-            val paramIsValueClass = primaryConstructor.exists &&
-              primaryConstructor.info.paramInfoss.flatten.headOption.exists { paramType =>
-                paramType.typeSymbol.is(Flags.Trait) || paramType.typeSymbol.isDerivedValueClass
-              }
-
-            if (!hasAnyValParent && !hasNonDefaultBase && hasExactlyOneParam && !paramIsValueClass) {
-              val nestedInNonStaticContext = !classDef.symbol.isStatic
-
-              val message = "Implicit classes should always extend AnyVal to become value classes" +
-                (if (nestedInNonStaticContext) ". Nested classes should be extracted to top-level objects" else "")
-
-              if (shouldReportNested || !nestedInNonStaticContext) {
-                emitReport(classDef.srcPos, message)
-              } else {
-                emitReport(classDef.srcPos, message, severity = SeverityLevel.Information)
-              }
-            }
-            traverseChildren(tree)
-          case _ => traverseChildren(tree)
-        }
+          }
+        case _ =>
+      }
     }
-    ImplicitClassChecker.traverse(unitTree)
   }
 }

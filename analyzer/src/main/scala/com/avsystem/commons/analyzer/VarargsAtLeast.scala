@@ -2,7 +2,7 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd
+import ast.tpd.*
 import core.*
 import Contexts.*
 import Symbols.*
@@ -14,22 +14,20 @@ class VarargsAtLeast() extends CheckingRule("varargsAtLeast") {
   private def extractAtLeastAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.atLeast")
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
+  def performCheck(unitTree: Tree)(using Context): Unit = {
     val atLeastAnnotType = extractAtLeastAnnotation
-    if (atLeastAnnotType == NoType) return
-
-    object VarargsChecker extends tpd.TreeTraverser {
-      override def traverse(tree: tpd.Tree)(using Context): Unit =
+    if (atLeastAnnotType != NoType) {
+      checkChildren(unitTree) { tree =>
         tree match {
-          case app @ tpd.Apply(fn, args) =>
+          case app @ Apply(fn, args) =>
             val methodSym = fn.symbol
             if (methodSym.exists && methodSym.is(Flags.Method)) {
               val params = methodSym.info.paramInfoss.flatten
               if (params.nonEmpty && params.last.isRepeatedParam) {
                 val lastIsVararg = args.lastOption.exists {
-                  case tpd.Typed(_, tpt) =>
+                  case Typed(_, tpt) =>
                     tpt match {
-                      case tpd.Ident(name) => name.toString.contains("*")
+                      case Ident(name) => name.toString.contains("*")
                       case _ => false
                     }
                   case _ => false
@@ -41,7 +39,7 @@ class VarargsAtLeast() extends CheckingRule("varargsAtLeast") {
                     .find(ann => ann.symbol.typeRef <:< atLeastAnnotType)
                     .map { annot =>
                       annot.tree match {
-                        case tpd.Apply(_, List(tpd.Literal(Constant(n: Int)))) => n
+                        case Apply(_, List(Literal(Constant(n: Int)))) => n
                         case _ => 0
                       }
                     }
@@ -57,10 +55,9 @@ class VarargsAtLeast() extends CheckingRule("varargsAtLeast") {
                 }
               }
             }
-            traverseChildren(tree)
-          case _ => traverseChildren(tree)
+          case _ =>
         }
+      }
     }
-    VarargsChecker.traverse(unitTree)
   }
 }

@@ -2,7 +2,7 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd
+import ast.tpd.*
 import core.*
 import Contexts.*
 import Symbols.*
@@ -17,14 +17,12 @@ class ValueEnumExhaustiveMatch() extends CheckingRule("valueEnumExhaustiveMatch"
     (valueEnumType, companionSym)
   }
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
+  def performCheck(unitTree: Tree)(using Context): Unit = {
     val (valueEnumType, companionSym) = extractValueEnumTypes
-    if (valueEnumType == NoType || !companionSym.exists) return
-
-    object MatchChecker extends tpd.TreeTraverser {
-      override def traverse(tree: tpd.Tree)(using Context): Unit =
+    if (valueEnumType != NoType && companionSym.exists) {
+      checkChildren(unitTree) { tree =>
         tree match {
-          case matchTree @ tpd.Match(selector, cases) if selector.tpe <:< valueEnumType =>
+          case matchTree @ Match(selector, cases) if selector.tpe <:< valueEnumType =>
             val selectorType = selector.tpe
             val companionObj = selectorType.typeSymbol.companionModule
 
@@ -40,17 +38,17 @@ class ValueEnumExhaustiveMatch() extends CheckingRule("valueEnumExhaustiveMatch"
                 }
               }
 
-              def recordMatchedEnums(pattern: tpd.Tree): Unit = pattern match {
-                case tpd.Bind(_, body) => recordMatchedEnums(body)
-                case tpd.Alternative(patterns) => patterns.foreach(recordMatchedEnums)
-                case tpd.Ident(name) if name.toString == "_" => uncovered.clear()
-                case ref: tpd.RefTree if ref.symbol.exists => uncovered -= ref.symbol
-                case tpd.Literal(_) =>
+              def recordMatchedEnums(pattern: Tree): Unit = pattern match {
+                case Bind(_, body) => recordMatchedEnums(body)
+                case Alternative(patterns) => patterns.foreach(recordMatchedEnums)
+                case Ident(name) if name.toString == "_" => uncovered.clear()
+                case ref: RefTree if ref.symbol.exists => uncovered -= ref.symbol
+                case Literal(_) =>
                 case _ => uncovered.clear()
               }
 
               cases.foreach {
-                case tpd.CaseDef(pattern, tpd.EmptyTree, _) => recordMatchedEnums(pattern)
+                case CaseDef(pattern, EmptyTree, _) => recordMatchedEnums(pattern)
                 case _ => uncovered.clear()
               }
 
@@ -66,10 +64,9 @@ class ValueEnumExhaustiveMatch() extends CheckingRule("valueEnumExhaustiveMatch"
                 )
               }
             }
-            traverseChildren(tree)
-          case _ => traverseChildren(tree)
+          case _ =>
         }
+      }
     }
-    MatchChecker.traverse(unitTree)
   }
 }

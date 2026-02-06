@@ -2,7 +2,7 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd
+import ast.tpd.*
 import core.*
 import Contexts.*
 import Symbols.*
@@ -12,14 +12,12 @@ class ExplicitGenerics() extends CheckingRule("explicitGenerics") {
   private def extractExplicitGenericsAnnotation(using Context): Type =
     resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit = {
+  def performCheck(unitTree: Tree)(using Context): Unit = {
     val explicitGenAnnotType = extractExplicitGenericsAnnotation
-    if (explicitGenAnnotType == NoType) return
-
-    object ExplicitGenericsChecker extends tpd.TreeTraverser {
-      override def traverse(tree: tpd.Tree)(using Context): Unit =
+    if (explicitGenAnnotType != NoType) {
+      checkChildren(unitTree) { tree =>
         tree match {
-          case app @ tpd.TypeApply(fn, typeArgs) =>
+          case app @ TypeApply(fn, typeArgs) =>
             val fnSym = fn.symbol
             if (fnSym.exists) {
               val requiresExplicit = (fnSym :: fnSym.allOverriddenSymbols.toList).exists { s =>
@@ -28,7 +26,7 @@ class ExplicitGenerics() extends CheckingRule("explicitGenerics") {
 
               if (requiresExplicit) {
                 val allInferred = typeArgs.forall {
-                  case tt: tpd.TypeTree => !tt.span.exists || tt.span.isZeroExtent
+                  case tt: TypeTree => !tt.span.exists || tt.span.isZeroExtent
                   case _ => false
                 }
 
@@ -40,10 +38,9 @@ class ExplicitGenerics() extends CheckingRule("explicitGenerics") {
                 }
               }
             }
-            traverseChildren(tree)
-          case _ => traverseChildren(tree)
+          case _ =>
         }
+      }
     }
-    ExplicitGenericsChecker.traverse(unitTree)
   }
 }
