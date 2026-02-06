@@ -11,11 +11,12 @@ class FindUsages(using Context) extends AnalyzerRuleOnTyped("findUsages") {
   private lazy val parseRejectedSymbols = Option(ruleArgument).map(_.split(";").toSet)
 
   def performCheck(unitTree: Tree)(using Context): Unit = parseRejectedSymbols.foreach { rejectedSet =>
-    checkChildren(unitTree) { tree =>
-      if (tree.symbol.exists) {
+    checkChildren(unitTree) {
+      case tree if tree.symbol.exists =>
         val fullName = tree.symbol.fullName.toString
-        if (rejectedSet.contains(fullName)) emitReport(tree.srcPos, s"found usage of $fullName")
-      }
+        if (rejectedSet.contains(fullName))
+          emitReport(tree.srcPos, s"found usage of $fullName")
+      case _ =>
     }
   }
 }

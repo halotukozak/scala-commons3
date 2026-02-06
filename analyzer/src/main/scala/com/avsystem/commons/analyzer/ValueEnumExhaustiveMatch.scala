@@ -31,13 +31,12 @@ class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRuleOnTyped("value
           if (companionObj.exists) {
             val uncovered = mutable.LinkedHashSet.empty[Symbol]
 
-            companionObj.info.decls.foreach { member =>
-              if (
-                member.is(Flags.Final) && member.is(Flags.Method) && !member.is(Flags.Lazy) &&
-                member.info.resultType <:< selectorType
-              ) {
-                if (member.isPublic) uncovered += member
-              }
+            companionObj.info.decls.foreach {
+              case member
+                  if member.is(Flags.Final) && member.is(Flags.Method) && !member.is(Flags.Lazy) &&
+                    member.info.resultType <:< selectorType && member.isPublic =>
+                uncovered += member
+              case _ => ()
             }
 
             def recordMatchedEnums(pattern: Tree): Unit = pattern match {

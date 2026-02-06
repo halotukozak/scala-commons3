@@ -10,15 +10,13 @@ import Symbols.*
 class ImplicitParamDefaults(using Context) extends AnalyzerRuleOnTyped("implicitParamDefaults", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
-      defDef.termParamss.foreach { paramClause =>
-        if (paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit)) {
-          paramClause.foreach { param =>
-            if (!param.rhs.isEmpty) {
-              emitReport(param.srcPos, "Implicit parameters should not have default values")
-            }
+      defDef.termParamss
+        .filter(paramClause => paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit))
+        .foreach { paramClause =>
+          paramClause.filter(param => !param.rhs.isEmpty).foreach { param =>
+            emitReport(param.srcPos, "Implicit parameters should not have default values")
           }
         }
-      }
     case _ =>
   }
 }

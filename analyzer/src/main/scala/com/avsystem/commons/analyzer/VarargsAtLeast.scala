@@ -19,11 +19,7 @@ class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast"
           val params = methodSym.info.paramInfoss.flatten
           if (params.nonEmpty && params.last.isRepeatedParam) {
             val lastIsVararg = args.lastOption.exists {
-              case Typed(_, tpt) =>
-                tpt match {
-                  case Ident(name) => name.toString.contains("*")
-                  case _ => false
-                }
+              case Typed(_, Ident(name)) => name.toString.contains("*")
               case _ => false
             }
 
@@ -31,11 +27,10 @@ class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast"
               val lastParamSym = methodSym.paramSymss.flatten.last
               val requiredCount = lastParamSym.annotations
                 .find(ann => ann.symbol.typeRef <:< atLeastAnnotType)
-                .map { annot =>
-                  annot.tree match {
-                    case Apply(_, List(Literal(Constant(n: Int)))) => n
-                    case _ => 0
-                  }
+                .map(_.tree)
+                .map {
+                  case Apply(_, List(Literal(Constant(n: Int)))) => n
+                  case _ => 0
                 }
                 .getOrElse(0)
 
