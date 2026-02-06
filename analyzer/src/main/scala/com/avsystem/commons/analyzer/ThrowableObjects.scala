@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import Names.*
 
-class ThrowableObjects() extends CheckingRule("throwableObjects", SeverityLevel.Warning) {
+class ThrowableObjects() extends CheckingRule("throwableObjects", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     val throwableType = defn.ThrowableType
     val throwableSym = defn.ThrowableClass

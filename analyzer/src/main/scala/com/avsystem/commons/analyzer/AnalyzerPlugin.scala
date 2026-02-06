@@ -25,13 +25,13 @@ class AnalyzerPlugin extends StandardPlugin {
         }
       } else {
         val severityLevel = optionString.charAt(0) match {
-          case '-' => SeverityLevel.Disabled
-          case '*' => SeverityLevel.Information
-          case '+' => SeverityLevel.Error
-          case _ => SeverityLevel.Warning
+          case '-' => Level.Off
+          case '*' => Level.Info
+          case '+' => Level.Error
+          case _ => Level.Warn
         }
 
-        val nameWithArg = if (severityLevel != SeverityLevel.Warning) optionString.drop(1) else optionString
+        val nameWithArg = if (severityLevel != Level.Warn) optionString.drop(1) else optionString
 
         if (nameWithArg == "_") {
           ruleInstances.foreach(_.updateSeverity(severityLevel))
@@ -66,7 +66,6 @@ class AnalyzerPlugin extends StandardPlugin {
     ShowAst(),
     FindUsages(),
     CheckBincompat(),
-    Any2StringAdd(),
     ThrowableObjects(),
     DiscardedMonixTask(),
     NothingAsFunctionArgument(),
@@ -91,7 +90,7 @@ class AnalyzerPhaseImpl(rulesList: List[CheckingRule]) extends PluginPhase {
     val untpdTree = ctx.compilationUnit.untpdTree
 
     rulesList.foreach { currentRule =>
-      if (currentRule.currentSeverity != SeverityLevel.Disabled) {
+      if (currentRule.currentSeverity != Level.Off) {
         // For ImportJavaUtil, pass the untyped tree
         if (currentRule.ruleName == "importJavaUtil") {
           currentRule.asInstanceOf[ImportJavaUtil].performCheckOnUntpd(untpdTree)

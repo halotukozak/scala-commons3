@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class ImplicitValueClasses() extends CheckingRule("implicitValueClasses", SeverityLevel.Warning) {
+class ImplicitValueClasses() extends CheckingRule("implicitValueClasses", Level.Warn) {
   private def shouldReportNested: Boolean =
     ruleArgument match {
       case "all" => true
@@ -56,7 +56,7 @@ class ImplicitValueClasses() extends CheckingRule("implicitValueClasses", Severi
             if (shouldReportNested || !nestedInNonStaticContext) {
               emitReport(classDef.srcPos, message)
             } else {
-              emitReport(classDef.srcPos, message, severity = SeverityLevel.Information)
+              emitReport(classDef.srcPos, message, severity = Level.Info)
             }
           }
         case _ =>

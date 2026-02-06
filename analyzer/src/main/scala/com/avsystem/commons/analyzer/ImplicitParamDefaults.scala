@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class ImplicitParamDefaults() extends CheckingRule("implicitParamDefaults", SeverityLevel.Warning) {
+class ImplicitParamDefaults() extends CheckingRule("implicitParamDefaults", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

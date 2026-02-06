@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FinalValueClasses() extends CheckingRule("finalValueClasses", SeverityLevel.Warning) {
+class FinalValueClasses() extends CheckingRule("finalValueClasses", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     val anyValClass = defn.AnyValClass
 

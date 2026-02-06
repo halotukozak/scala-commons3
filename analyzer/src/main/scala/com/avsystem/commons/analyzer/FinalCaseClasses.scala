@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FinalCaseClasses() extends CheckingRule("finalCaseClasses", SeverityLevel.Warning) {
+class FinalCaseClasses() extends CheckingRule("finalCaseClasses", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {
@@ -23,7 +23,7 @@ class FinalCaseClasses() extends CheckingRule("finalCaseClasses", SeverityLevel.
             emitReport(
               classDef.srcPos,
               "Case classes should be marked as final. Due to the SI-4440 bug, it cannot be done here. Consider moving the case class to the companion object",
-              severity = SeverityLevel.Information,
+              severity = Level.Info,
             )
         case _ =>
       }

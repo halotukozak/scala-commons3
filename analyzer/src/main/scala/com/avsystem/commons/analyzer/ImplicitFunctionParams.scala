@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class ImplicitFunctionParams() extends CheckingRule("implicitFunctionParams", SeverityLevel.Warning) {
+class ImplicitFunctionParams() extends CheckingRule("implicitFunctionParams", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     checkChildren(unitTree) { tree =>
       tree match {

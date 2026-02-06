@@ -14,15 +14,15 @@ import reporting.Message
 import java.io.{PrintWriter, StringWriter}
 import scala.util.control.NonFatal
 
-enum SeverityLevel {
-  case Disabled, Information, Warning, Error
+enum Level {
+  case Off, Info, Warn, Error
 }
 
-abstract class CheckingRule(val ruleName: String, initialSeverity: SeverityLevel = SeverityLevel.Warning) {
-  var currentSeverity: SeverityLevel = initialSeverity
+abstract class CheckingRule(val ruleName: String, initialSeverity: Level = Level.Warn) {
+  var currentSeverity: Level = initialSeverity
   var ruleArgument: String | Null = null
 
-  def updateSeverity(newLevel: SeverityLevel): Unit =
+  def updateSeverity(newLevel: Level): Unit =
     currentSeverity = newLevel
 
   def updateArgument(arg: String): Unit =
@@ -61,13 +61,13 @@ abstract class CheckingRule(val ruleName: String, initialSeverity: SeverityLevel
   protected final def emitReport(
     position: SrcPos,
     message: String,
-    severity: SeverityLevel = currentSeverity,
+    severity: Level = currentSeverity,
   )(using Context): Unit =
     severity match {
-      case SeverityLevel.Disabled =>
-      case SeverityLevel.Information => report.inform(prefixMessage(message), position)
-      case SeverityLevel.Warning => report.warning(prefixMessage(message), position)
-      case SeverityLevel.Error => report.error(prefixMessage(message), position)
+      case Level.Off =>
+      case Level.Info => report.inform(prefixMessage(message), position)
+      case Level.Warn => report.warning(prefixMessage(message), position)
+      case Level.Error => report.error(prefixMessage(message), position)
     }
 
   def performCheck(unitTree: tpd.Tree)(using Context): Unit

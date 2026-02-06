@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class CatchThrowable() extends CheckingRule("catchThrowable", SeverityLevel.Warning) {
+class CatchThrowable() extends CheckingRule("catchThrowable", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     val throwableType = defn.ThrowableType
 
