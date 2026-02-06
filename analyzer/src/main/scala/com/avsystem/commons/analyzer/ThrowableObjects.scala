@@ -9,29 +9,22 @@ import Symbols.*
 import Types.*
 import Names.*
 
-class ThrowableObjects() extends AnalyzerRule("throwableObjects", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    val throwableType = defn.ThrowableType
-    val throwableSym = defn.ThrowableClass
+object ThrowableObjects extends AnalyzerRule("throwableObjects", Level.Warn) {
+  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case valDef: ValDef if valDef.symbol.is(Flags.Module) =>
+      val moduleType = valDef.symbol.info
+      if (moduleType <:< defn.ThrowableType) {
+        val fillInStackTraceMethods = moduleType.member(termName("fillInStackTrace"))
+        val hasOverride = fillInStackTraceMethods.alternatives.exists { alt =>
+          alt.symbol.owner != defn.ThrowableClass && alt.symbol.is(Flags.Override)
+        }
 
-    checkChildren(unitTree) { tree =>
-      tree match {
-        case valDef: ValDef if valDef.symbol.is(Flags.Module) =>
-          val moduleType = valDef.symbol.info
-          if (moduleType <:< throwableType) {
-            val fillInStackTraceMethods = moduleType.member(termName("fillInStackTrace"))
-            val hasOverride = fillInStackTraceMethods.alternatives.exists { alt =>
-              alt.symbol.owner != throwableSym && alt.symbol.is(Flags.Override)
-            }
-
-            if (!hasOverride)
-              emitReport(
-                valDef.srcPos,
-                "objects should never extend Throwable unless they have no stack trace",
-              )
-          }
-        case _ =>
+        if (!hasOverride)
+          emitReport(
+            valDef.srcPos,
+            "objects should never extend Throwable unless they have no stack trace",
+          )
       }
-    }
+    case _ =>
   }
 }

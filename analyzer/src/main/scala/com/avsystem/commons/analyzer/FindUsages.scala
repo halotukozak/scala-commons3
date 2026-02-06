@@ -7,10 +7,11 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FindUsages() extends AnalyzerRule("findUsages") {
-  private def parseRejectedSymbols: Set[String] =
-    if (ruleArgument == null) Set.empty
-    else ruleArgument.nn.split(";").toSet
+object FindUsages extends AnalyzerRule("findUsages") {
+  private def parseRejectedSymbols: Set[String] = ruleArgument match {
+    case null => Set.empty
+    case ruleArgument: String => ruleArgument.split(";").toSet
+  }
 
   def performCheck(unitTree: Tree)(using Context): Unit = {
     val rejectedSet = parseRejectedSymbols

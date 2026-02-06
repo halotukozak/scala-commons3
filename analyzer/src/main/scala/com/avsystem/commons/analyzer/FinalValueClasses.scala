@@ -7,18 +7,12 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class FinalValueClasses() extends AnalyzerRule("finalValueClasses", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    val anyValClass = defn.AnyValClass
-
-    checkChildren(unitTree) { tree =>
-      tree match {
-        case classDef: TypeDef if classDef.symbol.isClass && !classDef.symbol.is(Flags.Final) =>
-          val classType = classDef.symbol.info
-          if (classType.baseClasses.contains(anyValClass))
-            emitReport(classDef.srcPos, "Value classes should be marked as final")
-        case _ =>
-      }
-    }
+object FinalValueClasses extends AnalyzerRule("finalValueClasses", Level.Warn) {
+  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case classDef: TypeDef if classDef.symbol.isClass && !classDef.symbol.is(Flags.Final) =>
+      val classType = classDef.symbol.info
+      if (classType.baseClasses.contains(defn.AnyValClass))
+        emitReport(classDef.srcPos, "Value classes should be marked as final")
+    case _ =>
   }
 }

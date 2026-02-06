@@ -7,22 +7,18 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class ImplicitParamDefaults() extends AnalyzerRule("implicitParamDefaults", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    checkChildren(unitTree) { tree =>
-      tree match {
-        case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
-          defDef.termParamss.foreach { paramClause =>
-            if (paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit)) {
-              paramClause.foreach { param =>
-                if (!param.rhs.isEmpty) {
-                  emitReport(param.srcPos, "Implicit parameters should not have default values")
-                }
-              }
+object ImplicitParamDefaults extends AnalyzerRule("implicitParamDefaults", Level.Warn) {
+  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
+      defDef.termParamss.foreach { paramClause =>
+        if (paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit)) {
+          paramClause.foreach { param =>
+            if (!param.rhs.isEmpty) {
+              emitReport(param.srcPos, "Implicit parameters should not have default values")
             }
           }
-        case _ =>
+        }
       }
-    }
+    case _ =>
   }
 }

@@ -16,22 +16,22 @@ class AnalyzerPlugin extends StandardPlugin {
     val ruleInstances = createAllRuleInstances()
     val ruleMapping = ruleInstances.map(r => r.ruleName -> r).toMap
 
-    options.foreach { optionString =>
-      if (optionString.startsWith("requireJDK=")) {
-        val jdkPattern = optionString.drop(11)
+    options.foreach { option =>
+      if (option.startsWith("requireJDK=")) {
+        val jdkPattern = option.drop(11)
         val currentJavaVer = System.getProperty("java.version", "")
         if (!currentJavaVer.matches(jdkPattern)) {
           report.error(s"This project must be compiled on JDK version that matches $jdkPattern but got $currentJavaVer")
         }
       } else {
-        val severityLevel = optionString.charAt(0) match {
+        val severityLevel = option.charAt(0) match {
           case '-' => Level.Off
           case '*' => Level.Info
           case '+' => Level.Error
           case _ => Level.Warn
         }
 
-        val nameWithArg = if (severityLevel != Level.Warn) optionString.drop(1) else optionString
+        val nameWithArg = if (severityLevel != Level.Warn) option.drop(1) else option
 
         if (nameWithArg == "_") {
           ruleInstances.foreach(_.updateSeverity(severityLevel))

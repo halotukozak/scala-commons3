@@ -62,7 +62,8 @@ abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level
     position: SrcPos,
     message: String,
     severity: Level = currentSeverity,
-  )(using Context): Unit =
+  )(using Context,
+  ): Unit =
     severity match {
       case Level.Off =>
       case Level.Info => report.inform(prefixMessage(message), position)

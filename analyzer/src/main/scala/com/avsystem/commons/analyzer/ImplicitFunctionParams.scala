@@ -8,24 +8,19 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class ImplicitFunctionParams() extends AnalyzerRule("implicitFunctionParams", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    checkChildren(unitTree) { tree =>
-      tree match {
-        case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
-          defDef.termParamss.foreach { paramClause =>
-            if (paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit))
-              paramClause.foreach { param =>
-                val paramType = param.tpt.tpe
-                if (
-                  paramType != null &&
-                  (defn.isFunctionType(paramType) || paramType.typeSymbol == defn.PartialFunctionClass)
-                )
-                  emitReport(param.srcPos, "Implicit parameters should not have any function type")
-              }
+object ImplicitFunctionParams extends AnalyzerRule("implicitFunctionParams", Level.Warn) {
+  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
+      defDef.termParamss.foreach { paramClause =>
+        if (paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit))
+          paramClause.foreach { param =>
+            val paramType = param.tpt.tpe
+            if (
+              paramType != null && (defn.isFunctionType(paramType) || paramType.typeSymbol == defn.PartialFunctionClass)
+            )
+              emitReport(param.srcPos, "Implicit parameters should not have any function type")
           }
-        case _ =>
       }
-    }
+    case _ =>
   }
 }

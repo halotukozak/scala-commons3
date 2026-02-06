@@ -7,24 +7,14 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-class ImplicitTypes() extends AnalyzerRule("implicitTypes") {
-  def performCheck(unitTree: Tree)(using Context): Unit = {
-    checkChildren(unitTree) { tree =>
-      tree match {
-        case valDef: ValDef if valDef.symbol.is(Flags.Implicit) && !valDef.symbol.is(Flags.Synthetic) =>
-          valDef.tpt match {
-            case typeTree: TypeTree if !typeTree.span.exists || typeTree.span.isZeroExtent =>
-              emitReport(valDef.srcPos, "Implicit definitions must have type annotated explicitly")
-            case _ =>
-          }
-        case defDef: DefDef if defDef.symbol.is(Flags.Implicit) && !defDef.symbol.is(Flags.Synthetic) =>
-          defDef.tpt match {
-            case typeTree: TypeTree if !typeTree.span.exists || typeTree.span.isZeroExtent =>
-              emitReport(defDef.srcPos, "Implicit definitions must have type annotated explicitly")
-            case _ =>
-          }
+object ImplicitTypes extends AnalyzerRule("implicitTypes") {
+  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case valOrDefDef: ValOrDefDef if valOrDefDef.symbol.is(Flags.Implicit) && !valOrDefDef.symbol.is(Flags.Synthetic) =>
+      valOrDefDef.tpt match {
+        case typeTree: TypeTree if !typeTree.span.exists || typeTree.span.isZeroExtent =>
+          emitReport(valOrDefDef.srcPos, "Implicit definitions must have type annotated explicitly")
         case _ =>
       }
-    }
+    case _ =>
   }
 }

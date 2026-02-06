@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-class DiscardedMonixTask() extends AnalyzerRule("discardedMonixTask") {
+object DiscardedMonixTask extends AnalyzerRule("discardedMonixTask") {
   private def extractMonixTaskType(using Context): Type = {
     val taskType = resolveClassType("monix.eval.Task")
     if (taskType == NoType) NoType
