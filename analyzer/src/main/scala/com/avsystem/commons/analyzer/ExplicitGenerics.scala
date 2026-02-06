@@ -11,7 +11,7 @@ import Types.*
 class ExplicitGenerics(using Context) extends AnalyzerRuleOnTyped("explicitGenerics") {
   private lazy val extractExplicitGenericsAnnotation = resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractExplicitGenericsAnnotation.foreach { explicitGenAnnotType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractExplicitGenericsAnnotation.foreach { explicitGenAnnotType =>
       checkChildren(unitTree) {
         case app @ TypeApply(fn, typeArgs) =>
           val fnSym = fn.symbol

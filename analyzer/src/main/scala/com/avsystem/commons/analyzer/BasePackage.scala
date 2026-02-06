@@ -2,34 +2,33 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd.*
-import core.*
-import Contexts.*
-import Symbols.*
-import Types.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
+
 import scala.annotation.tailrec
 
 class BasePackage(using Context) extends AnalyzerRuleOnTyped("basePackage") {
-  def performCheck(unitTree: Tree)(using Context): Unit = Option(ruleArgument).foreach { requiredPkg =>
-
-    object ImportSkipper {
-      def unapply(trees: List[Tree]): Option[List[Tree]] = trees match {
-        case (_: Import) :: ImportSkipper(tail) => Some(tail)
-        case other => Some(other)
-      }
+  
+  object SkipImports {
+    @tailrec def unapply(trees: List[Tree]): Option[List[Tree]] = trees match {
+      case (_: Import) :: tail => SkipImports.unapply(tail)
+      case other => Some(other)
     }
-
-    @tailrec
-    def validatePackage(tree: Tree): Unit = tree match {
+  }
+  
+  def analyze(unitTree: Tree)(using Context): Unit = Option(ruleArgument).foreach { requiredPkg =>
+    @tailrec def validate(tree: Tree): Unit = tree match {
       case pkgDef: PackageDef if pkgDef.symbol.isPackageObject || pkgDef.pid.symbol.fullName.toString == requiredPkg =>
       // Valid
-      case pkgDef @ PackageDef(_, ImportSkipper(nonImports)) =>
-        if (nonImports.length == 1) validatePackage(nonImports.head)
+      case pkgDef @ PackageDef(_, SkipImports(nonImports)) =>
+        if (nonImports.length == 1) validate(nonImports.head)
         else emitReport(pkgDef.srcPos, s"`$requiredPkg` must be one of the base packages in this file")
       case other =>
         emitReport(other.srcPos, s"`$requiredPkg` must be one of the base packages in this file")
     }
 
-    validatePackage(unitTree)
+    validate(unitTree)
   }
 }

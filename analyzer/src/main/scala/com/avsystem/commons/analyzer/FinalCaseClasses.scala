@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 
 class FinalCaseClasses(using Context) extends AnalyzerRuleOnTyped("finalCaseClasses", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case classDef: TypeDef
         if classDef.symbol.isClass && classDef.symbol.is(Flags.Case) && !classDef.symbol.is(Flags.Final) &&
           !classDef.symbol.is(Flags.Sealed) =>

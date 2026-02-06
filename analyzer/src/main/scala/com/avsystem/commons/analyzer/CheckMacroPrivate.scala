@@ -11,7 +11,7 @@ import Types.*
 class CheckMacroPrivate(using Context) extends AnalyzerRuleOnTyped("macroPrivate") {
   private lazy val extractMacroPrivateAnnotation = resolveClassType("com.avsystem.commons.annotation.macroPrivate")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractMacroPrivateAnnotation.foreach { macroPrivateType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractMacroPrivateAnnotation.foreach { macroPrivateType =>
     checkChildren(unitTree) {
       case ref: RefTree if ref.symbol.exists && ref.span.exists =>
         val sym = ref.symbol

@@ -11,7 +11,7 @@ import Types.*
 class CheckBincompat(using Context) extends AnalyzerRuleOnTyped("bincompat") {
   private lazy val extractBincompatAnnotation = resolveClassType("com.avsystem.commons.annotation.bincompat")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractBincompatAnnotation.foreach { bincompatType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractBincompatAnnotation.foreach { bincompatType =>
     checkChildren(unitTree) {
       case ref: RefTree if ref.symbol.exists && ref.symbol.annotations.exists(_.symbol.typeRef <:< bincompatType) =>
         emitReport(

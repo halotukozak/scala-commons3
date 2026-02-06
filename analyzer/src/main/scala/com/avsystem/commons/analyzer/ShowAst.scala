@@ -12,7 +12,7 @@ import printing.Texts.Text
 class ShowAst(using Context) extends AnalyzerRuleOnTyped("showAst", Level.Error) {
   private lazy val extractShowAstAnnotation = resolveClassType("com.avsystem.commons.annotation.showAst")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractShowAstAnnotation.foreach { showAstType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractShowAstAnnotation.foreach { showAstType =>
     checkChildren(unitTree) {
       case Annotated(arg, annot) if annot.symbol.typeRef <:< showAstType =>
         emitReport(arg.srcPos, arg.show)

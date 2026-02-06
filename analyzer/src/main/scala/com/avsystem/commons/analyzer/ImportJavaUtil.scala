@@ -7,7 +7,7 @@ import core.*
 import Contexts.{Context, *}
 
 class ImportJavaUtil(using Context) extends AnalyzerRuleOnUntyped("importJavaUtil") {
-  def performCheckOnUntpd(unitTree: untpd.Tree)(using Context): Unit = {
+  def analyze(unitTree: untpd.Tree)(using Context): Unit = {
     def checkImport(tree: untpd.Tree): Unit = tree match {
       case untpd.Import(expr, selectors) =>
         expr match {

@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 
 class ImplicitParamDefaults(using Context) extends AnalyzerRuleOnTyped("implicitParamDefaults", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
       defDef.termParamss
         .filter(paramClause => paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit))

@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 
 class NothingAsFunctionArgument(using Context) extends AnalyzerRuleOnTyped("nothingAsFunctionArgument") {
-  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case app @ Apply(fn, args) =>
       val methodSym = fn.symbol
       if (methodSym.exists && methodSym.is(Flags.Method)) {

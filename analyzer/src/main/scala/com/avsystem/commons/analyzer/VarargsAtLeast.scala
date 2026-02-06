@@ -11,7 +11,7 @@ import dotty.tools.dotc.core.Symbols.*
 class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast") {
   private lazy val extractAtLeastAnnotation = resolveClassType("com.avsystem.commons.annotation.atLeast")
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractAtLeastAnnotation.foreach { atLeastAnnotType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractAtLeastAnnotation.foreach { atLeastAnnotType =>
     checkChildren(unitTree) {
       case app @ Apply(fn, args) =>
         val methodSym = fn.symbol

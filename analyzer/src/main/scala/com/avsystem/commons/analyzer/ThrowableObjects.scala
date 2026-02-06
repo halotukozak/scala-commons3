@@ -10,7 +10,7 @@ import Types.*
 import Names.*
 
 class ThrowableObjects(using Context) extends AnalyzerRuleOnTyped("throwableObjects", Level.Warn) {
-  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case valDef: ValDef if valDef.symbol.is(Flags.Module) =>
       val moduleType = valDef.symbol.info
       if (moduleType <:< defn.ThrowableType) {

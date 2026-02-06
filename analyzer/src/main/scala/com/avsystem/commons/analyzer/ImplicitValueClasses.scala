@@ -16,7 +16,7 @@ class ImplicitValueClasses(using Context) extends AnalyzerRuleOnTyped("implicitV
 
   private def defaultBaseClasses(using Context) = Set(defn.AnyClass, defn.AnyValClass, defn.ObjectClass)
 
-  def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case classDef: TypeDef if classDef.symbol.is(Flags.Implicit) && classDef.symbol.isClass =>
       val classType = classDef.symbol.info
       val baseClassSet = classType.baseClasses.toSet

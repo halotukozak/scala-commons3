@@ -55,12 +55,12 @@ sealed trait AnalyzerRule(using Context)(val ruleName: String, initialSeverity: 
 
 abstract class AnalyzerRuleOnUntyped(using Context)(ruleName: String, initialSeverity: Level = Level.Warn)
   extends AnalyzerRule(ruleName, initialSeverity) {
-  def performCheckOnUntpd(unitTree: untpd.Tree)(using Context): Unit
+  def analyze(unitTree: untpd.Tree)(using Context): Unit
 }
 
 abstract class AnalyzerRuleOnTyped(using Context)(ruleName: String, initialSeverity: Level = Level.Warn)
   extends AnalyzerRule(ruleName, initialSeverity) {
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit
+  def analyze(unitTree: tpd.Tree)(using Context): Unit
 
   protected def traverseAndCheck(checkFn: PartialFunction[tpd.Tree, Unit])(tree: tpd.Tree): Unit =
     try

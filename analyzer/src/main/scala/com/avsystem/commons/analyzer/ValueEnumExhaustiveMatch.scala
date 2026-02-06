@@ -21,7 +21,7 @@ class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRuleOnTyped("value
     valueEnumType.map((_, companionSym)).filter(_._2.exists)
   }
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractValueEnumTypes.foreach {
+  def analyze(unitTree: Tree)(using Context): Unit = extractValueEnumTypes.foreach {
     (valueEnumType, companionSym) =>
       checkChildren(unitTree) {
         case matchTree @ Match(selector, cases) if selector.tpe <:< valueEnumType =>

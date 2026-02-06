@@ -11,7 +11,7 @@ import Types.*
 class DiscardedMonixTask(using Context) extends AnalyzerRuleOnTyped("discardedMonixTask") {
   private lazy val extractMonixTaskType = resolveClassType("monix.eval.Task").map(_.appliedTo(defn.AnyType))
 
-  def performCheck(unitTree: Tree)(using Context): Unit = extractMonixTaskType.foreach { monixTaskType =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractMonixTaskType.foreach { monixTaskType =>
     def checkForDiscard(tree: Tree, isDiscarded: Boolean): Unit = tree match {
       case t if !isDiscarded && t.tpe != null && t.tpe =:= defn.UnitType =>
         checkForDiscard(t, isDiscarded = true)
