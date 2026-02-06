@@ -9,7 +9,7 @@ import dotty.tools.dotc.core.Symbols.*
 
 class ImplicitFunctionParams(using Context) extends AnalyzerRuleOnTyped("implicitFunctionParams", Level.Warn) {
   def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
-    case dd: DefDef if dd.symbol.is(Flags.Method) =>
+    case dd: DefDef =>
       for {
         paramClause <- dd.termParamss
         if paramClause.nonEmpty && paramClause.head.symbol.is(Flags.Implicit)
