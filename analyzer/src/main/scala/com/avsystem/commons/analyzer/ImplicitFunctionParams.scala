@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object ImplicitFunctionParams extends AnalyzerRule("implicitFunctionParams", Level.Warn) {
+class ImplicitFunctionParams(using Context) extends AnalyzerRuleOnTyped("implicitFunctionParams", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case defDef: DefDef if defDef.symbol.is(Flags.Method) =>
       defDef.termParamss.foreach { paramClause =>

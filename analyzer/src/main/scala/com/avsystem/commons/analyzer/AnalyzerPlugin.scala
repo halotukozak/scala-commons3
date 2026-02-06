@@ -13,6 +13,7 @@ class AnalyzerPlugin extends StandardPlugin {
   override val description = "AVSystem custom Scala static analyzer"
 
   def init(options: List[String], phases: List[List[Phase]])(using Context): List[List[Phase]] = {
+    val rules = createRules
     val ruleMapping = rules.map(r => r.ruleName -> r).toMap
 
     options.foreach { option =>
@@ -56,26 +57,26 @@ class AnalyzerPlugin extends StandardPlugin {
     phases :+ List(analyzerPhase)
   }
 
-  private val rules: List[AnalyzerRule] = List(
-    ImportJavaUtil,
-    VarargsAtLeast,
-    CheckMacroPrivate,
-    ExplicitGenerics,
-    ValueEnumExhaustiveMatch,
-    ShowAst,
-    FindUsages,
-    CheckBincompat,
-    ThrowableObjects,
-    DiscardedMonixTask,
-    NothingAsFunctionArgument,
-    ConstantDeclarations,
-    BasePackage,
-    ImplicitValueClasses,
-    FinalValueClasses,
-    FinalCaseClasses,
-    ImplicitParamDefaults,
-    CatchThrowable,
-    ImplicitFunctionParams,
+  private def createRules(using Context): List[AnalyzerRule] = List(
+    ImportJavaUtil(),
+    VarargsAtLeast(),
+    CheckMacroPrivate(),
+    ExplicitGenerics(),
+    ValueEnumExhaustiveMatch(),
+    ShowAst(),
+    FindUsages(),
+    CheckBincompat(),
+    ThrowableObjects(),
+    DiscardedMonixTask(),
+    NothingAsFunctionArgument(),
+    ConstantDeclarations(),
+    BasePackage(),
+    ImplicitValueClasses(),
+    FinalValueClasses(),
+    FinalCaseClasses(),
+    ImplicitParamDefaults(),
+    CatchThrowable(),
+    ImplicitFunctionParams(),
   )
 }
 
@@ -85,16 +86,12 @@ class AnalyzerPhaseImpl(rulesList: List[AnalyzerRule]) extends PluginPhase {
   override val runsBefore = Set("patmat")
 
   override def transformUnit(unitTree: ast.tpd.Tree)(using ctx: Context): ast.tpd.Tree = {
-    // Access the untyped tree for rules that need it (like ImportJavaUtil)
-    val untpdTree = ctx.compilationUnit.untpdTree
-
     rulesList.foreach { currentRule =>
       if (currentRule.currentSeverity != Level.Off) {
-        // For ImportJavaUtil, pass the untyped tree
-        if (currentRule.ruleName == "importJavaUtil") {
-          currentRule.asInstanceOf[ImportJavaUtil.type].performCheckOnUntpd(untpdTree)
-        } else
-          currentRule.performCheck(unitTree)
+        currentRule match {
+          case rule: AnalyzerRuleOnUntyped => rule.performCheckOnUntpd(ctx.compilationUnit.untpdTree)
+          case rule: AnalyzerRuleOnTyped => rule.performCheck(unitTree)
+        }
       }
     }
     unitTree

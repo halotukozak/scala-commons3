@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-object ImplicitTypes extends AnalyzerRule("implicitTypes") {
+class ImplicitTypes(using Context) extends AnalyzerRuleOnTyped("implicitTypes") {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case valOrDefDef: ValOrDefDef if valOrDefDef.symbol.is(Flags.Implicit) && !valOrDefDef.symbol.is(Flags.Synthetic) =>
       valOrDefDef.tpt match {

@@ -9,9 +9,8 @@ import Symbols.*
 import Types.*
 import printing.Texts.Text
 
-object ShowAst extends AnalyzerRule("showAst", Level.Error) {
-  private def extractShowAstAnnotation(using Context) =
-    resolveClassType("com.avsystem.commons.annotation.showAst")
+class ShowAst(using Context) extends AnalyzerRuleOnTyped("showAst", Level.Error) {
+  private lazy val extractShowAstAnnotation = resolveClassType("com.avsystem.commons.annotation.showAst")
 
   def performCheck(unitTree: Tree)(using Context): Unit = extractShowAstAnnotation.foreach { showAstType =>
     checkChildren(unitTree) {

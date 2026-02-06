@@ -9,7 +9,7 @@ import Symbols.*
 import Types.*
 import Names.*
 
-object ThrowableObjects extends AnalyzerRule("throwableObjects", Level.Warn) {
+class ThrowableObjects(using Context) extends AnalyzerRuleOnTyped("throwableObjects", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case valDef: ValDef if valDef.symbol.is(Flags.Module) =>
       val moduleType = valDef.symbol.info

@@ -7,7 +7,7 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-object FinalValueClasses extends AnalyzerRule("finalValueClasses", Level.Warn) {
+class FinalValueClasses(using Context) extends AnalyzerRuleOnTyped("finalValueClasses", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case classDef: TypeDef if classDef.symbol.isClass && !classDef.symbol.is(Flags.Final) =>
       val classType = classDef.symbol.info

@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object CatchThrowable extends AnalyzerRule("catchThrowable", Level.Warn) {
+class CatchThrowable(using Context) extends AnalyzerRuleOnTyped("catchThrowable", Level.Warn) {
   def performCheck(unitTree: Tree)(using Context): Unit = {
     val throwableType = defn.ThrowableType
 

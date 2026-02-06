@@ -9,11 +9,10 @@ import Symbols.*
 import Types.*
 import scala.annotation.tailrec
 
-object BasePackage extends AnalyzerRule("basePackage") {
+class BasePackage(using Context) extends AnalyzerRuleOnTyped("basePackage") {
   def performCheck(unitTree: Tree)(using Context): Unit = Option(ruleArgument).foreach { requiredPkg =>
 
     object ImportSkipper {
-      @tailrec
       def unapply(trees: List[Tree]): Option[List[Tree]] = trees match {
         case (_: Import) :: ImportSkipper(tail) => Some(tail)
         case other => Some(other)

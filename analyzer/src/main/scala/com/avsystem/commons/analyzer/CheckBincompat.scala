@@ -8,8 +8,8 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object CheckBincompat extends AnalyzerRule("bincompat") {
-  private def extractBincompatAnnotation(using Context) = resolveClassType("com.avsystem.commons.annotation.bincompat")
+class CheckBincompat(using Context) extends AnalyzerRuleOnTyped("bincompat") {
+  private lazy val extractBincompatAnnotation = resolveClassType("com.avsystem.commons.annotation.bincompat")
 
   def performCheck(unitTree: Tree)(using Context): Unit = extractBincompatAnnotation.foreach { bincompatType =>
     checkChildren(unitTree) {

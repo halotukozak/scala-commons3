@@ -4,13 +4,9 @@ package analyzer
 import dotty.tools.dotc.*
 import ast.{tpd, untpd}
 import core.*
-import Contexts.*
+import Contexts.{Context, *}
 
-object ImportJavaUtil extends AnalyzerRule("importJavaUtil") {
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit =
-    // This method is not used; use performCheckOnUntpd instead
-    ()
-
+class ImportJavaUtil(using Context) extends AnalyzerRuleOnUntyped("importJavaUtil") {
   def performCheckOnUntpd(unitTree: untpd.Tree)(using Context): Unit = {
     def checkImport(tree: untpd.Tree): Unit = tree match {
       case untpd.Import(expr, selectors) =>

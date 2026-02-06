@@ -8,9 +8,8 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object DiscardedMonixTask extends AnalyzerRule("discardedMonixTask") {
-  private def extractMonixTaskType(using Context) =
-    resolveClassType("monix.eval.Task").map(_.appliedTo(defn.AnyType))
+class DiscardedMonixTask(using Context) extends AnalyzerRuleOnTyped("discardedMonixTask") {
+  private lazy val extractMonixTaskType = resolveClassType("monix.eval.Task").map(_.appliedTo(defn.AnyType))
 
   def performCheck(unitTree: Tree)(using Context): Unit = extractMonixTaskType.foreach { monixTaskType =>
     def checkForDiscard(tree: Tree, isDiscarded: Boolean): Unit = tree match {

@@ -2,17 +2,14 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd.*
-import core.*
-import Contexts.*
-import Symbols.*
-import Types.*
-import Constants.*
-import Decorators.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Constants.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
-object VarargsAtLeast extends AnalyzerRule("varargsAtLeast") {
-  private def extractAtLeastAnnotation(using Context) =
-    resolveClassType("com.avsystem.commons.annotation.atLeast")
+class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast") {
+  private lazy val extractAtLeastAnnotation = resolveClassType("com.avsystem.commons.annotation.atLeast")
 
   def performCheck(unitTree: Tree)(using Context): Unit = extractAtLeastAnnotation.foreach { atLeastAnnotType =>
     checkChildren(unitTree) {

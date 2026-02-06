@@ -7,8 +7,8 @@ import core.*
 import Contexts.*
 import Symbols.*
 
-object FindUsages extends AnalyzerRule("findUsages") {
-  private def parseRejectedSymbols = Option(ruleArgument).map(_.split(";").toSet)
+class FindUsages(using Context) extends AnalyzerRuleOnTyped("findUsages") {
+  private lazy val parseRejectedSymbols = Option(ruleArgument).map(_.split(";").toSet)
 
   def performCheck(unitTree: Tree)(using Context): Unit = parseRejectedSymbols.foreach { rejectedSet =>
     checkChildren(unitTree) { tree =>

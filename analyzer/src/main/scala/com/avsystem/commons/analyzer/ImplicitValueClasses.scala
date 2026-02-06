@@ -8,8 +8,8 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object ImplicitValueClasses extends AnalyzerRule("implicitValueClasses", Level.Warn) {
-  private def shouldReportNested: Boolean = ruleArgument match {
+class ImplicitValueClasses(using Context) extends AnalyzerRuleOnTyped("implicitValueClasses", Level.Warn) {
+  private lazy val shouldReportNested: Boolean = ruleArgument match {
     case "all" => true
     case "top-level-only" | null => false
     case other => throw IllegalArgumentException(s"Unknown ImplicitValueClasses option: $other")

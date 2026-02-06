@@ -8,7 +8,7 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object NothingAsFunctionArgument extends AnalyzerRule("nothingAsFunctionArgument") {
+class NothingAsFunctionArgument(using Context) extends AnalyzerRuleOnTyped("nothingAsFunctionArgument") {
   def performCheck(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
     case app @ Apply(fn, args) =>
       val methodSym = fn.symbol

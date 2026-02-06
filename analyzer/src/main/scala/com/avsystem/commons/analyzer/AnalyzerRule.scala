@@ -13,12 +13,13 @@ import reporting.Message
 
 import java.io.{PrintWriter, StringWriter}
 import scala.util.control.NonFatal
+import dotty.tools.dotc.ast.untpd
 
 enum Level {
   case Off, Info, Warn, Error
 }
 
-abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level.Warn) {
+sealed trait AnalyzerRule(using Context)(val ruleName: String, initialSeverity: Level = Level.Warn) {
   var currentSeverity: Level = initialSeverity
   var ruleArgument: String | Null = null
 
@@ -28,14 +29,40 @@ abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level
   def updateArgument(arg: String): Unit =
     ruleArgument = arg
 
-  protected def resolveClassType(fqn: String)(using Context): Option[TypeRef] = try {
+  protected def resolveClassType(fqn: String): Option[TypeRef] = try {
     val classSym = requiredClass(fqn)
     Some(classSym.typeRef).filter(_ != NoType)
   } catch {
     case NonFatal(_) => None
   }
 
-  protected def traverseAndCheck(checkFn: PartialFunction[tpd.Tree, Unit])(tree: tpd.Tree)(using Context): Unit =
+  private def prefixMessage(msg: String): String = s"[AVS] $msg"
+
+  protected final def emitReport(
+    position: SrcPos,
+    message: String,
+    severity: Level = currentSeverity,
+  )(using Context,
+  ): Unit =
+    severity match {
+      case Level.Off =>
+      case Level.Info => report.inform(prefixMessage(message), position)
+      case Level.Warn => report.warning(prefixMessage(message), position)
+      case Level.Error => report.error(prefixMessage(message), position)
+    }
+
+}
+
+abstract class AnalyzerRuleOnUntyped(using Context)(ruleName: String, initialSeverity: Level = Level.Warn)
+  extends AnalyzerRule(ruleName, initialSeverity) {
+  def performCheckOnUntpd(unitTree: untpd.Tree)(using Context): Unit
+}
+
+abstract class AnalyzerRuleOnTyped(using Context)(ruleName: String, initialSeverity: Level = Level.Warn)
+  extends AnalyzerRule(ruleName, initialSeverity) {
+  def performCheck(unitTree: tpd.Tree)(using Context): Unit
+
+  protected def traverseAndCheck(checkFn: PartialFunction[tpd.Tree, Unit])(tree: tpd.Tree): Unit =
     try
       checkFn.applyOrElse(tree, (_: tpd.Tree) => ())
     catch {
@@ -54,21 +81,4 @@ abstract class AnalyzerRule(val ruleName: String, initialSeverity: Level = Level
     }
     Checker.traverse(tree)
   }
-
-  private def prefixMessage(msg: String): String = s"[AVS] $msg"
-
-  protected final def emitReport(
-    position: SrcPos,
-    message: String,
-    severity: Level = currentSeverity,
-  )(using Context,
-  ): Unit =
-    severity match {
-      case Level.Off =>
-      case Level.Info => report.inform(prefixMessage(message), position)
-      case Level.Warn => report.warning(prefixMessage(message), position)
-      case Level.Error => report.error(prefixMessage(message), position)
-    }
-
-  def performCheck(unitTree: tpd.Tree)(using Context): Unit
 }

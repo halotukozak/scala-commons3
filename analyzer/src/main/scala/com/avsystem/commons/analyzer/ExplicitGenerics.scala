@@ -8,9 +8,8 @@ import Contexts.*
 import Symbols.*
 import Types.*
 
-object ExplicitGenerics extends AnalyzerRule("explicitGenerics") {
-  private def extractExplicitGenericsAnnotation(using Context) =
-    resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
+class ExplicitGenerics(using Context) extends AnalyzerRuleOnTyped("explicitGenerics") {
+  private lazy val extractExplicitGenericsAnnotation = resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
   def performCheck(unitTree: Tree)(using Context): Unit = extractExplicitGenericsAnnotation.foreach { explicitGenAnnotType =>
       checkChildren(unitTree) {

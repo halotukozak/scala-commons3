@@ -4,13 +4,14 @@ package analyzer
 import dotty.tools.dotc.*
 import ast.tpd.*
 import core.*
-import Contexts.*
+import Contexts.{Context, *}
 import Symbols.*
 import Types.*
+
 import scala.collection.mutable
 
-object ValueEnumExhaustiveMatch extends AnalyzerRule("valueEnumExhaustiveMatch") {
-  private def extractValueEnumTypes(using Context) = {
+class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRuleOnTyped("valueEnumExhaustiveMatch") {
+  private lazy val extractValueEnumTypes = {
     val valueEnumType = resolveClassType("com.avsystem.commons.misc.ValueEnum")
     val companionType = resolveClassType("com.avsystem.commons.misc.ValueEnumCompanion")
     val companionSym = companionType match {
