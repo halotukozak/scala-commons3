@@ -2,11 +2,10 @@ package com.avsystem.commons
 package analyzer
 
 import dotty.tools.dotc.*
-import ast.tpd.*
-import core.*
-import Contexts.*
-import Symbols.*
-import Types.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
 class CheckMacroPrivate(using Context) extends AnalyzerRuleOnTyped("macroPrivate") {
   private lazy val extractMacroPrivateAnnotation = resolveClassType("com.avsystem.commons.annotation.macroPrivate")

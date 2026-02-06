@@ -19,15 +19,9 @@ enum Level {
   case Off, Info, Warn, Error
 }
 
-sealed trait AnalyzerRule(using Context)(val ruleName: String, initialSeverity: Level = Level.Warn) {
-  var currentSeverity: Level = initialSeverity
+sealed trait AnalyzerRule(using Context)(val ruleName: String, defaultLevel: Level = Level.Warn) {
+  var level: Level = defaultLevel
   var ruleArgument: String | Null = null
-
-  def updateSeverity(newLevel: Level): Unit =
-    currentSeverity = newLevel
-
-  def updateArgument(arg: String): Unit =
-    ruleArgument = arg
 
   protected def resolveClassType(fqn: String): Option[TypeRef] = try {
     val classSym = requiredClass(fqn)
@@ -41,7 +35,7 @@ sealed trait AnalyzerRule(using Context)(val ruleName: String, initialSeverity: 
   protected final def emitReport(
     position: SrcPos,
     message: String,
-    severity: Level = currentSeverity,
+    severity: Level = level,
   )(using Context,
   ): Unit =
     severity match {

@@ -16,10 +16,12 @@ class AnalyzerPlugin extends StandardPlugin {
 
     options.foreach { option =>
       if (option.startsWith("requireJDK=")) {
-        val jdkPattern = option.drop(11)
-        val currentJavaVer = System.getProperty("java.version", "")
-        if (!currentJavaVer.matches(jdkPattern)) {
-          report.error(s"This project must be compiled on JDK version that matches $jdkPattern but got $currentJavaVer")
+        val jdkVersionRegex = option.substring(option.indexOf('=') + 1)
+        val javaVersion = System.getProperty("java.version", "")
+        if (!javaVersion.matches(jdkVersionRegex)) {
+          report.error(
+            s"This project must be compiled on JDK version that matches $jdkVersionRegex but got $javaVersion",
+          )
         }
       } else {
         val level = option.charAt(0) match {
@@ -29,19 +31,19 @@ class AnalyzerPlugin extends StandardPlugin {
           case _ => Level.Warn
         }
 
-        val nameWithArg = if (level != Level.Warn) option.drop(1) else option
+        val nameArg = if (level != Level.Warn) option.drop(1) else option
 
-        if (nameWithArg == "_") {
-          rules.foreach(_.updateSeverity(level))
+        if (nameArg == "_") {
+          rules.foreach(_.level = level)
         } else {
-          val parts = nameWithArg.split(":", 2)
+          val parts = nameArg.split(":", 2)
           val ruleName = parts(0)
           val ruleArg = if (parts.length > 1) parts(1) else null
 
           rulesByName.get(ruleName) match {
             case Some(ruleInstance) =>
-              ruleInstance.updateSeverity(level)
-              ruleInstance.updateArgument(ruleArg)
+              ruleInstance.level = level
+              ruleInstance.ruleArgument = ruleArg
             case None =>
               report.error(s"Unrecognized AVS analyzer rule: $ruleName")
           }
@@ -80,7 +82,7 @@ class AnalyzerPhaseImpl(rulesList: List[AnalyzerRule]) extends PluginPhase {
   override val runsBefore: Set[String] = Set("patmat")
   val phaseName = "avsAnalyze"
   override def transformUnit(unitTree: tpd.Tree)(using ctx: Context): tpd.Tree = {
-    rulesList.filter(_.currentSeverity != Level.Off).foreach {
+    rulesList.filter(_.level != Level.Off).foreach {
       case rule: AnalyzerRuleOnUntyped => rule.analyze(ctx.compilationUnit.untpdTree)
       case rule: AnalyzerRuleOnTyped => rule.analyze(unitTree)
     }
