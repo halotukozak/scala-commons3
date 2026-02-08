@@ -67,8 +67,6 @@ class AnalyzerPlugin extends StandardPlugin {
     ConstantDeclarations(),
     BasePackage(),
     ImplicitValueClasses(),
-    FinalValueClasses(),
-    FinalCaseClasses(),
     ImplicitParamDefaults(),
     CatchThrowable(),
     ImplicitFunctionParams(),
