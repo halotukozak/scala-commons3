@@ -1,34 +1,42 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
+import dotty.tools.dotc.core.Types.*
 
-class ConstantDeclarations(g: Global) extends AnalyzerRule(g, "constantDeclarations", Level.Off) {
-
-  import global._
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case t @ ValDef(_, name, tpt, rhs) if t.symbol.hasGetter && t.symbol.owner.isEffectivelyFinal =>
-
-      val getter = t.symbol.getterIn(t.symbol.owner)
-      if (getter.isPublic && getter.isStable && getter.overrides.isEmpty) {
-        val constantValue = rhs.tpe match {
+class ConstantDeclarations(using Context) extends AnalyzerRuleOnTyped("constantDeclarations", Level.Off) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case t @ ValDef(name, tpt, _) if t.symbol.exists && t.symbol.owner.isEffectivelyFinal =>
+      val getter = t.symbol
+      if (getter.isPublic && !getter.allOverriddenSymbols.iterator.hasNext) {
+        val constantValue = t.rhs.tpe match {
           case ConstantType(_) => true
           case _ => false
         }
 
-        def doReport(msg: String): Unit =
-          report(t.pos, msg, site = t.symbol)
+        val valName = name.toString
+        val startsUpper = valName.nonEmpty && valName.charAt(0).isUpper
+        val isFinalVal = getter.is(Flags.Final)
 
-        val firstChar = name.toString.charAt(0)
-        if (constantValue && (firstChar.isLower || !getter.isFinal)) {
-          doReport("a literal-valued constant should be declared as a `final val` with an UpperCamelCase name")
+        def doEmitReport(msg: String): Unit =
+          emitReport(t.srcPos, msg)
+
+        if (constantValue && (!startsUpper || !isFinalVal)) {
+          doEmitReport(
+            "a literal-valued constant should be declared as a `final val` with an UpperCamelCase name",
+          )
         }
-        if (!constantValue && firstChar.isUpper && !getter.isFinal) {
-          doReport("a constant with UpperCamelCase name should be declared as a `final val`")
+
+        if (!constantValue && startsUpper && !isFinalVal) {
+          doEmitReport("a constant with UpperCamelCase name should be declared as a `final val`")
         }
-        if (getter.isFinal && constantValue && !(tpt.tpe =:= rhs.tpe)) {
-          doReport("a constant with a literal value should not have an explicit type annotation")
+
+        if (isFinalVal && constantValue && tpt.tpe != null && !(tpt.tpe =:= t.rhs.tpe)) {
+          doEmitReport("a constant with a literal value should not have an explicit type annotation")
         }
       }
     case _ =>

@@ -1,30 +1,26 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd.*
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
+import printing.Texts.Text
 
-class ShowAst(g: Global) extends AnalyzerRule(g, "showAst", Level.Error) {
+class ShowAst(using Context) extends AnalyzerRuleOnTyped("showAst", Level.Error) {
+  private lazy val extractShowAstAnnotation = resolveClassType("com.avsystem.commons.annotation.showAst")
 
-  import global._
-
-  lazy val showAstAnnotType: Type = classType("com.avsystem.commons.annotation.showAst")
-
-  def analyze(unit: CompilationUnit): Unit = if (showAstAnnotType != NoType) {
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case Annotated(annot, arg) if annot.tpe <:< showAstAnnotType =>
-            report(arg.pos, showCode(arg))
-          case Typed(expr, tpt) if tpt.tpe.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(expr.pos, showCode(expr))
-          case _: MemberDef if tree.symbol.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(tree.pos, showCode(tree))
-          case _ =>
-        }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
+  def analyze(unitTree: Tree)(using Context): Unit = extractShowAstAnnotation.foreach { showAstType =>
+    checkChildren(unitTree) {
+      case Annotated(arg, annot) if annot.symbol.typeRef <:< showAstType =>
+        emitReport(arg.srcPos, arg.show)
+      case Typed(expr, tpt) if tpt.tpe.typeSymbol.annotations.exists(_.symbol.typeRef <:< showAstType) =>
+        emitReport(expr.srcPos, expr.show)
+      case defTree: MemberDef if defTree.symbol.annotations.exists(_.symbol.typeRef <:< showAstType) =>
+        emitReport(defTree.srcPos, defTree.show)
+      case _ =>
     }
-    analyzeTree(unit.body)
   }
 }

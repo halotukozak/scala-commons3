@@ -1,21 +1,24 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd.*
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
 
-class CheckBincompat(g: Global) extends AnalyzerRule(g, "bincompat") {
+class CheckBincompat(using Context) extends AnalyzerRuleOnTyped("bincompat") {
+  private lazy val extractBincompatAnnotation = resolveClassType("com.avsystem.commons.annotation.bincompat")
 
-  import global._
-
-  private lazy val bincompatAnnotType = classType("com.avsystem.commons.annotation.bincompat")
-
-  def analyze(unit: CompilationUnit): Unit =
-    unit.body.foreach(analyzeTree {
-      case tree @ (_: Ident | _: Select | _: New)
-          if tree.symbol != null && tree.symbol.annotations.exists(_.tree.tpe <:< bincompatAnnotType) =>
-        report(
-          tree.pos,
+  def analyze(unitTree: Tree)(using Context): Unit = extractBincompatAnnotation.foreach { bincompatType =>
+    checkChildren(unitTree) {
+      case ref: RefTree if ref.symbol.exists && ref.symbol.annotations.exists(_.symbol.typeRef <:< bincompatType) =>
+        emitReport(
+          ref.srcPos,
           "Symbols annotated as @bincompat exist only for binary compatibility " + "and should not be used directly",
         )
-    })
+      case _ =>
+    }
+  }
 }

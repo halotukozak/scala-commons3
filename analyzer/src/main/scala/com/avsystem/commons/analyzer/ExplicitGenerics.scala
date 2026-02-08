@@ -1,35 +1,40 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
-class ExplicitGenerics(g: Global) extends AnalyzerRule(g, "explicitGenerics") {
+class ExplicitGenerics(using Context) extends AnalyzerRuleOnTyped("explicitGenerics") {
+  private lazy val extractExplicitGenericsAnnotation =
+    resolveClassType("com.avsystem.commons.annotation.explicitGenerics")
 
-  import global._
+  def analyze(unitTree: Tree)(using Context): Unit = extractExplicitGenericsAnnotation.foreach { explicitGenAnnotType =>
+    def requiresExplicitGenerics(sym: Symbol): Boolean = (sym :: sym.allOverriddenSymbols.toList).exists { s =>
+      s.annotations.exists(_.symbol.typeRef <:< explicitGenAnnotType)
+    }
 
-  lazy val explicitGenericsAnnotTpe: Type = classType("com.avsystem.commons.annotation.explicitGenerics")
-
-  def analyze(unit: CompilationUnit): Unit = if (explicitGenericsAnnotTpe != NoType) {
-    def requiresExplicitGenerics(sym: Symbol): Boolean =
-      sym != NoSymbol && (sym :: sym.overrides).flatMap(_.annotations).exists(_.tree.tpe <:< explicitGenericsAnnotTpe)
-
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case t @ TypeApply(pre, args) if requiresExplicitGenerics(pre.symbol) =>
-            val inferredTypeParams = args.forall {
-              case tt: TypeTree => tt.original == null || tt.original == EmptyTree
+    checkChildren(unitTree) {
+      case app @ TypeApply(fn, typeArgs) =>
+        val fnSym = fn.symbol
+        if (fnSym.exists) {
+          if (requiresExplicitGenerics(fnSym)) {
+            val allInferred = typeArgs.forall {
+              case tt: TypeTree => !tt.span.exists || tt.span.isZeroExtent
               case _ => false
             }
-            if (inferredTypeParams) {
-              report(t.pos, s"${pre.symbol} requires that its type arguments are explicit (not inferred)")
+
+            if (allInferred) {
+              emitReport(
+                app.srcPos,
+                s"$fnSym requires that its type arguments are explicit (not inferred)",
+              )
             }
-          case _ =>
+          }
         }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
+      case _ =>
     }
-    analyzeTree(unit.body)
   }
 }

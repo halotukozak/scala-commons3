@@ -1,20 +1,22 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
-class FindUsages(g: Global) extends AnalyzerRule(g, "findUsages") {
+class FindUsages(using Context) extends AnalyzerRuleOnTyped("findUsages") {
+  private lazy val rejectedSymbols = Option(argument).map(_.split(";").toSet)
 
-  import global._
-
-  lazy val rejectedSymbols: Set[String] =
-    if (argument == null) Set.empty else argument.split(";").toSet
-
-  override def analyze(unit: CompilationUnit): Unit = if (rejectedSymbols.nonEmpty) {
-    unit.body.foreach { tree =>
-      if (tree.symbol != null && rejectedSymbols.contains(tree.symbol.fullName)) {
-        report(tree.pos, s"found usage of ${tree.symbol.fullName}")
-      }
+  def analyze(unitTree: Tree)(using Context): Unit = rejectedSymbols.foreach { rejectedSet =>
+    checkChildren(unitTree) {
+      case tree if tree.symbol.exists =>
+        if (rejectedSet.contains(tree.symbol.fullName.toString)) {
+          emitReport(tree.srcPos, s"found usage of ${tree.symbol.fullName.toString}")
+        }
+      case _ =>
     }
   }
 }

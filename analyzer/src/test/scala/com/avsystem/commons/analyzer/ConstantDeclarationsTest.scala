@@ -63,7 +63,9 @@ final class ConstantDeclarationsTest extends AnyFunSuite with AnalyzerTest {
              |object Stuff extends Whatever {
              |  val a: Int = 42
              |}
-             |""".stripMargin)
+             |""",
+      onlyRule("constantDeclarations")
+    )
   }
 
   test("no constant checking for privates") {

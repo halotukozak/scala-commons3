@@ -12,6 +12,7 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMethod(123)
              |""".stripMargin,
+      onlyRule("explicitGenerics")
     )
   }
 
@@ -23,22 +24,29 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
              |
              |val x = TestUtils.genericMacro(123)
              |""".stripMargin,
+      onlyRule("explicitGenerics")
     )
   }
 
   test("explicit generic should not be rejected") {
-    assertNoErrors(scala"""
+    assertNoErrors(
+      scala"""
              |import com.avsystem.commons.analyzer.TestUtils
              |
              |val x = TestUtils.genericMethod[Int](123)
-             |""".stripMargin)
+             |""".stripMargin,
+      onlyRule("explicitGenerics")
+    )
   }
 
   test("explicit generic in macro should not be rejected") {
-    assertNoErrors(scala"""
+    assertNoErrors(
+      scala"""
              |import com.avsystem.commons.analyzer.TestUtils
              |
              |val x = TestUtils.genericMacro[Int](123)
-             |""".stripMargin)
+             |""".stripMargin,
+      onlyRule("explicitGenerics")
+    )
   }
 }
