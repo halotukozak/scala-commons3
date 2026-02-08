@@ -11,6 +11,7 @@ final class ThrowableObjectsTest extends AnyFunSuite with AnalyzerTest {
              |object throwableObject extends Throwable
              |object noStackTraceThrowableObject extends Throwable with scala.util.control.NoStackTrace
              |""".stripMargin,
+      onlyRule("throwableObjects")
     )
   }
 }

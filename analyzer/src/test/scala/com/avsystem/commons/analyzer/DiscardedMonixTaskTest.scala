@@ -5,9 +5,7 @@ import org.scalatest.funsuite.AnyFunSuite
 
 final class DiscardedMonixTaskTest extends AnyFunSuite with AnalyzerTest {
   test("simple") {
-    assertErrors(
-      10,
-      scala"""
+    assertErrors(10, scala"""
              |import monix.eval.Task
              |
              |def task: Task[String] = ???

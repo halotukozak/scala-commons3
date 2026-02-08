@@ -11,7 +11,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package com.avsystem.commons
         |
         |object bar
-        |""".stripMargin)
+        |""".stripMargin, onlyRuleWithArg("basePackage", "com.avsystem.commons"))
   }
 
   test("chained base package") {
@@ -22,8 +22,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package commons
         |
         |object bar
-        |""".stripMargin
-    )
+        |""".stripMargin, onlyRuleWithArg("basePackage", "com.avsystem.commons"))
   }
 
   test("base package with chained subpackage") {
@@ -34,8 +33,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package core
         |
         |object bar
-        |""".stripMargin
-    )
+        |""".stripMargin, onlyRuleWithArg("basePackage", "com.avsystem.commons"))
   }
 
   test("base package object") {
@@ -45,8 +43,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package com.avsystem
         |
         |package object commons
-        |""".stripMargin
-    )
+        |""".stripMargin, onlyRuleWithArg("basePackage", "com.avsystem.commons"))
   }
 
   test("base package object with imports") {
@@ -59,61 +56,50 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |import scala.collection.mutable.Set
         |
         |package object commons
-        |""".stripMargin
-    )
+        |""".stripMargin, onlyRuleWithArg("basePackage", "com.avsystem.commons"))
   }
 
   test("no base package") {
-    assertErrors(
-      1,
-      // language=Scala
+    assertErrors(1, // language=Scala
       """
         |object bar
-        |""".stripMargin,
+        |""".stripMargin, onlyRuleWithArg("basePackage", "my.base.pkg"),
     )
   }
 
   test("no base package with imports") {
-    assertErrors(
-      1,
-      // language=Scala
+    assertErrors(1, // language=Scala
       """
         |import scala.collection.mutable.Seq
         |import scala.collection.mutable.Set
         |
         |object bar
-        |""".stripMargin,
+        |""".stripMargin, onlyRuleWithArg("basePackage", "my.base.pkg"),
     )
   }
 
   test("wrong base package") {
-    assertErrors(
-      1,
-      // language=Scala
+    assertErrors(1, // language=Scala
       """
         |package com.avsystem.kommons
         |
         |object bar
-        |""".stripMargin,
+        |""".stripMargin, onlyRuleWithArg("basePackage", "my.base.pkg"),
     )
   }
 
   test("unchained subpackage") {
-    assertErrors(
-      1,
-      // language=Scala
+    assertErrors(1, // language=Scala
       """
         |package com.avsystem.commons.core
         |
         |object bar
-        |""".stripMargin,
+        |""".stripMargin, onlyRuleWithArg("basePackage", "my.base.pkg"),
     )
   }
 
   test("unchained subpackage with imports") {
-    assertErrors(
-      1,
-      // language=Scala
+    assertErrors(1, // language=Scala
       """
         |package com.avsystem.commons.core
         |
@@ -121,7 +107,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |import scala.collection.mutable.Set
         |
         |object bar
-        |""".stripMargin,
+        |""".stripMargin, onlyRuleWithArg("basePackage", "my.base.pkg"),
     )
   }
 }
