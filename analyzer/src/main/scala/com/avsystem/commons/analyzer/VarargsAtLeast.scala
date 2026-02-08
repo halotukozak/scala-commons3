@@ -13,8 +13,8 @@ class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast"
 
   def analyze(unitTree: Tree)(using Context): Unit = extractAtLeastAnnotation.foreach { atLeastAnnotType =>
     checkChildren(unitTree) {
-      case app @ Apply(fn, args) =>
-        val methodSym = fn.symbol
+      case t @ Apply(fun, args) =>
+        val methodSym = fun.symbol
         if (methodSym.exists && methodSym.is(Flags.Method)) {
           val params = methodSym.info.paramInfoss.flatten
           if (params.nonEmpty && params.last.isRepeatedParam) {
@@ -38,7 +38,7 @@ class VarargsAtLeast(using Context) extends AnalyzerRuleOnTyped("varargsAtLeast"
 
               if (providedCount < requiredCount)
                 emitReport(
-                  app.srcPos,
+                  t.srcPos,
                   s"This method requires at least $requiredCount arguments for its repeated parameter, $providedCount passed.",
                 )
             }

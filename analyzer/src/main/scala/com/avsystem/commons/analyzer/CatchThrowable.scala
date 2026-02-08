@@ -10,8 +10,8 @@ import dotty.tools.dotc.core.Symbols.*
 class CatchThrowable(using Context) extends AnalyzerRuleOnTyped("catchThrowable", Level.Warn) {
   def analyze(unitTree: Tree)(using Context): Unit =
     checkChildren(unitTree) {
-      case tryTree: Try =>
-        tryTree.cases.foreach {
+      case t: Try =>
+        t.cases.foreach {
           case caseDef @ CaseDef(Alternative(patterns), _, _) => patterns.foreach(checkTree)
           case caseDef @ CaseDef(Bind(_, Alternative(patterns)), _, _) => patterns.foreach(checkTree)
           case caseDef @ CaseDef(pattern, _, _) if caseDef.span.exists => checkTree(pattern)
