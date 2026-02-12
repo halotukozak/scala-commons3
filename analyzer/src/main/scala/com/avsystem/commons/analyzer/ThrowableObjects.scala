@@ -1,23 +1,29 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import ast.tpd.*
+import core.*
+import Contexts.*
+import Symbols.*
+import Types.*
+import Names.*
 
-class ThrowableObjects(g: Global) extends AnalyzerRule(g, "throwableObjects", Level.Warn) {
+class ThrowableObjects(using Context) extends AnalyzerRuleOnTyped("throwableObjects", Level.Warn) {
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case valDef: ValDef if valDef.symbol.is(Flags.Module) =>
+      val moduleType = valDef.symbol.info
+      if (moduleType <:< defn.ThrowableType) {
+        val fillInStackTraceMethods = moduleType.member(termName("fillInStackTrace"))
+        val hasOverride = fillInStackTraceMethods.alternatives.exists { alt =>
+          alt.symbol.owner != defn.ThrowableClass && alt.symbol.is(Flags.Override)
+        }
 
-  import global._
-
-  private lazy val throwableTpe = typeOf[Throwable]
-  private lazy val throwableSym = throwableTpe.dealias.typeSymbol
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case md: ModuleDef =>
-      val tpe = md.symbol.typeSignature
-      def fillInStackTraceSym: Symbol =
-        tpe.member(TermName("fillInStackTrace")).alternatives.find(_.paramLists == List(Nil)).get
-
-      if (tpe <:< throwableTpe && fillInStackTraceSym.owner == throwableSym) {
-        report(md.pos, "objects should never extend Throwable unless they have no stack trace")
+        if (!hasOverride)
+          emitReport(
+            valDef.srcPos,
+            "objects should never extend Throwable unless they have no stack trace",
+          )
       }
     case _ =>
   }

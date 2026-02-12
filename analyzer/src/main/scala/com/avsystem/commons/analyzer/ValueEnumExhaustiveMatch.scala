@@ -1,52 +1,71 @@
 package com.avsystem.commons
 package analyzer
 
+import dotty.tools.dotc.*
+import ast.tpd.*
+import core.*
+import Contexts.{Context, *}
+import Symbols.*
+import Types.*
+
 import scala.collection.mutable
-import scala.tools.nsc.Global
 
-class ValueEnumExhaustiveMatch(g: Global) extends AnalyzerRule(g, "valueEnumExhaustiveMatch") {
+class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRuleOnTyped("valueEnumExhaustiveMatch") {
+  private lazy val extractValueEnumTypes = {
+    val valueEnumType = resolveClassType("com.avsystem.commons.misc.ValueEnum")
+    val companionType = resolveClassType("com.avsystem.commons.misc.ValueEnumCompanion")
+    val companionSym = companionType match {
+      case Some(companionType) => companionType.typeSymbol
+      case None => NoSymbol
+    }
+    valueEnumType.map((_, companionSym)).filter(_._2.exists)
+  }
 
-  import global._
+  def analyze(unitTree: Tree)(using Context): Unit = extractValueEnumTypes.foreach {
+    (valueEnumType, companionSym) =>
+      checkChildren(unitTree) {
+        case matchTree @ Match(selector, cases) if selector.tpe <:< valueEnumType =>
+          val selectorType = selector.tpe
+          val companionObj = selectorType.typeSymbol.companionModule
 
-  lazy val valueEnumTpe: Type = classType("com.avsystem.commons.misc.ValueEnum")
-  lazy val ExistentialType(_, TypeRef(miscPackageTpe, valueEnumCompanionSym, _)) =
-    classType("com.avsystem.commons.misc.ValueEnumCompanion")
+          if (companionObj.exists) {
+            val uncovered = mutable.LinkedHashSet.empty[Symbol]
 
-  def analyze(unit: CompilationUnit): Unit = if (valueEnumTpe != NoType) {
-    unit.body.foreach(analyzeTree {
-      case tree @ Match(selector, cases) if selector.tpe <:< valueEnumTpe =>
-        val expectedCompanionTpe = TypeRef(miscPackageTpe, valueEnumCompanionSym, List(selector.tpe))
-        val companion = selector.tpe.typeSymbol.companion
-        val companionTpe = companion.toType
-        if (companionTpe <:< expectedCompanionTpe) {
-          val unmatched = new mutable.LinkedHashSet[Symbol]
-          companionTpe.decls.iterator
-            .filter(s => s.isVal && s.isFinal && !s.isLazy && s.typeSignature <:< selector.tpe)
-            .map(_.getterIn(companion))
-            .filter(_.isPublic)
-            .foreach(unmatched.add)
+            companionObj.info.decls.foreach {
+              case member
+                  if member.is(Flags.Final) && member.is(Flags.Method) && !member.is(Flags.Lazy) &&
+                    member.info.resultType <:< selectorType && member.isPublic =>
+                uncovered += member
+              case _ => ()
+            }
 
-          def findMatchedEnums(pattern: Tree): Unit = pattern match {
-            case Bind(_, body) => findMatchedEnums(body)
-            case Alternative(patterns) => patterns.foreach(findMatchedEnums)
-            case Ident(termNames.WILDCARD) => unmatched.clear()
-            case _: Ident | _: Select => unmatched.remove(pattern.symbol)
-            case _: Literal =>
-            case _ => unmatched.clear()
+            def recordMatchedEnums(pattern: Tree): Unit = pattern match {
+              case Bind(_, body) => recordMatchedEnums(body)
+              case Alternative(patterns) => patterns.foreach(recordMatchedEnums)
+              case Ident(name) if name.toString == "_" => uncovered.clear()
+              case ref: RefTree if ref.symbol.exists => uncovered -= ref.symbol
+              case Literal(_) =>
+              case _ => uncovered.clear()
+            }
+
+            cases.foreach {
+              case CaseDef(pattern, EmptyTree, _) => recordMatchedEnums(pattern)
+              case _ => uncovered.clear()
+            }
+
+            if (uncovered.nonEmpty) {
+              val enumList =
+                if (uncovered.size > 1)
+                  "inputs: " + uncovered.map(_.name.toString).mkString(", ")
+                else
+                  "input: " + uncovered.head.name.toString
+              emitReport(
+                matchTree.srcPos,
+                s"match may not be exhaustive.\nIt would fail on the following $enumList",
+              )
+            }
           }
-
-          cases.iterator.foreach {
-            case CaseDef(pattern, EmptyTree, _) => findMatchedEnums(pattern)
-            case _ => unmatched.clear()
-          }
-
-          if (unmatched.nonEmpty) {
-            val what =
-              if (unmatched.size > 1) "inputs: " + unmatched.map(_.nameString).mkString(", ")
-              else "input: " + unmatched.head.nameString
-            report(tree.pos, "match may not be exhaustive.\nIt would fail on the following " + what)
-          }
-        }
-    })
+        case _ =>
+      }
   }
 }

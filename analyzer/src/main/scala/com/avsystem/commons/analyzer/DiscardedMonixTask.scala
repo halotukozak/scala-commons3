@@ -1,71 +1,74 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
+import dotty.tools.dotc.core.Types.*
 
-class DiscardedMonixTask(g: Global) extends AnalyzerRule(g, "discardedMonixTask") {
+class DiscardedMonixTask(using Context) extends AnalyzerRuleOnTyped("discardedMonixTask") {
+  private lazy val extractMonixTaskType = resolveClassType("monix.eval.Task").map(_.appliedTo(defn.AnyType))
 
-  import global._
+  def analyze(unitTree: Tree)(using Context): Unit = extractMonixTaskType.foreach { monixTaskType =>
+    def checkDiscardedTask(tree: Tree, isDiscarded: Boolean): Unit = tree match {
+      case t if !isDiscarded && t.tpe != null && t.tpe =:= defn.UnitType =>
+        checkDiscardedTask(t, isDiscarded = true)
 
-  lazy val monixTaskTpe: Type = classType("monix.eval.Task") match {
-    case NoType => NoType
-    case tpe => TypeRef(NoPrefix, tpe.typeSymbol, List(definitions.AnyTpe))
-  }
+      case Block(statements, expr) =>
+        statements.foreach(checkDiscardedTask(_, isDiscarded = true))
+        checkDiscardedTask(expr, isDiscarded)
 
-  private def checkDiscardedTask(tree: Tree, discarded: Boolean): Unit = tree match {
-    case tree if !discarded && tree.tpe != null && tree.tpe =:= definitions.UnitTpe =>
-      checkDiscardedTask(tree, discarded = true)
+      case Template(_, _, _, body) =>
+        body match {
+          case trees: List[Tree @unchecked] => trees.foreach(checkDiscardedTask(_, isDiscarded = true))
+          case _ => ()
+        }
 
-    case Block(stats, expr) =>
-      stats.foreach(checkDiscardedTask(_, discarded = true))
-      checkDiscardedTask(expr, discarded)
+      case If(_, thenBranch, elseBranch) =>
+        checkDiscardedTask(thenBranch, isDiscarded)
+        checkDiscardedTask(elseBranch, isDiscarded)
 
-    case Template(parents, self, body) =>
-      parents.foreach(checkDiscardedTask(_, discarded = false))
-      checkDiscardedTask(self, discarded = false)
-      body.foreach(checkDiscardedTask(_, discarded = true))
+      case Try(body, handlers, finalizer) =>
+        checkDiscardedTask(body, isDiscarded)
+        handlers.foreach(checkDiscardedTask(_, isDiscarded))
+        if (!finalizer.isEmpty) checkDiscardedTask(finalizer, isDiscarded = true)
 
-    case If(_, thenp, elsep) =>
-      checkDiscardedTask(thenp, discarded)
-      checkDiscardedTask(elsep, discarded)
+      case CaseDef(_, _, body) =>
+        checkDiscardedTask(body, isDiscarded)
 
-    case LabelDef(_, _, rhs) =>
-      checkDiscardedTask(rhs, discarded = true)
+      case Match(_, cases) =>
+        cases.foreach(checkDiscardedTask(_, isDiscarded))
 
-    case Try(body, catches, finalizer) =>
-      checkDiscardedTask(body, discarded)
-      catches.foreach(checkDiscardedTask(_, discarded))
-      checkDiscardedTask(finalizer, discarded = true)
+      case Annotated(arg, _) =>
+        checkDiscardedTask(arg, isDiscarded)
 
-    case CaseDef(_, _, body) =>
-      checkDiscardedTask(body, discarded)
+      case Typed(expr, _) =>
+        checkDiscardedTask(expr, isDiscarded)
 
-    case Match(_, cases) =>
-      cases.foreach(checkDiscardedTask(_, discarded))
+      case app @ Apply(TypeApply(Select(prefix, name), _), List(Block(List(defDef: DefDef), _)))
+          if name.toString == "foreach" =>
+        checkDiscardedTask(prefix, isDiscarded = false)
+        checkDiscardedTask(defDef.rhs, isDiscarded)
 
-    case Annotated(_, arg) =>
-      checkDiscardedTask(arg, discarded)
+      case ref: RefTree
+          if isDiscarded && ref.tpe != null && ref.tpe <:< monixTaskType && !(ref.tpe <:< defn.NullType) =>
+        emitReport(
+          ref.srcPos,
+          "discarded Monix Task - this is probably a mistake because the Task must be run for its side effects",
+        )
 
-    case Typed(expr, _) =>
-      checkDiscardedTask(expr, discarded)
-
-    case Apply(TypeApply(Select(prefix, TermName("foreach")), List(_)), List(Function(_, body))) =>
-      checkDiscardedTask(prefix, discarded = false)
-      checkDiscardedTask(body, discarded)
-
-    case _: Ident | _: Select | _: Apply | _: TypeApply
-        if discarded && tree.tpe != null && tree.tpe <:< monixTaskTpe && !(tree.tpe <:< definitions.NullTpe) =>
-      report(
-        tree.pos,
-        "discarded Monix Task - this is probably a mistake because the Task must be run for its side effects",
-      )
-
-    case tree =>
-      tree.children.foreach(checkDiscardedTask(_, discarded = false))
-  }
-
-  def analyze(unit: CompilationUnit): Unit =
-    if (monixTaskTpe != NoType) {
-      checkDiscardedTask(unit.body, discarded = false)
+      case other =>
+        object SubTreeTraverser extends TreeTraverser {
+          override def traverse(tree: Tree)(using Context): Unit = {
+            checkDiscardedTask(tree, isDiscarded = false)
+            traverseChildren(tree)
+          }
+        }
+        SubTreeTraverser.traverse(other)
     }
+
+    checkDiscardedTask(unitTree, isDiscarded = false)
+  }
 }

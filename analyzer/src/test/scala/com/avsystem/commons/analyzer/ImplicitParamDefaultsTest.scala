@@ -26,9 +26,7 @@ final class ImplicitParamDefaultsTest extends AnyFunSuite with AnalyzerTest {
   }
 
   test("implicit parameter with default value in second parameter list should fail") {
-    assertErrors(
-      1,
-      scala"$DummyDefinition def badMethod(sth: Int)(implicit s: Scheduler = Scheduler.global): Unit = ???",
+    assertErrors(1, scala"$DummyDefinition def badMethod(sth: Int)(implicit s: Scheduler = Scheduler.global): Unit = ???",
     )
   }
 

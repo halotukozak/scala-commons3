@@ -23,9 +23,7 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
            |""".stripMargin
 
   test("should report two unmatched enum values") {
-    assertErrors(
-      1,
-      source(
+    assertErrors(1, source(
         """
         |case Enumz.One =>
         |case null =>
@@ -35,9 +33,7 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
   }
 
   test("should report one unmatched enum value") {
-    assertErrors(
-      1,
-      source(
+    assertErrors(1, source(
         """
         |case Enumz.One =>
         |case Enumz.Two =>
@@ -47,9 +43,7 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
   }
 
   test("should report one unmatched by alternative enum value") {
-    assertErrors(
-      1,
-      source(
+    assertErrors(1, source(
         """
         |case One | Two =>
       """.stripMargin

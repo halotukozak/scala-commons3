@@ -1,55 +1,56 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
-class ImplicitValueClasses(g: Global) extends AnalyzerRule(g, "implicitValueClasses", Level.Warn) {
-
-  import global.*
-  import definitions.*
-
-  private lazy val defaultClasses = Set[Symbol](AnyClass, AnyValClass, ObjectClass)
-
-  private lazy val reportOnNestedClasses = argument match {
+class ImplicitValueClasses(using Context) extends AnalyzerRuleOnTyped("implicitValueClasses", Level.Warn) {
+  private lazy val shouldReportNested: Boolean = argument match {
     case "all" => true
     case "top-level-only" | null => false
-    case _ => throw new IllegalArgumentException(s"Unknown ImplicitValueClasses option: $argument")
+    case other => throw IllegalArgumentException(s"Unknown ImplicitValueClasses option: $other")
   }
 
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case cd: ClassDef if cd.mods.hasFlag(Flag.IMPLICIT) =>
-      val tpe = cd.symbol.typeSignature
-      val primaryCtor = tpe.member(termNames.CONSTRUCTOR).alternatives.find(_.asMethod.isPrimaryConstructor)
-      val paramLists = primaryCtor.map(_.asMethod.paramLists)
-      val inheritsAnyVal = tpe.baseClasses contains AnyValClass
+  private def defaultBaseClasses(using Context) = Set(defn.AnyClass, defn.AnyValClass, defn.ObjectClass)
 
-      def inheritsOtherClass = tpe.baseClasses.exists { cls =>
-        def isDefault = defaultClasses contains cls
+  def analyze(unitTree: Tree)(using Context): Unit = checkChildren(unitTree) {
+    case classDef: TypeDef if classDef.symbol.is(Flags.Implicit) && classDef.symbol.isClass =>
+      val classType = classDef.symbol.info
+      val baseClassSet = classType.baseClasses.toSet
 
-        def isUniversalTrait = cls.isTrait && cls.superClass == AnyClass
+      val hasAnyValParent = baseClassSet.contains(defn.AnyValClass)
 
-        cls != cd.symbol && !isDefault && !isUniversalTrait
+      val hasNonDefaultBase = baseClassSet.exists { base =>
+        def isUniversalTrait = base.is(Flags.Trait) && base.asClass.superClass == defn.AnyClass
+        base != classDef.symbol && !defaultBaseClasses.contains(base) && !isUniversalTrait
       }
 
-      def hasExactlyOneParam = paramLists.exists(lists => lists.size == 1 && lists.head.size == 1)
-
-      def paramIsValueClass = paramLists.exists { lists =>
-        /* lists.nonEmpty && lists.head.nonEmpty && */
-        lists.head.head.typeSignature.typeSymbol.isDerivedValueClass
+      val primaryConstructor = classDef.symbol.primaryConstructor
+      val constructorParamLists = if (primaryConstructor.exists) primaryConstructor.info.paramInfoss else Nil
+      val hasExactlyOneParam = constructorParamLists match {
+        case List(List(param)) => true
+        case _ => false
       }
 
-      if (!inheritsAnyVal && !inheritsOtherClass && hasExactlyOneParam && !paramIsValueClass) {
-        val isNestedClass =
-          // implicit classes are always nested classes, so we want to check if the outer class's an object
-          /*cd.symbol.isNestedClass &&*/ !cd.symbol.isStatic
+      val paramIsValueClass = primaryConstructor.exists &&
+        primaryConstructor.info.paramInfoss.flatten.headOption.exists { paramType =>
+          paramType.typeSymbol.is(Flags.Trait) || paramType.typeSymbol.isDerivedValueClass
+        }
+
+      if (!hasAnyValParent && !hasNonDefaultBase && hasExactlyOneParam && !paramIsValueClass) {
+        val nestedInNonStaticContext = !classDef.symbol.isStatic
 
         val message = "Implicit classes should always extend AnyVal to become value classes" +
-          (if (isNestedClass) ". Nested classes should be extracted to top-level objects" else "")
+          (if (nestedInNonStaticContext) ". Nested classes should be extracted to top-level objects" else "")
 
-        if (reportOnNestedClasses || !isNestedClass)
-          report(cd.pos, message)
-        else
-          report(cd.pos, message, level = Level.Info)
+        if (shouldReportNested || !nestedInNonStaticContext) {
+          emitReport(classDef.srcPos, message)
+        } else {
+          emitReport(classDef.srcPos, message, severity = Level.Info)
+        }
       }
     case _ =>
   }

@@ -14,14 +14,11 @@ final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest {
              |@bincompat object objekt {
              |  @bincompat def method: Int = 42
              |}
-             |""".stripMargin
-    )
+             |""".stripMargin, onlyRule("bincompat"))
   }
 
   test("usage of @bincompat annotated symbols should be rejected") {
-    assertErrors(
-      3,
-      scala"""
+    assertErrors(3, scala"""
              |import com.avsystem.commons.annotation.bincompat
              |
              |@bincompat class klass

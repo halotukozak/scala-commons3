@@ -1,33 +1,26 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.*
+import dotty.tools.dotc.ast.tpd.*
+import dotty.tools.dotc.core.*
+import dotty.tools.dotc.core.Contexts.*
+import dotty.tools.dotc.core.Symbols.*
 
-class CheckMacroPrivate(g: Global) extends AnalyzerRule(g, "macroPrivate") {
+class CheckMacroPrivate(using Context) extends AnalyzerRuleOnTyped("macroPrivate") {
+  private lazy val extractMacroPrivateAnnotation = resolveClassType("com.avsystem.commons.annotation.macroPrivate")
 
-  import global._
-
-  lazy val macroPrivateAnnotTpe: Type = classType("com.avsystem.commons.annotation.macroPrivate")
-
-  def analyze(unit: CompilationUnit): Unit = if (macroPrivateAnnotTpe != NoType) {
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case _: Ident | _: Select | _: SelectFromTypeTree | _: New if tree.symbol != null && tree.pos != NoPosition =>
-
-            val sym = tree.symbol
-            val macroPrivate = (sym :: sym.overrides).iterator
-              .flatMap(_.annotations)
-              .exists(_.tree.tpe <:< macroPrivateAnnotTpe)
-            if (macroPrivate) {
-              report(tree.pos, s"$sym can only be used in macro-generated code")
-            }
-          case _ =>
+  def analyze(unitTree: Tree)(using Context): Unit = extractMacroPrivateAnnotation.foreach { macroPrivateType =>
+    checkChildren(unitTree) {
+      case ref: RefTree if ref.symbol.exists && ref.span.exists =>
+        val sym = ref.symbol
+        val hasAnnotation = (sym :: sym.allOverriddenSymbols.toList).exists { s =>
+          s.annotations.exists(_.symbol.typeRef <:< macroPrivateType)
         }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
+        if (hasAnnotation) {
+          emitReport(ref.srcPos, s"$sym can only be used in macro-generated code")
+        }
+      case _ =>
     }
-    analyzeTree(unit.body)
   }
 }

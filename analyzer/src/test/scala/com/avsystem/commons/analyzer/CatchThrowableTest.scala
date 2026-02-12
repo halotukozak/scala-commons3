@@ -5,15 +5,13 @@ import org.scalatest.funsuite.AnyFunSuite
 
 final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
   test("catching Throwable should be rejected") {
-    assertErrors(
-      1,
-      scala"""
+    assertErrors(1, scala"""
              |try {
              |  println("test")
              |} catch {
              |  case t: Throwable => println(t)
              |}
-             |""".stripMargin,
+             |""".stripMargin, onlyRule("catchThrowable"),
     )
   }
 
@@ -26,27 +24,23 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
              |  case e: RuntimeException => println(e)
              |  case e: IllegalArgumentException => println(e)
              |}
-             |""".stripMargin)
+             |""".stripMargin, onlyRule("catchThrowable"))
   }
 
   test("catching Throwable with other exceptions should be rejected") {
-    assertErrors(
-      1,
-      scala"""
+    assertErrors(1, scala"""
              |try {
              |  println("test")
              |} catch {
              |  case e: IllegalArgumentException => println(e)
              |  case t: Throwable => println(t)
              |}
-             |""".stripMargin,
+             |""".stripMargin, onlyRule("catchThrowable"),
     )
   }
 
   test("catching Throwable in nested catch block should be rejected") {
-    assertErrors(
-      1,
-      scala"""
+    assertErrors(1, scala"""
              |try println("test")
              |catch {
              |  case e: Exception => try println("test")
@@ -54,7 +48,7 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
              |    case e: Throwable => println(e)
              |  }
              |}
-             |""".stripMargin,
+             |""".stripMargin, onlyRule("catchThrowable"),
     )
   }
 
@@ -76,7 +70,7 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
              |  case NonFatal(t) => println(t)
              |  case scala.util.control.NonFatal(t) => println(t)
              |}
-             |""".stripMargin)
+             |""".stripMargin, onlyRule("catchThrowable"))
   }
 
   test("catching non-Throwable with pattern match should be allowed") {
@@ -97,15 +91,13 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
   }
 
   test("catching Throwable with pattern match should be rejected") {
-    assertErrors(
-      1,
-      scala"""
+    assertErrors(1, scala"""
              |try {
              |  println("test")
              |} catch {
              |  case _: IndexOutOfBoundsException | _: Throwable => println("Not OK!")
              |}
-             |""".stripMargin,
+             |""".stripMargin, onlyRule("catchThrowable"),
     )
   }
 
@@ -118,6 +110,6 @@ final class CatchThrowableTest extends AnyFunSuite with AnalyzerTest {
              |try {
              |  println("test")
              |} catch CustomHandler()
-             |""".stripMargin)
+             |""".stripMargin, onlyRule("catchThrowable"))
   }
 }
