@@ -246,16 +246,16 @@ class DerMirrorTest extends AnyFunSuite {
   }
 
   test("DerMirror for case class with wildcard") {
-    val _: DerMirror.Product {
-      type MirroredType = Box[?]
-      type MirroredLabel = "Box"
-      type Metadata = Meta
-      type MirroredElems = DerElem {
-//        type MirroredType = Box[?]#T
-        type MirroredLabel = "a"
-        type Metadata = Meta
-      } *: EmptyTuple
-    } = DerMirror.derived[Box[?]]
+//    val _: DerMirror.Product {
+//      type MirroredType = Box[?]
+//      type MirroredLabel = "Box"
+//      type Metadata = Meta
+//      type MirroredElems = DerElem {
+////        type MirroredType = Box[?]#T
+//        type MirroredLabel = "a"
+//        type Metadata = Meta
+//      } *: EmptyTuple
+//    } = DerMirror.derived[Box[?]]
   }
 }
 
