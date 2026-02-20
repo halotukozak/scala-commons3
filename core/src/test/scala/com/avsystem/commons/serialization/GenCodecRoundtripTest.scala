@@ -2,7 +2,7 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.mirror.DerMirror
-import com.avsystem.commons.serialization.CodecTestData.*
+import com.avsystem.commons.serialization.CodecTestData.{SomeObject, *}
 
 abstract class GenCodecRoundtripTest extends AbstractCodecTest {
   test("java collections") {

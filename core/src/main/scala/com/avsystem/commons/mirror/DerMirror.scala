@@ -37,6 +37,12 @@ sealed trait GeneratedDerElem extends DerElem {
   def apply(outer: OuterMirroredType): MirroredType
 }
 
+object GeneratedDerElem {
+  type Of[T] = GeneratedDerElem { type MirroredType = T }
+
+  type OuterOf[Outer] = GeneratedDerElem { type OuterMirroredType = Outer }
+}
+
 // workaround for https://github.com/scala/scala3/issues/25245
 sealed trait GeneratedDerElemWorkaround[Outer, Elem] extends GeneratedDerElem {
   final type OuterMirroredType = Outer

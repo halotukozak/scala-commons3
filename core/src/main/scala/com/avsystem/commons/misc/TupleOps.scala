@@ -22,7 +22,7 @@ trait TupleOps {
     case EmptyTuple => EmptyTuple
     case h *: t => N *: IndicesAux[t, S[N]]
   }
-  
+
   extension [Tup <: Tuple](tuple: Tup) inline def toArrayOf[T: ClassTag]: Array[T] = tuple match {
     case EmptyTuple => new Array[T](0)
     case self: Product =>

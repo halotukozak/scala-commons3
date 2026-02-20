@@ -5,13 +5,13 @@ import com.avsystem.commons.annotation.explicitGenerics
 import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.jiop.JFactory
 import com.avsystem.commons.meta.{AllowDerivation, AllowRecursiveDerivation, Fallback}
-import com.avsystem.commons.mirror.DerMirror
+import com.avsystem.commons.mirror.{DerElem, DerMirror, GeneratedDerElem}
 import com.avsystem.commons.misc.{Bytes, Timestamp}
 
 import java.util.UUID
 import scala.NamedTuple.*
 import scala.annotation.{implicitNotFound, tailrec, targetName}
-import scala.collection.{Factory, mutable}
+import scala.collection.{mutable, Factory}
 
 /**
  * Type class for types that can be serialized to [[Output]] (format-agnostic "output stream") and deserialized from
@@ -255,7 +255,32 @@ object GenCodec extends GenCodecMacros {
         m.unwrap,
       )
     case m: DerMirror.SingletonOf[T] =>
-      deriveSingleton(compiletime.constValue[m.MirroredLabel], m.value)
+      val label = compiletime.constValue[m.MirroredLabel]
+      val value = m.value
+
+      compiletime.erasedValue[Tuple.Size[m.GeneratedElems]] match {
+        case _: 0 => deriveSingleton(label, value)
+        case _ =>
+          deriveSingletonWithGenerated(
+            label,
+            value,
+            compiletime
+              .constValueTuple[Tuple.Map[
+                m.GeneratedElems,
+                [Elem] =>> Elem match {
+                  case DerElem.LabelOf[label] => label
+                },
+              ]]
+              .toArrayOf[String],
+            m.generatedElems.toArrayOf[GeneratedDerElem.OuterOf[T]],
+            summonInstances[Tuple.Map[
+              m.GeneratedElems,
+              [Elem] =>> Elem match {
+                case DerElem.Of[elem] => elem
+              },
+            ]](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
+          )
+      }
     case m: DerMirror.ProductOf[T] =>
       deriveProduct(
         compiletime.constValue[m.MirroredLabel],
@@ -265,7 +290,8 @@ object GenCodec extends GenCodecMacros {
       )
     case m: DerMirror.SumOf[T] =>
       val label = compiletime.constValue[m.MirroredLabel]
-      val instances = summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
+      val instances =
+        summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
       val labels = compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String]
       val classTags = compiletime.summonAll[Tuple.Map[m.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
 
@@ -291,8 +317,32 @@ object GenCodec extends GenCodecMacros {
     }
   inline private def deriveTransparentWrapper[T, U](underlying: => GenCodec[U], unwrap: U => T, wrap: T => U)
     : GenCodec[T] = new Transformed[T, U](underlying, wrap, unwrap)
-  private def deriveSingleton[T](typeRepr: String, value: T): GenCodec[T] =
+  private def deriveSingleton[T](
+    typeRepr: String,
+    value: T,
+  ): GenCodec[T] =
     new SingletonCodec[T & Singleton](typeRepr, value.asInstanceOf[T & Singleton]).asInstanceOf[GenCodec[T]]
+  private def deriveSingletonWithGenerated[T](
+    typeRepr: String,
+    value: T,
+    generatedNames: Array[String],
+    generatedExtractors: Array[GeneratedDerElem.OuterOf[T]],
+    generatedCodecs: Array[GenCodec[?]],
+  ): GenCodec[T] =
+    new SingletonCodec[T & Singleton](typeRepr, value.asInstanceOf[T & Singleton]) {
+      override def size(value: T & Singleton, output: Opt[SequentialOutput]): Int = generatedExtractors.size
+      override def writeFields(output: ObjectOutput, value: T & Singleton): Unit =
+        generatedExtractors.zipWithIndex.foreach { (extractor, index) =>
+          writeField(
+            generatedNames(index),
+            output,
+            extractor(value),
+            generatedCodecs(index).asInstanceOf[GenCodec[extractor.MirroredType]],
+          )
+        }
+
+    }.asInstanceOf[GenCodec[T]]
+
   private def mkTupleCodec[Tup <: Tuple](elementCodecs: Tuple.Map[Tup, GenCodec]): GenCodec[Tup] = new ListCodec[Tup] {
     override def readList(input: ListInput): Tup =
       elementCodecs
