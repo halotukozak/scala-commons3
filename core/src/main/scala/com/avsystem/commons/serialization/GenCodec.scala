@@ -247,58 +247,56 @@ object GenCodec extends GenCodecMacros {
     ${ fromJavaBuilderImpl[T, B]('{ newBuilder }, '{ build }) }
   inline given [T: DerMirror.Of] => (AllowRecursiveDerivation.type) => GenCodec[T] = GenCodec.derived[T]
   inline given [T: DerMirror.Of] => (AllowDerivation[GenCodec[T]]) => GenCodec[T] = GenCodec.derived[T]
-  inline private def unsafeDerived[T: DerMirror.Of as derMirror]: GenCodec[T] = inline derMirror match {
-    case m: DerMirror.TransparentOf[T] =>
-      deriveTransparentWrapper[T, m.MirroredElemType](
-        compiletime.summonInline[GenCodec[m.MirroredElemType]],
-        m.wrap,
-        m.unwrap,
-      )
-    case m: DerMirror.SingletonOf[T] =>
-      val label = compiletime.constValue[m.MirroredLabel]
-      val value = m.value
+  inline private def unsafeDerived[T: DerMirror.Of as derMirror]: GenCodec[T] = {
+    val label = compiletime.constValue[derMirror.MirroredLabel]
+    val generatedNames = compiletime
+      .constValueTuple[Tuple.Map[
+        derMirror.GeneratedElems,
+        [Elem] =>> Elem match {
+          case DerElem.LabelOf[label] => label
+        },
+      ]]
+      .toArrayOf[String]
+    val generatedExtractors = derMirror.generatedElems.toArrayOf[GeneratedDerElem.OuterOf[T]]
+    val generatedCodecs = summonInstances[Tuple.Map[
+      derMirror.GeneratedElems,
+      [Elem] =>> Elem match {
+        case DerElem.Of[elem] => elem
+      },
+    ]](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]]
 
-      compiletime.erasedValue[Tuple.Size[m.GeneratedElems]] match {
-        case _: 0 => deriveSingleton(label, value)
-        case _ =>
-          deriveSingletonWithGenerated(
-            label,
-            value,
-            compiletime
-              .constValueTuple[Tuple.Map[
-                m.GeneratedElems,
-                [Elem] =>> Elem match {
-                  case DerElem.LabelOf[label] => label
-                },
-              ]]
-              .toArrayOf[String],
-            m.generatedElems.toArrayOf[GeneratedDerElem.OuterOf[T]],
-            summonInstances[Tuple.Map[
-              m.GeneratedElems,
-              [Elem] =>> Elem match {
-                case DerElem.Of[elem] => elem
-              },
-            ]](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
-          )
-      }
-    case m: DerMirror.ProductOf[T] =>
-      deriveProduct(
-        compiletime.constValue[m.MirroredLabel],
-        summonInstances[m.MirroredElemTypes](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
-        compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
-        m.fromUnsafeArray,
-      )
-    case m: DerMirror.SumOf[T] =>
-      val label = compiletime.constValue[m.MirroredLabel]
-      val instances =
-        summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
-      val labels = compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String]
-      val classTags = compiletime.summonAll[Tuple.Map[m.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
+    inline derMirror match {
+      case m: DerMirror.TransparentOf[T] =>
+        deriveTransparentWrapper[T, m.MirroredElemType](
+          compiletime.summonInline[GenCodec[m.MirroredElemType]],
+          m.wrap,
+          m.unwrap,
+        )
 
-      m.getAnnotation[flatten] match {
-        case Some(f) => deriveFlattenSum(label, instances, labels, f.caseFieldName, classTags)
-        case _ => deriveNestedSum(label, instances, labels, classTags)
-      }
+      case m: DerMirror.SingletonOf[T] =>
+        compiletime.erasedValue[Tuple.Size[m.GeneratedElems]] match {
+          case _: 0 => deriveSingleton(label, m.value)
+          case _ => deriveSingletonWithGenerated(label, m.value, generatedNames, generatedExtractors, generatedCodecs)
+        }
+
+      case m: DerMirror.ProductOf[T] =>
+        deriveProduct(
+          label,
+          summonInstances[m.MirroredElemTypes](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
+          compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
+          m.fromUnsafeArray,
+        )
+
+      case m: DerMirror.SumOf[T] =>
+        val instances = summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
+        val labels = compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String]
+        val classTags = compiletime.summonAll[Tuple.Map[m.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
+
+        m.getAnnotation[flatten] match {
+          case Some(f) => deriveFlattenSum(label, instances, labels, f.caseFieldName, classTags)
+          case _ => deriveNestedSum(label, instances, labels, classTags)
+        }
+    }
   }
 
   inline private def summonInstances[Elems <: Tuple](
