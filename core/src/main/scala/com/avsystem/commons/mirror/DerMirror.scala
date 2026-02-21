@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package mirror
 
-import scala.annotation.{implicitNotFound, tailrec, RefiningAnnotation}
+import scala.annotation.{RefiningAnnotation, implicitNotFound, tailrec}
 import scala.quoted.{Expr, Quotes, Type}
 
 @implicitNotFound("No DerMirror could be generated.\nDiagnose any issues by calling DerMirror.derived directly")
@@ -115,14 +115,12 @@ object DerMirror {
     }
   }
 
-  private def traverseTuple(tpe: Type[? <: Tuple])(using quotes: Quotes): List[Type[? <: AnyKind]] = {
-    import quotes.reflect.*
+  private def traverseTuple(tpe: Type[? <: Tuple])(using quotes: Quotes): List[Type[? <: AnyKind]] =
 
     tpe match {
       case '[EmptyTuple] => Nil
       case '[t *: ts] => Type.of[t] :: traverseTuple(Type.of[ts])
     }
-  }
 
   private def derivedImpl[T: Type](using quotes: Quotes): Expr[DerMirror.Of[T]] = {
     import quotes.reflect.*
@@ -216,6 +214,22 @@ object DerMirror {
             child.isGenericProduct || child.isGenericSum
           }
         }
+    }
+
+    def derElemOf[A: Type] = {
+      val elemTpe = TypeRepr.of[A]
+      val subSymbol = if (elemTpe.termSymbol.isNoSymbol) elemTpe.typeSymbol else elemTpe.termSymbol
+
+      (labelTypeOf(subSymbol, subSymbol.name), metaTypeOf(subSymbol)).runtimeChecked match {
+        case ('[type elemLabel <: String; elemLabel], '[type meta <: Meta; meta]) =>
+          Type.of[
+            DerElem {
+              type MirroredType = A
+              type MirroredLabel = elemLabel
+              type Metadata = meta
+            },
+          ]
+      }
     }
 
     (
@@ -327,34 +341,41 @@ object DerMirror {
           }
         }
 
-        def deriveProduct = tpe.classSymbol.filter(_.isGenericProduct).map { cls =>
-          val elems = cls.caseFields.map { subSymbol =>
-            val elemTpe =
-              if (subSymbol.flags.is(Flags.ParamAccessor)) tpe.memberType(subSymbol)
-              else if (subSymbol.isTerm) subSymbol.termRef
-              else subSymbol.typeRef
+        def deriveProduct = Expr.summon[Mirror.ProductOf[T]].map {
+          case '{
+                type mirroredElemTypes <: Tuple
+                type label <: String;
 
-            (elemTpe.asType, labelTypeOf(subSymbol, subSymbol.name), metaTypeOf(subSymbol)).runtimeChecked match {
-              case ('[elemTpe], '[type elemLabel <: String; elemLabel], '[type meta <: Meta; meta]) =>
-                Type.of[
-                  DerElem {
-                    type MirroredType = elemTpe
-                    type MirroredLabel = elemLabel
-                    type Metadata = meta
-                  },
-                ]
-            }
-          }
-
-          traverseTypes(elems) match {
-            case '[type mirroredElems <: Tuple; mirroredElems] =>
-              '{
-                new DerMirror.Product {
-                  type MirroredType = T
+                $_ : Mirror.ProductOf[T] {
                   type MirroredLabel = label
-                  type Metadata = meta
-                  type MirroredElems = mirroredElems
-                  def fromUnsafeArray(product: Array[Any]): T = ???
+                  type MirroredElemTypes = mirroredElemTypes
+                }
+              } =>
+
+            val elems = symbol.caseFields.zip(traverseTuple(Type.of[mirroredElemTypes])).map {
+              case (subSymbol, '[subType]) =>
+                (labelTypeOf(subSymbol, subSymbol.name), metaTypeOf(subSymbol)).runtimeChecked match {
+                  case ('[type elemLabel <: String; elemLabel], '[type meta <: Meta; meta]) =>
+                    Type.of[
+                      DerElem {
+                        type MirroredType = subType
+                        type MirroredLabel = elemLabel
+                        type Metadata = meta
+                      },
+                    ]
+                }
+              case (_, _) => wontHappen
+            }
+
+            traverseTypes(elems) match {
+              case '[type mirroredElems <: Tuple; mirroredElems] =>
+                '{
+                  new DerMirror.Product {
+                    type MirroredType = T
+                    type MirroredLabel = label
+                    type Metadata = meta
+                    type MirroredElems = mirroredElems
+                    def fromUnsafeArray(product: Array[Any]): T = ???
 //    ${
 //                    newTFrom(
 //                      elems.zipWithIndex.map {
@@ -364,16 +385,16 @@ object DerMirror {
 //                    )
 //                  }
 
-                  type GeneratedElems = generatedElems
-                  def generatedElems: GeneratedElems = $generatedElemsExpr
-                }: DerMirror.ProductOf[T] {
-                  type MirroredLabel = label
-                  type Metadata = meta
-                  type MirroredElems = mirroredElems
-                  type GeneratedElems = generatedElems
+                    type GeneratedElems = generatedElems
+                    def generatedElems: GeneratedElems = $generatedElemsExpr
+                  }: DerMirror.ProductOf[T] {
+                    type MirroredLabel = label
+                    type Metadata = meta
+                    type MirroredElems = mirroredElems
+                    type GeneratedElems = generatedElems
+                  }
                 }
-              }
-          }
+            }
         }
 
         // we use Mirror mainly to get easier higher-kinded children
@@ -444,12 +465,11 @@ object DerMirror {
     def value: MirroredType
   }
   sealed trait Transparent extends DerMirror {
+    final type GeneratedElems = EmptyTuple
     type MirroredElemType
     type MirroredElems <: DerElem.Of[MirroredElemType] *: EmptyTuple
     def unwrap(value: MirroredType): MirroredElemType
     def wrap(value: MirroredElemType): MirroredType
-
-    final type GeneratedElems = EmptyTuple
     final def generatedElems: GeneratedElems = EmptyTuple
   }
 
