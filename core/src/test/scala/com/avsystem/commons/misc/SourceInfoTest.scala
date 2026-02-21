@@ -12,9 +12,9 @@ class SourceInfoTest extends AnyFunSuite with Matchers {
       case SourceInfo(
             _,
             "SourceInfoTest.scala",
-            216,
+            205,
             8,
-            28,
+            17,
             "  val srcInfo = SourceInfo.here",
             List("srcInfo", "SourceInfoTest", "misc", "commons", "avsystem", "com"),
           ) =>
