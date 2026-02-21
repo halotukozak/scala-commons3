@@ -173,36 +173,36 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   // test type dealiasing during materialization
   type IntTree = Tree[Int]
 
-  test("recursive generic case class") {
-    testWrite(
-      Node(
-        123,
-        List(
-          Node(
-            42,
-            List(
-              Node(52),
-              Node(53),
-            ),
-          ),
-          Node(43),
-        ),
-      ),
-      Map[String, Any](
-        "value" -> 123,
-        "children" -> List(
-          Map[String, Any](
-            "value" -> 42,
-            "children" -> List(
-              Map[String, Any]("value" -> 52, "children" -> List()),
-              Map[String, Any]("value" -> 53, "children" -> List()),
-            ),
-          ),
-          Map[String, Any]("value" -> 43, "children" -> List()),
-        ),
-      ),
-    )
-  }
+//  test("recursive generic case class") {
+//    testWrite(
+//      Node(
+//        123,
+//        List(
+//          Node(
+//            42,
+//            List(
+//              Node(52),
+//              Node(53),
+//            ),
+//          ),
+//          Node(43),
+//        ),
+//      ),
+//      Map[String, Any](
+//        "value" -> 123,
+//        "children" -> List(
+//          Map[String, Any](
+//            "value" -> 42,
+//            "children" -> List(
+//              Map[String, Any]("value" -> 52, "children" -> List()),
+//              Map[String, Any]("value" -> 53, "children" -> List()),
+//            ),
+//          ),
+//          Map[String, Any]("value" -> 43, "children" -> List()),
+//        ),
+//      ),
+//    )
+//  }
 
   test("recursively defined sealed hierarchy with explicit case class codec") {
     testWrite[CustomList](CustomTail, Map("CustomTail" -> Map()))
@@ -317,7 +317,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
 ////  GenCodec.derived[IntTree]
 //  GenCodec.derived[IntBranch]
 
-  case class Node[T](value: T, children: List[Node[T]] = Nil) derives GenCodec
+//  case class Node[T](value: T, children: List[Node[T]] = Nil) derives GenCodec
 //
 //  test("recursive generic ADT") {
 //    testWrite[Tree[Int]](

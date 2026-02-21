@@ -6,8 +6,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import scala.deriving.Mirror.Sum
 
 class DerMirrorTest extends AnyFunSuite {
-  import DerMirrorTest.*
-
   test("DerMirror for case class") {
     val _: DerMirror {
       type MirroredType = SimpleCaseClass
@@ -245,6 +243,84 @@ class DerMirrorTest extends AnyFunSuite {
     } = DerMirror.derived[HKADT[List, Int]]
   }
 
+  test("DerMirror for case class with defaults") {
+    val m: DerMirror.Product {
+      type MirroredType = WithDefaults
+      type MirroredLabel = "WithDefaults"
+      type Metadata = Meta
+      type MirroredElems = DerElem {
+        type MirroredType = Int
+        type MirroredLabel = "x"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = String
+        type MirroredLabel = "y"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = Boolean
+        type MirroredLabel = "z"
+        type Metadata = Meta
+      } *: EmptyTuple
+    } = DerMirror.derived[WithDefaults]
+
+    val (x, y, z) = m.mirroredElems
+
+    assert(x.default.isEmpty)
+    assert(y.default.contains("hello"))
+    assert(z.default.contains(true))
+  }
+
+  test("DerMirror for case class with all defaults") {
+    val m: DerMirror.Product {
+      type MirroredType = AllDefaults
+      type MirroredLabel = "AllDefaults"
+      type Metadata = Meta
+      type MirroredElems = DerElem {
+        type MirroredType = Int
+        type MirroredLabel = "a"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = String
+        type MirroredLabel = "b"
+        type Metadata = Meta
+      } *: EmptyTuple
+    } = DerMirror.derived[AllDefaults]
+
+    val (a, b) = m.mirroredElems
+
+    assert(a.default.contains(1))
+    assert(b.default.contains("test"))
+  }
+
+  test("DerMirror for case class with mixed defaults") {
+    val m: DerMirror.Product {
+      type MirroredType = MixedDefaults
+      type MirroredLabel = "MixedDefaults"
+      type Metadata = Meta
+      type MirroredElems = DerElem {
+        type MirroredType = Int
+        type MirroredLabel = "required"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = String
+        type MirroredLabel = "optional"
+        type Metadata = Meta
+      } *: EmptyTuple
+    } = DerMirror.derived[MixedDefaults]
+
+    val (a, b) = m.mirroredElems
+
+    assert(a.default.isEmpty)
+    assert(b.default.contains("default"))
+  }
+
+  test("GeneratedDerElem.default returns None") {
+    val m = DerMirror.derived[WithDefaultGenerated]
+
+    val y *: EmptyTuple = m.generatedElems
+    assert(y.default.isEmpty)
+  }
+
   test("DerMirror for case class with wildcard") {
     val _: DerMirror.Product {
       type MirroredType = Box[?]
@@ -256,50 +332,78 @@ class DerMirrorTest extends AnyFunSuite {
       } *: EmptyTuple
     } = DerMirror.derived[Box[?]]
   }
+
+  test("fromUnsafeArray for simple case class") {
+    val mirror = DerMirror.derived[SimpleCaseClass]
+    val result = mirror.fromUnsafeArray(Array(42L, "test"))
+    assert(result == SimpleCaseClass(42L, "test"))
+  }
+
+  test("fromUnsafeArray for case class with no fields") {
+    val mirror = DerMirror.derived[NoFields]
+    val result = mirror.fromUnsafeArray(Array.empty)
+    assert(result == NoFields())
+  }
+
+  test("fromUnsafeArray for generic case class") {
+    val mirror = DerMirror.derived[Box[String]]
+    val result = mirror.fromUnsafeArray(Array("content"))
+    assert(result == Box("content"))
+  }
+
+  test("fromUnsafeArray for case class with defaults") {
+    val mirror = DerMirror.derived[WithDefaults]
+    val result = mirror.fromUnsafeArray(Array(10, "world", false))
+    assert(result == WithDefaults(10, "world", false))
+  }
 }
 
-object DerMirrorTest {
-  sealed trait MixedADT
-  sealed trait HKADT[F[_], T]
-  case class SimpleCaseClass(id: Long, name: String)
-  case class NoFields()
-  enum SimpleEnum {
-    case Case1
-    case Case2(data: String)
-  }
-  case class ValueClass(str: String) extends AnyVal
-  @transparent
-  case class TransparentClass(int: Int)
-  case class ParamAnnotation(value: String) extends MetaAnnotation
-  @ParamAnnotation("foo")
-  case class ParamAnnotated(id: Int)
-  case class Box[T](a: T)
-  enum NamedEnum {
-    @name("C1") case Case1
-    case Case2
-  }
-  class Annotation1 extends MetaAnnotation
-  class Annotation2 extends MetaAnnotation
-  class Annotation3 extends MetaAnnotation
-  @Annotation1 @Annotation2
-  case class AnnotatedCaseClass()
-  @Annotation1 @Annotation2 @Annotation3
-  case class ManyAnnotated()
-  enum Recursive {
-    case End
-    case Next(r: Recursive)
-  }
-  case class HasGenerated(str: String) {
-    @generated def gen: Int = str.length
-  }
-  case class HKBox[F[_]](fa: F[Int])
-  object HKADT {
-    case class Case1[F[_], T](a: T) extends HKADT[F, T]
-    case class Case2[F[_], T](fa: F[T]) extends HKADT[F, T]
-  }
-  case object SimpleObject
-  object MixedADT {
-    case class CaseClass(v: Int) extends MixedADT
-    case object CaseObj extends MixedADT
-  }
+sealed trait MixedADT
+sealed trait HKADT[F[_], T]
+case class SimpleCaseClass(id: Long, name: String)
+case class NoFields()
+enum SimpleEnum {
+  case Case1
+  case Case2(data: String)
+}
+case class ValueClass(str: String) extends AnyVal
+@transparent
+case class TransparentClass(int: Int)
+case class ParamAnnotation(value: String) extends MetaAnnotation
+@ParamAnnotation("foo")
+case class ParamAnnotated(id: Int)
+case class Box[T](a: T)
+enum NamedEnum {
+  @name("C1") case Case1
+  case Case2
+}
+class Annotation1 extends MetaAnnotation
+class Annotation2 extends MetaAnnotation
+class Annotation3 extends MetaAnnotation
+@Annotation1 @Annotation2
+case class AnnotatedCaseClass()
+@Annotation1 @Annotation2 @Annotation3
+case class ManyAnnotated()
+enum Recursive {
+  case End
+  case Next(r: Recursive)
+}
+case class HasGenerated(str: String) {
+  @generated def gen: Int = str.length
+}
+case class HKBox[F[_]](fa: F[Int])
+object HKADT {
+  case class Case1[F[_], T](a: T) extends HKADT[F, T]
+  case class Case2[F[_], T](fa: F[T]) extends HKADT[F, T]
+}
+case class WithDefaults(x: Int, y: String = "hello", z: Boolean = true)
+case class AllDefaults(a: Int = 1, b: String = "test")
+case class MixedDefaults(required: Int, optional: String = "default")
+case class WithDefaultGenerated(x: Int, y: String = "hello") {
+  @generated def gen: Int = x + y.length
+}
+case object SimpleObject
+object MixedADT {
+  case class CaseClass(v: Int) extends MixedADT
+  case object CaseObj extends MixedADT
 }
