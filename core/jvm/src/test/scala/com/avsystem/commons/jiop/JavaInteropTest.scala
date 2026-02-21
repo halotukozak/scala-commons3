@@ -91,7 +91,7 @@ class JavaInteropTest extends AnyFunSuite {
 
   test("java collection BuildFroms should have proper priority") {
     import scala.language.implicitConversions
-    
+
     val intList = List(1, 2, 3)
     val pairList = intList.map(i => (i, i.toString))
     assertSameTypeValue(intList.to(JArrayList), arrayList)

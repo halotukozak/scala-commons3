@@ -156,10 +156,11 @@ private def showRawAstImpl(body: Expr[Any])(using quotes: Quotes): Expr[Nothing]
   Printer.TreeStructure.show(body.asTerm.underlyingArgument).dbg
 }
 
-extension (s: String) {private[commons] def dbg(using quotes: Quotes): Nothing = {
-  import quotes.reflect.*
-  report.errorAndAbort(s)
-}
+extension (s: String) {
+  private[commons] def dbg(using quotes: Quotes): Nothing = {
+    import quotes.reflect.*
+    report.errorAndAbort(s)
+  }
   private[commons] def info(using quotes: Quotes): String = {
     import quotes.reflect.*
     report.info(s)
