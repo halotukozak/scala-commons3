@@ -144,7 +144,8 @@ abstract class HasRecursiveGenCodec[T](using instances: MacroInstances[Unit, (co
 opaque type GenKeyCodecFromTransparentWrapper[T] <: GenKeyCodec[T] = GenKeyCodec[T]
 
 object GenKeyCodecFromTransparentWrapper {
-  inline given [T] => GenKeyCodecFromTransparentWrapper[T] = GenKeyCodec.forTransparentWrapper[T]
+  inline given [R: GenKeyCodec, T] => TransparentWrapping[R, T] => GenKeyCodecFromTransparentWrapper[T] =
+    GenKeyCodec.forTransparentWrapper[R, T]
 }
 
 /**

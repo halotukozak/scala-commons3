@@ -3,7 +3,7 @@ package com.avsystem.commons
 import com.avsystem.commons.misc.SourceInfo
 import com.sun.source.util.SourcePositions
 
-import scala.util.Try
+import scala.util.{NotGiven, Try}
 
 /**
  * Generates a detailed string representation of a symbol during macro expansion.

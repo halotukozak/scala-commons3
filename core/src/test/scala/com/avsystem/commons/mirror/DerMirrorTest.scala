@@ -10,11 +10,11 @@ class DerMirrorTest extends AnyFunSuite {
     val _: DerMirror {
       type MirroredType = SimpleCaseClass
       type MirroredLabel = "SimpleCaseClass"
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Long
         type MirroredLabel = "id"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = String
         type MirroredLabel = "name"
         type Metadata = Meta
@@ -37,7 +37,7 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = Box[Int]
       type MirroredLabel = "Box"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "a"
         type Metadata = Meta
@@ -50,11 +50,11 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = SimpleEnum
       type MirroredLabel = "SimpleEnum"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerSubSingletonElem {
         type MirroredType = SimpleEnum.Case1.type
         type MirroredLabel = "Case1"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerSubElem {
         type MirroredType = SimpleEnum.Case2
         type MirroredLabel = "Case2"
         type Metadata = Meta
@@ -97,7 +97,7 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredLabel = "TransparentClass"
       type Metadata = Meta @transparent
       type MirroredElemType = Int
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "int"
         type Metadata = Meta
@@ -162,11 +162,11 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = Recursive
       type MirroredLabel = "Recursive"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerSubSingletonElem {
         type MirroredType = Recursive.End.type
         type MirroredLabel = "End"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerSubElem {
         type MirroredType = Recursive.Next
         type MirroredLabel = "Next"
         type Metadata = Meta
@@ -179,11 +179,11 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = MixedADT
       type MirroredLabel = "MixedADT"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerSubElem {
         type MirroredType = MixedADT.CaseClass
         type MirroredLabel = "CaseClass"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerSubSingletonElem {
         type MirroredType = MixedADT.CaseObj.type
         type MirroredLabel = "CaseObj"
         type Metadata = Meta
@@ -196,7 +196,7 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = HasGenerated
       type MirroredLabel = "HasGenerated"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = String
         type MirroredLabel = "str"
         type Metadata = Meta
@@ -218,7 +218,7 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = HKBox[List]
       type MirroredLabel = "HKBox"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = List[Int]
         type MirroredLabel = "fa"
         type Metadata = Meta
@@ -231,11 +231,11 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = HKADT[List, Int]
       type MirroredLabel = "HKADT"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerSubElem {
         type MirroredType = HKADT.Case1[List, Int]
         type MirroredLabel = "Case1"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerSubElem {
         type MirroredType = HKADT.Case2[List, Int]
         type MirroredLabel = "Case2"
         type Metadata = Meta
@@ -248,7 +248,7 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = Recursive.Next
       type MirroredLabel = "Next"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Recursive
         type MirroredLabel = "r"
         type Metadata = Meta
@@ -267,15 +267,15 @@ class DerMirrorTest extends AnyFunSuite {
       type MirroredType = RecTree
       type MirroredLabel = "RecTree"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "value"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = Option[RecTree]
         type MirroredLabel = "left"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = Option[RecTree]
         type MirroredLabel = "right"
         type Metadata = Meta

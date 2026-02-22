@@ -2,6 +2,7 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.annotation.explicitGenerics
+import com.avsystem.commons.mirror.{DerMirror, DerSubSingletonElem}
 import com.avsystem.commons.misc.{Bytes, Timestamp}
 import com.avsystem.commons.serialization.GenCodec.{ReadFailure, WriteFailure}
 
@@ -34,6 +35,41 @@ object GenKeyCodec {
       def read(key: String): T = readFun(key)
       def write(value: T): String = writeFun(value)
     }
+
+  //
+  //  def forTransparentWrapper[T: WeakTypeTag]: Tree = {
+  //    val tpe = weakTypeOf[T].dealias
+  //    val codecTpe = getType(tq"$GenKeyCodecCls[$tpe]")
+  //    val (applyUnapply, param) = applyUnapplyFor(tpe) match {
+  //      case Some(au @ ApplyUnapply(_, _, _, _, List(soleParam))) => (au, soleParam)
+  //      case _ => abort(s"$tpe is not a case class (or case class-like type) with exactly one field")
+  //    }
+  //
+  //    val wrappedCodecTpe = getType(tq"$GenKeyCodecCls[${param.typeSignature}]")
+  //    val clue = s"Cannot materialize $codecTpe because of problem with parameter ${param.name}:\n"
+  //    val wrappedCodec = inferCachedImplicit(wrappedCodecTpe, ErrorCtx(clue, param.pos)).reference(Nil)
+  //
+  //    val unwrapped =
+  //      if (applyUnapply.standardCaseClass)
+  //        q"value.${param.name.toTermName}"
+  //      else
+  //        q"""
+  //          ${applyUnapply.typedCompanion}.unapply[..${tpe.typeArgs}](value)
+  //            .getOrElse(throw new $SerializationPkg.GenCodec.WriteFailure(
+  //              s"Cannot write $$tpeString, unapply failed for $$value"))
+  //         """
+  //
+  //    q"""
+  //      new $codecTpe {
+  //        ..$cachedImplicitDeclarations
+  //        def tpeString: $StringCls = ${tpe.toString}
+  //        def read(key: $StringCls): $tpe = ${applyUnapply.mkApply(List(q"$wrappedCodec.read(key)"))}
+  //        def write(value: $tpe): $StringCls = $wrappedCodec.write($unwrapped)
+  //      }
+  //     """
+  //  }
+  // }
+
   given GenKeyCodec[Boolean] = create(_.toBoolean, _.toString)
   given GenKeyCodec[Char] = create(_.charAt(0), _.toString)
   given GenKeyCodec[Byte] = create(_.toByte, _.toString)
@@ -61,75 +97,46 @@ object GenKeyCodec {
   // Warning! Changing the order of implicit params of this method causes divergent implicit expansion (WTF?)
   given [R, T] => (tw: TransparentWrapping[R, T]) => (wrappedCodec: GenKeyCodec[R]) => GenKeyCodec[T] =
     new Transformed(wrappedCodec, tw.unwrap, tw.wrap)
-  inline def forSealedEnum[T: Mirror.SumOf as m]: GenKeyCodec[T] =
+  inline def forSealedEnum[T: {DerMirror.SumOf as m, ClassTag}]: GenKeyCodec[T] = {
+    type IsSingleton[X] = X match {
+      case Singleton => true
+      case _ => false
+    }
+
+    inline compiletime.erasedValue[Tuple.Filter[m.MirroredElemTypes, IsSingleton]] match {
+      case _: EmptyTuple =>
+      case _ => 
+        throw Exception(compiletime.summonInline[TypeRepr[m.MirroredElemTypes]])
+//        compiletime.error("GenKeyCodec does not support not singletons")
+    }
+
     deriveForSum(
-      compiletime.summonInline[TypeRepr[T]],
-      constNames[Tuple.Zip[m.MirroredElemLabels, m.MirroredElemTypes]],
-      summonAllSingletons[m.MirroredElemTypes],
+      compiletime.constValue[m.MirroredLabel],
+      compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
+      m.mirroredElems.toArrayOf[DerSubSingletonElem.Of[T]].map(_.value),
     )
-  inline def forTransparentWrapper[T]: GenKeyCodec[T] = ${ forTransparentWrapperImpl[T] }
+  }
+  inline def forTransparentWrapper[R, T](
+    using tw: TransparentWrapping[R, T],
+    underlyingCodec: GenKeyCodec[R],
+  ): GenKeyCodec[T] = new Transformed(underlyingCodec, tw.unwrap, tw.wrap)
   def makeLazy[T](codec: => GenKeyCodec[T]): GenKeyCodec[T] = new GenKeyCodec[T] {
     private lazy val underlying = codec
     def read(input: String): T = underlying.read(input)
     def write(value: T): String = underlying.write(value)
   }
-  inline private def summonAllSingletons[Tup <: Tuple]: Tuple = inline compiletime.erasedValue[Tup] match {
-    case _: (h *: t) =>
-      val head = compiletime
-        .constValueOpt[h]
-        .getOrElse(
-          compiletime.error(compiletime.summonInline[TypeRepr[h]] + " is not a singleton object"),
-        )
-      head *: summonAllSingletons[t]
-    case _: EmptyTuple => EmptyTuple
-  }
   private def deriveForSum[T](
     typeRepr: String,
-    names: Tuple,
-    values: Tuple,
+    names: Array[String],
+    values: Array[T],
   ): GenKeyCodec[T] = new GenKeyCodec[T] {
-
-    private val valueByName = names.zip(values).toArrayOf[(String, T)].toMap
-    private val nameByValue = values.zip(names).toArrayOf[(T, String)].toMap
+    private val valueByName = names.zip(values).toMap
+    private val nameByValue = values.zip(names).toMap
 
     override def read(key: String): T =
       valueByName.getOrElse(key, throw new ReadFailure(s"Cannot read $typeRepr, unknown object: $key"))
     override def write(value: T): String =
       nameByValue.getOrElse(value, throw new WriteFailure(s"Cannot write $typeRepr, unknown value: $value"))
-  }
-  private def forTransparentWrapperImpl[T: Type](using quotes: Quotes): Expr[GenKeyCodec[T]] = {
-    import quotes.reflect.*
-    TypeRepr.of[T].typeSymbol.caseFields match {
-      case field :: Nil =>
-        field.termRef.widen.asType match {
-          case '[fieldType] =>
-            val unwrapExpr = Lambda(
-              Symbol.spliceOwner,
-              MethodType(List("x"))(_ => List(TypeRepr.of[T]), _ => TypeRepr.of[fieldType]),
-              (sym, args) => args.head.asInstanceOf[Term].select(field),
-            ).asExprOf[T => fieldType]
-
-            val wrapExpr = Lambda(
-              Symbol.spliceOwner,
-              MethodType(List("x"))(_ => List(TypeRepr.of[fieldType]), _ => TypeRepr.of[T]),
-              (sym, args) =>
-                New(TypeTree.of[T])
-                  .select(TypeRepr.of[T].typeSymbol.primaryConstructor)
-                  .appliedTo(args.head.asInstanceOf[Term]),
-            ).asExprOf[fieldType => T]
-
-            '{
-              new Transformed[T, fieldType](
-                makeLazy(compiletime.summonInline[GenKeyCodec[fieldType]]),
-                $unwrapExpr,
-                $wrapExpr,
-              )
-            }
-        }
-
-      case _ =>
-        report.errorAndAbort(s"Transparent wrapper ${TypeRepr.of[T]} must have exactly one field")
-    }
   }
   final class Transformed[A, B](val wrapped: GenKeyCodec[B], onWrite: A => B, onRead: B => A) extends GenKeyCodec[A] {
     def read(key: String): A = {

@@ -48,6 +48,7 @@ object GenCodec extends GenCodecMacros {
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
+
   inline def derived[T]: GenCodec[T] = {
     given deferred: Deferred[T] = new Deferred[T]
     val underlying = unsafeDerived[T](using compiletime.summonInline[DerMirror.Of[T]])
@@ -62,9 +63,9 @@ object GenCodec extends GenCodecMacros {
     compiletime.summonAll[Tuple.Map[Tup, GenCodec]],
   )
 
-  inline given [NT <: AnyNamedTuple] => GenCodec[NT] =
+  inline given [NT <: AnyNamedTuple: TypeRepr as typeRepr] => GenCodec[NT] =
     deriveProduct[DropNames[NT]](
-      constName[NT](compiletime.summonInline[TypeRepr[NT]]),
+      typeRepr,
       compiletime.summonAll[Tuple.Map[DropNames[NT], GenCodec]].toArrayOf[GenCodec[?]],
       compiletime.constValueTuple[Names[NT]].toArrayOf[String],
       arr => Tuple.fromArray(arr).asInstanceOf[DropNames[NT]],
@@ -118,6 +119,7 @@ object GenCodec extends GenCodecMacros {
     input => keyCodec.read(input.readSimple().readString()),
     (output, value) => output.writeSimple().writeString(keyCodec.write(value)),
   )
+  inline def forSealedEnum[T: {DerMirror.SumOf, ClassTag}]: GenCodec[T] = GenCodec.fromKeyCodec(using GenKeyCodec.forSealedEnum[T])
   def underlyingCodec(codec: GenCodec[?]): GenCodec[?] = codec match {
     case tc: Transformed[_, _] => underlyingCodec(tc.wrapped)
     case _ => codec
@@ -288,7 +290,8 @@ object GenCodec extends GenCodecMacros {
         )
 
       case m: DerMirror.SumOf[T] =>
-        val instances = summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
+        val instances =
+          summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
         val labels = compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String]
         val classTags = compiletime.summonAll[Tuple.Map[m.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
 

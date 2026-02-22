@@ -10,15 +10,15 @@ class DerMirrorDefaultsTest extends AnyFunSuite {
       type MirroredType = WithDefaults
       type MirroredLabel = "WithDefaults"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "x"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = String
         type MirroredLabel = "y"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = Boolean
         type MirroredLabel = "z"
         type Metadata = Meta
@@ -37,11 +37,11 @@ class DerMirrorDefaultsTest extends AnyFunSuite {
       type MirroredType = AllDefaults
       type MirroredLabel = "AllDefaults"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "a"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = String
         type MirroredLabel = "b"
         type Metadata = Meta
@@ -59,11 +59,11 @@ class DerMirrorDefaultsTest extends AnyFunSuite {
       type MirroredType = MixedDefaults
       type MirroredLabel = "MixedDefaults"
       type Metadata = Meta
-      type MirroredElems = DerElem {
+      type MirroredElems = DerFieldElem {
         type MirroredType = Int
         type MirroredLabel = "required"
         type Metadata = Meta
-      } *: DerElem {
+      } *: DerFieldElem {
         type MirroredType = String
         type MirroredLabel = "optional"
         type Metadata = Meta

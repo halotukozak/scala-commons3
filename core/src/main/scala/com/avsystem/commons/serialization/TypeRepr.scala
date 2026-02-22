@@ -12,16 +12,3 @@ object TypeRepr {
     Expr(quotes.reflect.TypeRepr.of[T].show)
   }
 }
-
-inline def constName[T](fallback: String): String =
-  HasAnnotation.get[name, T] match {
-    case Some(nameAnnot) => nameAnnot.name
-    case None => fallback
-  }
-inline def constNames[Tup <: Tuple]: Tuple.Map[Tup, [X] =>> String] =
-  inline compiletime.erasedValue[Tup] match {
-    case _: ((label, tpe) *: tail) =>
-      val head = constName(compiletime.constValue[label].asInstanceOf[String])
-      (head *: constNames[tail]).asInstanceOf[Tuple.Map[Tup, [X] =>> String]]
-    case _: EmptyTuple => EmptyTuple.asInstanceOf[Tuple.Map[Tup, [X] =>> String]]
-  }

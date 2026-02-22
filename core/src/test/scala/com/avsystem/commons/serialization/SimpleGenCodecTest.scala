@@ -279,14 +279,14 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     )
   }
 
-//  test("GADT") {
-//    testWrite[Expr[_]](NullExpr, Map("NullExpr" -> Map()))
-//    testWrite[Expr[_]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
-//    testWrite[Expr[String]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
-//    testWrite[Expr[Int]](IntExpr(42), Map("IntExpr" -> Map("int" -> 42)))
-//    testWrite[BaseExpr](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
-//    testWrite[BaseExpr { type Value = String }](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
-//  }
+  test("GADT") {
+//    testWrite[Expr[?]](NullExpr, Map("NullExpr" -> Map()))
+//    testWrite[Expr[?]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+    testWrite[Expr[String]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+    testWrite[Expr[Int]](IntExpr(42), Map("IntExpr" -> Map("int" -> 42)))
+    testWrite[BaseExpr](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+    testWrite[BaseExpr { type Value = String }](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+  }
 
   test("recursive GADT") {
     testWrite[RecExpr[Int]](IntRecExpr(42), Map("_case" -> "IntRecExpr", "int" -> 42))

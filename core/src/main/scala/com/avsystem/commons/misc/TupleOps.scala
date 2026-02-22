@@ -1,5 +1,6 @@
 package com.avsystem.commons.misc
 
+import scala.compiletime.ops.boolean.||
 import scala.compiletime.ops.int.S
 import scala.reflect.ClassTag
 import scala.runtime.TupleXXL
@@ -33,5 +34,10 @@ trait TupleOps {
         i += 1
       }
       arr
+  }
+
+  type HasDuplicates[Tup <: Tuple] <: Boolean = Tup match {
+    case EmptyTuple => false
+    case h *: t => Tuple.Contains[t, h] || HasDuplicates[t]
   }
 }
