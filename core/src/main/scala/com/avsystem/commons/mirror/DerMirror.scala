@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package mirror
 
+import com.avsystem.commons.serialization.whenAbsent
+
 import scala.annotation.{RefiningAnnotation, implicitNotFound, tailrec}
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -189,8 +191,10 @@ object DerMirror {
       case _ => report.errorAndAbort(s"Expected a single case field for ${symbol.name}")
     }
 
-    def defaultOf[E: Type](index: Int): Expr[Option[E]] = Expr.ofOption {
-      tSymbol.companionModule.methodMembers.collectFirst {
+    def defaultOf[E: Type](index: Int, symbol: Symbol): Expr[Option[E]] = Expr.ofOption {
+      symbol.getAnnotation(TypeRepr.of[whenAbsent].typeSymbol).map(_.asExprOf[whenAbsent[E]]).map {
+        case '{ `whenAbsent`($value: E) } => value
+      } orElse tSymbol.companionModule.methodMembers.collectFirst {
         case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) =>
           Ref(m).asExprOf[E]
       }
@@ -298,7 +302,7 @@ object DerMirror {
                     type MirroredLabel = elemLabel
                     type Metadata = fieldMeta
 
-                    def default = ${ defaultOf[fieldType](1) }
+                    def default = ${ defaultOf[fieldType](0, field) }
                   } *: EmptyTuple
 
                   def fromUnsafeArray(product: Array[Any]): T =
@@ -344,7 +348,7 @@ object DerMirror {
                             type MirroredLabel = elemLabel
                             type Metadata = meta
 
-                            def default = ${ defaultOf[fieldTpe](index) }
+                            def default = ${ defaultOf[fieldTpe](index, fieldSymbol) }
                           }
                         }
                     }

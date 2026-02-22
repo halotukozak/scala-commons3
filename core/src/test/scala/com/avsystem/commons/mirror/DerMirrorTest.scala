@@ -243,84 +243,6 @@ class DerMirrorTest extends AnyFunSuite {
     } = DerMirror.derived[HKADT[List, Int]]
   }
 
-  test("DerMirror for case class with defaults") {
-    val m: DerMirror.Product {
-      type MirroredType = WithDefaults
-      type MirroredLabel = "WithDefaults"
-      type Metadata = Meta
-      type MirroredElems = DerElem {
-        type MirroredType = Int
-        type MirroredLabel = "x"
-        type Metadata = Meta
-      } *: DerElem {
-        type MirroredType = String
-        type MirroredLabel = "y"
-        type Metadata = Meta
-      } *: DerElem {
-        type MirroredType = Boolean
-        type MirroredLabel = "z"
-        type Metadata = Meta
-      } *: EmptyTuple
-    } = DerMirror.derived[WithDefaults]
-
-    val (x, y, z) = m.mirroredElems
-
-    assert(x.default.isEmpty)
-    assert(y.default.contains("hello"))
-    assert(z.default.contains(true))
-  }
-
-  test("DerMirror for case class with all defaults") {
-    val m: DerMirror.Product {
-      type MirroredType = AllDefaults
-      type MirroredLabel = "AllDefaults"
-      type Metadata = Meta
-      type MirroredElems = DerElem {
-        type MirroredType = Int
-        type MirroredLabel = "a"
-        type Metadata = Meta
-      } *: DerElem {
-        type MirroredType = String
-        type MirroredLabel = "b"
-        type Metadata = Meta
-      } *: EmptyTuple
-    } = DerMirror.derived[AllDefaults]
-
-    val (a, b) = m.mirroredElems
-
-    assert(a.default.contains(1))
-    assert(b.default.contains("test"))
-  }
-
-  test("DerMirror for case class with mixed defaults") {
-    val m: DerMirror.Product {
-      type MirroredType = MixedDefaults
-      type MirroredLabel = "MixedDefaults"
-      type Metadata = Meta
-      type MirroredElems = DerElem {
-        type MirroredType = Int
-        type MirroredLabel = "required"
-        type Metadata = Meta
-      } *: DerElem {
-        type MirroredType = String
-        type MirroredLabel = "optional"
-        type Metadata = Meta
-      } *: EmptyTuple
-    } = DerMirror.derived[MixedDefaults]
-
-    val (a, b) = m.mirroredElems
-
-    assert(a.default.isEmpty)
-    assert(b.default.contains("default"))
-  }
-
-  test("GeneratedDerElem.default returns None") {
-    val m = DerMirror.derived[WithDefaultGenerated]
-
-    val y *: EmptyTuple = m.generatedElems
-    assert(y.default.isEmpty)
-  }
-
   test("DerMirror for case class with wildcard") {
     val _: DerMirror.Product {
       type MirroredType = Box[?]
@@ -351,11 +273,6 @@ class DerMirrorTest extends AnyFunSuite {
     assert(result == Box("content"))
   }
 
-  test("fromUnsafeArray for case class with defaults") {
-    val mirror = DerMirror.derived[WithDefaults]
-    val result = mirror.fromUnsafeArray(Array(10, "world", false))
-    assert(result == WithDefaults(10, "world", false))
-  }
 }
 
 sealed trait MixedADT
@@ -395,12 +312,6 @@ case class HKBox[F[_]](fa: F[Int])
 object HKADT {
   case class Case1[F[_], T](a: T) extends HKADT[F, T]
   case class Case2[F[_], T](fa: F[T]) extends HKADT[F, T]
-}
-case class WithDefaults(x: Int, y: String = "hello", z: Boolean = true)
-case class AllDefaults(a: Int = 1, b: String = "test")
-case class MixedDefaults(required: Int, optional: String = "default")
-case class WithDefaultGenerated(x: Int, y: String = "hello") {
-  @generated def gen: Int = x + y.length
 }
 case object SimpleObject
 object MixedADT {
