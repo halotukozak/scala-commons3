@@ -71,7 +71,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   test("object") {
     testWrite(
       SomeObject,
-      Map("random" -> 42)
+      Map("random" -> 42),
     )
   }
 
@@ -413,23 +413,22 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   }
 
   test("recursive materialization of indirectly recursive type") {
-    def testWithCodec(implicit codec: GenCodec[StepOne]): Unit = {
+    def testWithCodec(using GenCodec[StepOne]): Unit = {
       testWrite[StepOne](StepOne(StepTwo(Opt.Empty)), Map("stepTwo" -> Map("stepOne" -> null)))
       testWrite[StepOne](
         StepOne(StepTwo(Opt(StepOne(StepTwo(Opt.Empty))))),
         Map("stepTwo" -> Map("stepOne" -> Map("stepTwo" -> Map("stepOne" -> null)))),
       )
     }
-    testWithCodec(GenCodec.materializeRecursively)
-    testWithCodec {
-      implicit val implCodec: GenCodec[StepOne] = GenCodec.materializeRecursively
-      implCodec
-    }
+    testWithCodec(using GenCodec.materializeRecursively)
+
+    given implCodec: GenCodec[StepOne] = GenCodec.materializeRecursively
+    testWithCodec(using implCodec)
   }
 
-//  test("auto materialized key codec") {
-//    testWrite[Map[ThingId, ThingId]](Map(ThingId("a") -> ThingId("b")), Map("a" -> "b"))
-//  }
+  test("auto materialized key codec") {
+    testWrite[Map[ThingId, ThingId]](Map(ThingId("a") -> ThingId("b")), Map("a" -> "b"))
+  }
 
   test("Java builder based codec") {
     testWrite[BuildablePojo](BuildablePojo.builder().build(), Map())
