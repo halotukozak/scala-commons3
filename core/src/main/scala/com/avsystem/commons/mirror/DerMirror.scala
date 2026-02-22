@@ -2,9 +2,9 @@ package com.avsystem.commons
 package mirror
 
 import com.avsystem.commons.meta.OptionLike
-import com.avsystem.commons.serialization.{TransparentWrapping, whenAbsent}
+import com.avsystem.commons.serialization.{whenAbsent, TransparentWrapping}
 
-import scala.annotation.{RefiningAnnotation, implicitNotFound, tailrec}
+import scala.annotation.{implicitNotFound, tailrec, RefiningAnnotation}
 import scala.quoted.{Expr, Quotes, Type}
 
 @implicitNotFound("No DerMirror could be generated.\nDiagnose any issues by calling DerMirror.derived directly")
@@ -273,7 +273,9 @@ object DerMirror {
           (field.termRef.widen.asType, labelTypeOf(field, field.name), metaTypeOf(field)).runtimeChecked match {
             case ('[fieldType], '[type elemLabel <: String; elemLabel], '[type fieldMeta <: Meta; fieldMeta]) =>
               '{
-                new TransparentWorkaround[T, fieldType](compiletime.summonInline) {
+                val tw = TransparentWrapping.derived[fieldType, T]
+
+                new TransparentWorkaround[T, fieldType] {
                   type MirroredLabel = label
                   type Metadata = meta
                   type MirroredElems = DerElem {
@@ -282,6 +284,8 @@ object DerMirror {
                     type Metadata = fieldMeta
                   } *: EmptyTuple
 
+                  def unwrap(value: MirroredType): MirroredElemType = tw.unwrap(value)
+                  def wrap(value: MirroredElemType): MirroredType = tw.wrap(value)
                 }: DerMirror.TransparentOf[T, fieldType] {
                   type MirroredLabel = label
                   type Metadata = meta
@@ -462,7 +466,7 @@ object DerMirror {
     final type MirroredElems = EmptyTuple
     def value: MirroredType
   }
-  //it can be derived form TransparentWrapping
+
   sealed trait Transparent extends DerMirror {
     final type GeneratedElems = EmptyTuple
     type MirroredElemType
@@ -473,11 +477,8 @@ object DerMirror {
   }
 
   // workaround for https://github.com/scala/scala3/issues/25245
-  private sealed trait TransparentWorkaround[T, U](tw: TransparentWrapping[U, T]) extends DerMirror.Transparent {
+  sealed trait TransparentWorkaround[T, U] extends DerMirror.Transparent {
     final type MirroredType = T
     final type MirroredElemType = U
-
-    final def unwrap(value: T): U = tw.unwrap(value)
-    final def wrap(value: U): T = tw.wrap(value)
   }
 }

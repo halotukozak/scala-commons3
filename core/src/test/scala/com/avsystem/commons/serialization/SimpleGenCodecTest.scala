@@ -2,6 +2,7 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.mirror.DerMirror
+import com.avsystem.commons.misc.{TypedKey, TypedMap}
 
 import scala.annotation.nowarn
 import scala.collection.immutable.ListMap
@@ -111,28 +112,28 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(CaseClassWithOptionalFields("foo", Opt.Empty, None), Map("str" -> "foo"))
   }
 
-//  test("case class with auto optional fields") {
-//    testWrite(
-//      CaseClassWithAutoOptionalFields("foo", Opt(42), Some(true), NOpt(Opt(123))),
-//      Map("str" -> "foo", "int" -> 42, "bul" -> true, "nint" -> 123),
-//    )
-//    testWrite(
-//      CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)),
-//      Map("str" -> "foo", "bul" -> true, "nint" -> null),
-//    )
-//    testWrite(CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.empty), Map("str" -> "foo"))
-//  }
-//
-//  test("reading nulls in case class with auto optional fields") {
-//    testRead(
-//      Map("str" -> "foo", "int" -> null, "bul" -> true, "nint" -> null),
-//      CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)),
-//    )
-//    testRead(
-//      Map("str" -> "foo", "int" -> null, "bul" -> null),
-//      CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.Empty),
-//    )
-//  }
+  test("case class with auto optional fields") {
+    testWrite(
+      CaseClassWithAutoOptionalFields("foo", Opt(42), Some(true), NOpt(Opt(123))),
+      Map("str" -> "foo", "int" -> 42, "bul" -> true, "nint" -> 123),
+    )
+    testWrite(
+      CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)),
+      Map("str" -> "foo", "bul" -> true, "nint" -> null),
+    )
+    testWrite(CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.empty), Map("str" -> "foo"))
+  }
+
+  test("reading nulls in case class with auto optional fields") {
+    testRead(
+      Map("str" -> "foo", "int" -> null, "bul" -> true, "nint" -> null),
+      CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)),
+    )
+    testRead(
+      Map("str" -> "foo", "int" -> null, "bul" -> null),
+      CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.Empty),
+    )
+  }
 
 //  test("case class like") {
 //    testWrite(CaseClassLike("dafuq", List(1, 2, 3)), Map("some.str" -> "dafuq", "intList" -> List(1, 2, 3)))
@@ -353,14 +354,14 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite[KeyEnumz](KeyEnumz.Third, "Third")
   }
 
-//  test("typed map") {
-//    import SealedKey.*
-//
-//    testWrite(
-//      TypedMap(StringKey -> "lol", IntKey -> 42, BooleanKey -> true),
-//      Map[String, Any]("StringKey" -> "lol", "IntKey" -> 42, "BooleanKey" -> true),
-//    )
-//  }
+  test("typed map") {
+    import SealedKey.*
+
+    testWrite(
+      TypedMap(StringKey -> "lol", IntKey -> 42, BooleanKey -> true),
+      Map[String, Any]("StringKey" -> "lol", "IntKey" -> 42, "BooleanKey" -> true),
+    )
+  }
 
   test("customized flat sealed hierarchy") {
     testWrite[CustomizedSeal](CustomizedCase("dafuq"), Map("str" -> "dafuq"))

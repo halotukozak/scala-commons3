@@ -71,24 +71,13 @@ class TypedMap[K[_]](val raw: Map[K[Any], Any]) extends AnyVal {
 }
 
 object TypedMap {
-  into case class Entry[K[_], T](pair: (K[T], T))
-  object Entry {
-    given [K[_], T] => Conversion[(K[T], T), Entry[K, T]] = Entry(_)
-  }
-
   def empty[K[_]]: TypedMap[K] =
     new TypedMap[K](Map.empty)
-
   def apply[K[_]](entries: Entry[K, ?]*): TypedMap[K] = {
     val raw = Map.newBuilder[K[Any], Any]
     entries.foreach(e => raw += e.pair.asInstanceOf[(K[Any], Any)])
     new TypedMap[K](raw.result())
   }
-
-  trait GenCodecMapping[K[_]] {
-    def valueCodec[T](key: K[T]): GenCodec[T]
-  }
-
   given [K[_]] => (keyCodec: GenKeyCodec[K[Any]], codecMapping: GenCodecMapping[K])
     => GenObjectCodec[TypedMap[K]] =
     new GenCodec.ObjectCodec[TypedMap[K]] {
@@ -114,6 +103,13 @@ object TypedMap {
         }
       }
     }
+  trait GenCodecMapping[K[_]] {
+    def valueCodec[T](key: K[T]): GenCodec[T]
+  }
+  into case class Entry[K[_], T](pair: (K[T], T))
+  object Entry {
+    given [K[_], T] => Conversion[(K[T], T), Entry[K, T]] = Entry(_)
+  }
 }
 
 /**
