@@ -3,7 +3,7 @@ package serialization
 
 import com.avsystem.commons.annotation.AnnotationAggregate
 import com.avsystem.commons.meta.{AutoOptionalParams, MacroInstances}
-import com.avsystem.commons.mirror.{DerMirror, generated, name, transparent}
+import com.avsystem.commons.mirror.{DerMirror, generated, name, optionalParam, transparent}
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, TypedKey}
 
 import scala.annotation.meta.getter

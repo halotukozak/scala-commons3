@@ -144,15 +144,23 @@ object DerMirror {
         .asInstanceOf[Type[? <: Meta]]
     }
 
+    extension (symbol: Symbol) {
+      def hasAnnotationOf[AT <: Annotation: Type] =
+        symbol.hasAnnotation(TypeRepr.of[AT].typeSymbol)
+
+      def getAnnotationOf[AT <: Annotation: Type] =
+        symbol.getAnnotation(TypeRepr.of[AT].typeSymbol).map(_.asExprOf[AT])
+    }
+
     def labelTypeOf(sym: Symbol, fallback: String): Type[? <: String] =
-      stringToType(sym.getAnnotation(TypeRepr.of[name].typeSymbol).map(_.asExprOf[name]) match {
+      stringToType(sym.getAnnotationOf[name] match {
         case Some('{ new `name`($value) }) => value.valueOrAbort
         case _ => fallback
       })
 
     val generatedElems = for {
       member <- tSymbol.fieldMembers ++ tSymbol.declaredMethods
-      if member.hasAnnotation(TypeRepr.of[generated].typeSymbol)
+      if member.hasAnnotationOf[generated]
       _ = if (!(member.isValDef || member.isDefDef))
         report.errorAndAbort(
           "@generated can only be applied to vals and defs.",
@@ -193,13 +201,13 @@ object DerMirror {
     }
 
     def defaultOf[E: Type](index: Int, symbol: Symbol): Expr[Option[E]] = Expr.ofOption {
-      def fromWhenAbsent = symbol.getAnnotation(TypeRepr.of[whenAbsent].typeSymbol).map(_.asExprOf[whenAbsent[?]]).map {
+      def fromWhenAbsent = symbol.getAnnotationOf[whenAbsent[?]].map {
         case '{ `whenAbsent`($value: E) } => value
         case '{ `whenAbsent`($value: e) } =>
           report.error(s"whenAbsent should have value with type ${Type.show[e]}")
           '{ ??? }
       }
-      def fromOptionalParam = symbol.getAnnotation(TypeRepr.of[optionalParam].typeSymbol).map { _ =>
+      def fromOptionalParam = Option.when(symbol.hasAnnotationOf[optionalParam]) {
         Expr.summon[OptionLike[E]] match {
           case Some(impl) => '{ $impl.none }
           case None =>
@@ -208,8 +216,7 @@ object DerMirror {
         }
       }
       def fromDefaultValue = tSymbol.companionModule.methodMembers.collectFirst {
-        case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) =>
-          Ref(m).asExprOf[E]
+        case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) => Ref(m).asExprOf[E]
       }
       fromWhenAbsent orElse fromOptionalParam orElse fromDefaultValue
     }
