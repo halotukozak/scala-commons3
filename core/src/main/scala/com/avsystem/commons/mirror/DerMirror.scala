@@ -1,6 +1,7 @@
 package com.avsystem.commons
 package mirror
 
+import com.avsystem.commons.meta.OptionLike
 import com.avsystem.commons.serialization.whenAbsent
 
 import scala.annotation.{RefiningAnnotation, implicitNotFound, tailrec}
@@ -192,12 +193,25 @@ object DerMirror {
     }
 
     def defaultOf[E: Type](index: Int, symbol: Symbol): Expr[Option[E]] = Expr.ofOption {
-      symbol.getAnnotation(TypeRepr.of[whenAbsent].typeSymbol).map(_.asExprOf[whenAbsent[E]]).map {
+      def fromWhenAbsent = symbol.getAnnotation(TypeRepr.of[whenAbsent].typeSymbol).map(_.asExprOf[whenAbsent[?]]).map {
         case '{ `whenAbsent`($value: E) } => value
-      } orElse tSymbol.companionModule.methodMembers.collectFirst {
+        case '{ `whenAbsent`($value: e) } =>
+          report.error(s"whenAbsent should have value with type ${Type.show[e]}")
+          '{ ??? }
+      }
+      def fromOptionalParam = symbol.getAnnotation(TypeRepr.of[optionalParam].typeSymbol).map { _ =>
+        Expr.summon[OptionLike[E]] match {
+          case Some(impl) => '{ $impl.none }
+          case None =>
+            report.error(s"optionalParam should be used only for types with OptionLike defined")
+            '{ ??? }
+        }
+      }
+      def fromDefaultValue = tSymbol.companionModule.methodMembers.collectFirst {
         case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) =>
           Ref(m).asExprOf[E]
       }
+      fromWhenAbsent orElse fromOptionalParam orElse fromDefaultValue
     }
 
     def newTFrom(args: List[Expr[?]]): Expr[T] =

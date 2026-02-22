@@ -247,12 +247,12 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     )
   }
 
-//  test("flat sealed hierarchy with transparent case") {
-//    testWrite[TransparentFlatSealedBase](
-//      TransparentCaseWrap(TransparentFlatThing(42, "foo")),
-//      Map("_case" -> "TransparentCaseWrap", "num" -> 42, "text" -> "foo"),
-//    )
-//  }
+  test("flat sealed hierarchy with transparent case") {
+    testWrite[TransparentFlatSealedBase](
+      TransparentCaseWrap(TransparentFlatThing(42, "foo")),
+      Map("_case" -> "TransparentCaseWrap", "num" -> 42, "text" -> "foo"),
+    )
+  }
 
   test("random field access dependent flat sealed hierarchy reading") {
     testRead[FlatSealedBase](

@@ -1,10 +1,6 @@
 package com.avsystem.commons
 package meta
 
-import com.avsystem.commons.annotation.bincompat
-
-import java.util as ju
-
 sealed trait OptionLike[O] {
   type Value
   def none: O
