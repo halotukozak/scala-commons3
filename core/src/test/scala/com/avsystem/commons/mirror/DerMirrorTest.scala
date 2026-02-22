@@ -243,6 +243,54 @@ class DerMirrorTest extends AnyFunSuite {
     } = DerMirror.derived[HKADT[List, Int]]
   }
 
+  test("DerMirror for recursive case class") {
+    val _: DerMirror.Product {
+      type MirroredType = Recursive.Next
+      type MirroredLabel = "Next"
+      type Metadata = Meta
+      type MirroredElems = DerElem {
+        type MirroredType = Recursive
+        type MirroredLabel = "r"
+        type Metadata = Meta
+      } *: EmptyTuple
+    } = DerMirror.derived[Recursive.Next]
+  }
+
+  test("fromUnsafeArray for recursive case class") {
+    val mirror = DerMirror.derived[Recursive.Next]
+    val result = mirror.fromUnsafeArray(Array(Recursive.End))
+    assert(result == Recursive.Next(Recursive.End))
+  }
+
+  test("DerMirror for recursive case class with Option") {
+    val _: DerMirror.Product {
+      type MirroredType = RecTree
+      type MirroredLabel = "RecTree"
+      type Metadata = Meta
+      type MirroredElems = DerElem {
+        type MirroredType = Int
+        type MirroredLabel = "value"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = Option[RecTree]
+        type MirroredLabel = "left"
+        type Metadata = Meta
+      } *: DerElem {
+        type MirroredType = Option[RecTree]
+        type MirroredLabel = "right"
+        type Metadata = Meta
+      } *: EmptyTuple
+    } = DerMirror.derived[RecTree]
+  }
+
+  test("fromUnsafeArray for recursive case class with Option") {
+    val mirror = DerMirror.derived[RecTree]
+    val leaf = RecTree(1, None, None)
+    val tree = RecTree(0, Some(leaf), None)
+    val result = mirror.fromUnsafeArray(Array(0, Some(leaf), None))
+    assert(result == tree)
+  }
+
   test("DerMirror for case class with wildcard") {
     val _: DerMirror.Product {
       type MirroredType = Box[?]
@@ -313,6 +361,7 @@ object HKADT {
   case class Case1[F[_], T](a: T) extends HKADT[F, T]
   case class Case2[F[_], T](fa: F[T]) extends HKADT[F, T]
 }
+case class RecTree(value: Int, left: Option[RecTree], right: Option[RecTree])
 case object SimpleObject
 object MixedADT {
   case class CaseClass(v: Int) extends MixedADT
