@@ -4,6 +4,7 @@ package analyzer
 import org.scalatest.funsuite.AnyFunSuite
 
 final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest {
+
   test("definitions of @bincompat annotated symbols should not be rejected") {
     assertNoErrors(
       scala"""
@@ -14,7 +15,7 @@ final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest {
              |@bincompat object objekt {
              |  @bincompat def method: Int = 42
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 

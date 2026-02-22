@@ -1,23 +1,21 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Flags
 
-class ImplicitParamDefaults(g: Global) extends AnalyzerRule(g, "implicitParamDefaults", Level.Warn) {
+class ImplicitParamDefaults extends AnalyzerRule {
+  val name: String = "implicitParamDefaults"
 
-  import global.*
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case dd: DefDef =>
-      dd.vparamss.foreach { paramList =>
-        if (paramList.nonEmpty && paramList.head.mods.hasFlag(Flag.IMPLICIT)) {
-          paramList.foreach { param =>
-            if (param.rhs != EmptyTree) {
-              report(param.pos, "Implicit parameters should not have default values")
-            }
-          }
+  override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree = {
+    tree.termParamss.zipWithIndex.foreach { (paramList, idx) =>
+      paramList.foreach { param =>
+        if (param.symbol.isOneOf(Flags.GivenOrImplicit) && param.symbol.is(Flags.HasDefault)) {
+          report(param, "Implicit parameters should not have default values")
         }
       }
-    case _ =>
+    }
+    tree
   }
 }

@@ -1,26 +1,31 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Symbols.{defn, NoSymbol}
 
-final class NothingAsFunctionArgument(g: Global) extends AnalyzerRule(g, "nothingAsFunctionArgument") {
+class NothingAsFunctionArgument extends AnalyzerRule {
+  val name: String = "nothingAsFunctionArgument"
 
-  import global.*
-
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach(analyzeTree { case Apply(f: Tree, args: List[Tree]) =>
-    args.zip(f.tpe.params).foreach {
-      case (arg, param) if definitions.isFunctionType(param.tpe) && arg.tpe <:< definitions.NothingTpe =>
-        report(
-          arg.pos,
-          s"""
-               |A value of type `Nothing` was passed where a function is expected.
-               |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
-               |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${show(
-              param.tpe
-            )}]`).
-               |""".stripMargin,
-        )
-      case (_, _) =>
+  override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree = {
+    if (tree.fun.symbol != NoSymbol) {
+      val paramInfoss = tree.fun.symbol.info.paramInfoss
+      if (paramInfoss.nonEmpty) {
+        val params = paramInfoss.head
+        tree.args.zip(params).foreach { (arg, paramTpe) =>
+          if (defn.isFunctionType(paramTpe) && arg.tpe <:< defn.NothingType) {
+            report(
+              arg,
+              s"""|A value of type `Nothing` was passed where a function is expected.
+                  |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
+                  |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${paramTpe.show}]`).
+                  |""".stripMargin,
+            )
+          }
+        }
+      }
     }
-  })
+    tree
+  }
 }

@@ -1,29 +1,36 @@
 package com.avsystem.commons
 package analyzer
 
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.Symbols.Symbol
+
 import scala.annotation.tailrec
-import scala.tools.nsc.Global
 
-class BasePackage(g: Global) extends AnalyzerRule(g, "basePackage") {
+class BasePackage(using Context) extends AnalyzerRule {
+  private lazy val requiredBasePackage = argument.map(Symbols.requiredPackage)
 
-  import global._
-
-  object SkipImports {
-    @tailrec def unapply(stats: List[Tree]): Some[List[Tree]] = stats match {
-      case Import(_, _) :: tail => unapply(tail)
-      case stats => Some(stats)
-    }
+  val name: String = "basePackage"
+  override def transformUnit(tree: tpd.Tree)(using Context): tpd.Tree = {
+    requiredBasePackage.foreach(validate(tree, _))
+    tree
   }
 
-  def analyze(unit: CompilationUnit): Unit = if (argument != null) {
-    val requiredBasePackage = argument
-
-    @tailrec def validate(tree: Tree): Unit = tree match {
-      case PackageDef(pid, _) if pid.symbol.hasPackageFlag && pid.symbol.fullName == requiredBasePackage =>
-      case PackageDef(_, SkipImports(List(stat))) => validate(stat)
-      case t => report(t.pos, s"`$requiredBasePackage` must be one of the base packages in this file")
-    }
-
-    validate(unit.body)
+  @tailrec
+  private def validate(tree: tpd.Tree, required: Symbol)(using Context): Unit = tree match {
+    case pkg: tpd.PackageDef if pkg.pid.symbol == required =>
+      // Found the required base package -- validation passes
+      ()
+    case pkg: tpd.PackageDef =>
+      // Skip imports, recurse into the single remaining stat (if exactly one)
+      val nonImports = pkg.stats.filterNot(_.isInstanceOf[tpd.Import])
+      nonImports match {
+        case stat :: Nil => validate(stat, required)
+        case _ =>
+          report(tree, s"`$required` must be one of the base packages in this file")
+      }
+    case _ =>
+      report(tree, s"`$required` must be one of the base packages in this file")
   }
 }
