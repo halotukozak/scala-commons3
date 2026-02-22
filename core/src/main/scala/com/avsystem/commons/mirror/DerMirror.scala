@@ -152,11 +152,14 @@ object DerMirror {
         symbol.getAnnotation(TypeRepr.of[AT].typeSymbol).map(_.asExprOf[AT])
     }
 
-    def labelTypeOf(sym: Symbol, fallback: String): Type[? <: String] =
-      stringToType(sym.getAnnotationOf[name] match {
-        case Some('{ new `name`($value) }) => value.valueOrAbort
+    def labelTypeOf(sym: Symbol, fallback: String): Type[? <: String] = {
+      val syms = Iterator(sym) ++ sym.allOverriddenSymbols
+      val res = syms.find(_.hasAnnotationOf[name]).flatMap(_.getAnnotationOf[name])
+      stringToType(res match {
+        case Some('{ new`name`($value) }) => value.valueOrAbort
         case _ => fallback
       })
+    }
 
     val generatedElems = for {
       member <- tSymbol.fieldMembers ++ tSymbol.declaredMethods
@@ -216,7 +219,9 @@ object DerMirror {
         }
       }
       def fromDefaultValue = tSymbol.companionModule.methodMembers.collectFirst {
-        case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) => Ref(m).asExprOf[E]
+        case m if m.name.startsWith("$lessinit$greater$default$" + (index + 1)) =>
+          //todo: genericse
+          Ref(m).asExprOf[E]
       }
       fromWhenAbsent orElse fromOptionalParam orElse fromDefaultValue
     }

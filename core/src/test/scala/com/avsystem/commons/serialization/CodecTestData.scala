@@ -292,8 +292,8 @@ object CodecTestData {
     private def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
   }
   case object NullLiteral extends PureGadtExpr[Null]
-//  object PureGadtExpr extends HasGadtCodec[PureGadtExpr]
-//  object Tree extends HasPolyGenCodec[Tree]
+  object PureGadtExpr extends HasGadtCodec[PureGadtExpr]
+  object Tree extends HasPolyGenCodec[Tree]
   object Enumz {
     given GenCodec[Enumz] = GenCodec.derived[Enumz]
     @name("Primary")
