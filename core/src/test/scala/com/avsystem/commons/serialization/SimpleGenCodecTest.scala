@@ -90,10 +90,9 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(TransparentWrapperWithDependency("something"), "something")
   }
 
-//  test("transparent wrapper companion") {
-//    testWrite(StringId("lolfuu"), "lolfuu")
-//  }
-  
+  test("transparent wrapper companion") {
+    testWrite(StringId("lolfuu"), "lolfuu")
+  }
 
   test("case class") {
     testWrite(

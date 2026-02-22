@@ -266,9 +266,9 @@ object GenCodec extends GenCodecMacros {
     ]](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]]
 
     inline derMirror match {
-      case m: DerMirror.TransparentOf[T] =>
-        deriveTransparentWrapper[T, m.MirroredElemType](
-          compiletime.summonInline[GenCodec[m.MirroredElemType]],
+      case m: DerMirror.TransparentOf[T, u] =>
+        deriveTransparentWrapper[T, u](
+          compiletime.summonInline[GenCodec[u]],
           m.wrap,
           m.unwrap,
         )

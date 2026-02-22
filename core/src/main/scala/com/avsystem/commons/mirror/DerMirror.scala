@@ -2,7 +2,7 @@ package com.avsystem.commons
 package mirror
 
 import com.avsystem.commons.meta.OptionLike
-import com.avsystem.commons.serialization.whenAbsent
+import com.avsystem.commons.serialization.{TransparentWrapping, whenAbsent}
 
 import scala.annotation.{RefiningAnnotation, implicitNotFound, tailrec}
 import scala.quoted.{Expr, Quotes, Type}
@@ -72,7 +72,7 @@ object DerMirror {
   type ProductOf[T] = DerMirror.Product { type MirroredType = T }
   type SumOf[T] = DerMirror.Sum { type MirroredType = T }
   type SingletonOf[T] = DerMirror.Singleton { type MirroredType = T }
-  type TransparentOf[T] = DerMirror.Transparent { type MirroredType = T }
+  type TransparentOf[T, U] = DerMirror.Transparent { type MirroredType = T; type MirroredElemType = U }
 
   type LabelOf[l <: String] = DerElem { type MirroredLabel = l }
   type MetaOf[m <: Meta] = DerElem { type Metadata = m }
@@ -273,7 +273,7 @@ object DerMirror {
           (field.termRef.widen.asType, labelTypeOf(field, field.name), metaTypeOf(field)).runtimeChecked match {
             case ('[fieldType], '[type elemLabel <: String; elemLabel], '[type fieldMeta <: Meta; fieldMeta]) =>
               '{
-                new TransparentWorkaround[T, fieldType] {
+                new TransparentWorkaround[T, fieldType](compiletime.summonInline) {
                   type MirroredLabel = label
                   type Metadata = meta
                   type MirroredElems = DerElem {
@@ -282,16 +282,9 @@ object DerMirror {
                     type Metadata = fieldMeta
                   } *: EmptyTuple
 
-                  def unwrap(value: T): fieldType =
-                    ${ '{ value }.asTerm.select(field).asExprOf[fieldType] }
-
-                  def wrap(v: fieldType): T =
-                    ${ newTFrom(List('{ v })) }
-
-                }: DerMirror.TransparentOf[T] {
+                }: DerMirror.TransparentOf[T, fieldType] {
                   type MirroredLabel = label
                   type Metadata = meta
-                  type MirroredElemType = fieldType
                   type MirroredElems = DerElem {
                     type MirroredType = fieldType
                     type MirroredLabel = elemLabel
@@ -469,6 +462,7 @@ object DerMirror {
     final type MirroredElems = EmptyTuple
     def value: MirroredType
   }
+  //it can be derived form TransparentWrapping
   sealed trait Transparent extends DerMirror {
     final type GeneratedElems = EmptyTuple
     type MirroredElemType
@@ -479,11 +473,11 @@ object DerMirror {
   }
 
   // workaround for https://github.com/scala/scala3/issues/25245
-  private sealed trait TransparentWorkaround[T, U] extends DerMirror.Transparent {
+  private sealed trait TransparentWorkaround[T, U](tw: TransparentWrapping[U, T]) extends DerMirror.Transparent {
     final type MirroredType = T
     final type MirroredElemType = U
 
-    def unwrap(value: T): U
-    def wrap(value: U): T
+    final def unwrap(value: T): U = tw.unwrap(value)
+    final def wrap(value: U): T = tw.wrap(value)
   }
 }

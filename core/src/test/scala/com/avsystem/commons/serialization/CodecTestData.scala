@@ -102,7 +102,7 @@ object CodecTestData {
     }
     override def hashCode(): Int = args.hashCode()
   }
-  case class ValueClass(str: String) extends AnyVal derives GenCodec
+  case class ValueClass(str: String) extends AnyVal
   class mongoId extends AnnotationAggregate {
     @outOfOrder
     @name("_id")
@@ -186,7 +186,6 @@ object CodecTestData {
   case class StepTwo(stepOne: Opt[StepOne])
   case class OuterThing(inner: InnerThing)
   case class InnerThing(recursiveThing: Opt[OuterThing])
-  @transparent
   case class ThingId(value: String)
   case class Generator(value: String) extends GeneratorBase {
     @generated val valUpper: String = value.toUpperCase
@@ -197,7 +196,7 @@ object CodecTestData {
     def abstractUpper: String = value.toUpperCase
   }
 
-//  object ValueClass extends HasGenCodec[ValueClass]
+  object ValueClass extends HasGenCodec[ValueClass]
   object SealedBase {
     DerMirror.derived[InnerBase]
 
@@ -220,7 +219,7 @@ object CodecTestData {
       @generated def id = "third"
     }
   }
-//  object TransparentCaseWrap extends TransparentWrapperCompanion[TransparentFlatThing, TransparentCaseWrap]
+  object TransparentCaseWrap extends TransparentWrapperCompanion[TransparentFlatThing, TransparentCaseWrap]
   object TransparentFlatSealedBase extends HasGenCodec[TransparentFlatSealedBase]
   object TransparentFlatThing extends HasApplyUnapplyCodec[TransparentFlatThing]
   object SomeObject {
@@ -237,7 +236,7 @@ object CodecTestData {
     given stringCodec: GenCodec[String] = GenCodec.given_GenCodec_String
     given GenCodec[TransparentWrapperWithDependency] = GenCodec.derived
   }
-//  object StringId extends TransparentWrapperCompanion[String, StringId]
+  object StringId extends TransparentWrapperCompanion[String, StringId]
   
   DerMirror.derived[SomeCaseClass]
   object SomeCaseClass extends HasGenCodec[SomeCaseClass]
@@ -332,7 +331,7 @@ object CodecTestData {
     object LocalStuff extends HasGenCodec[LocalStuff](using MacroInstances.materialize)
   }
   object OuterThing extends HasRecursiveGenCodec[OuterThing]
-//  object ThingId extends StringWrapperCompanion[ThingId]
+  object ThingId extends StringWrapperCompanion[ThingId]
   object Generator extends HasGenCodec[Generator]
 
   type NamedTup = (name: String, value: Int)

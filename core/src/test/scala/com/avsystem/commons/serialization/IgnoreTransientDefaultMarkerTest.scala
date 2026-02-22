@@ -1,6 +1,7 @@
 package com.avsystem.commons
 package serialization
 
+import com.avsystem.commons.mirror.optionalParam
 import com.avsystem.commons.serialization.CodecTestData.HasDefaults
 
 import scala.annotation.nowarn
