@@ -15,7 +15,6 @@ class SealedEnumTest extends AnyFunSuite {
     val classTags: List[ClassTag[? <: SomeEnum]] = SealedUtils.instancesFor[ClassTag, SomeEnum]
   }
 
-  
   test("case objects listing") {
     import SomeEnum.*
     assert(values == List(First, Second, Third, Fourth))
