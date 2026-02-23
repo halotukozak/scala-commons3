@@ -243,6 +243,7 @@ lazy val analyzer = project
     libraryDependencies ++= Seq(
       "org.scala-lang" %% "scala3-compiler" % scalaVersion.value % "provided",
       "org.scalatest" %% "scalatest" % scalatestVersion % Test,
+      "io.monix" %% "monix" % monixVersion % Test,
     ),
     Test / fork := true,
   )

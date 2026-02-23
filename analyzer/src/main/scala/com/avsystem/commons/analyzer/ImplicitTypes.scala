@@ -4,6 +4,7 @@ package analyzer
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags
+import dotty.tools.dotc.core.Names.termName
 
 /**
  * Warns when implicit val/def or named given definitions have inferred
@@ -32,11 +33,19 @@ class ImplicitTypes extends AnalyzerRule {
   private def checkImplicitType(tree: tpd.MemberDef, tpt: tpd.Tree)(using Context): Unit = {
     val sym = tree.symbol
     if (sym.isOneOf(Flags.GivenOrImplicit) && !sym.is(Flags.Synthetic) && !sym.is(Flags.Param)) {
-      // Detect inferred type: when the compiler infers a type, the TypeTree's span
-      // is either non-existent or not source-derived (synthetic span).
-      val typeInferred = !tpt.span.exists || !tpt.span.isSourceDerived
-      if (typeInferred) {
-        report(tree, "implicit/given definitions should have an explicit type annotation")
+      // Skip generated implicit conversion methods for implicit classes.
+      // The compiler generates an implicit def with the same name as the class.
+      val isImplicitClassConversion = sym.is(Flags.Method) && {
+        val classSym = sym.owner.info.member(sym.name.toTypeName).symbol
+        classSym.isClass && classSym.is(Flags.Implicit)
+      }
+      if (!isImplicitClassConversion) {
+        // Detect inferred type: when the compiler infers a type, the TypeTree's span
+        // is either non-existent or not source-derived (synthetic span).
+        val typeInferred = !tpt.span.exists || !tpt.span.isSourceDerived
+        if (typeInferred) {
+          report(tree, "implicit/given definitions should have an explicit type annotation")
+        }
       }
     }
   }

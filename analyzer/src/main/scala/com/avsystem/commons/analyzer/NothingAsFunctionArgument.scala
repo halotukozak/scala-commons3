@@ -11,8 +11,16 @@ class NothingAsFunctionArgument extends AnalyzerRule {
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree = {
     if (tree.fun.symbol != NoSymbol) {
       val paramInfoss = tree.fun.symbol.info.paramInfoss
-      if (paramInfoss.nonEmpty) {
-        val params = paramInfoss.head
+      // Determine which parameter list this Apply corresponds to by counting
+      // how many Apply layers are nested in `fun` (depth 0 = first param list).
+      var applyDepth = 0
+      var t: tpd.Tree = tree.fun
+      while (t.isInstanceOf[tpd.Apply]) {
+        applyDepth += 1
+        t = t.asInstanceOf[tpd.Apply].fun
+      }
+      if (paramInfoss.length > applyDepth) {
+        val params = paramInfoss(applyDepth)
         tree.args.zip(params).foreach { (arg, paramTpe) =>
           if (defn.isFunctionType(paramTpe) && arg.tpe <:< defn.NothingType) {
             report(

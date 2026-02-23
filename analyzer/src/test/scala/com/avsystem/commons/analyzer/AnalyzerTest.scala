@@ -7,6 +7,8 @@ import dotty.tools.dotc.plugins.Plugin
 import org.scalactic.source.Position
 import org.scalatest.Assertions
 
+import scala.collection.mutable
+
 trait AnalyzerTest { this: Assertions =>
 
   /** Plugin options applied during compilation. Override to customize per-test. */
