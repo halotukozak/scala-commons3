@@ -124,8 +124,9 @@ object GadtCodec {
  * provides a [[GenCodec]] for wildcard, i.e. `C[_]`.
  */
 abstract class HasGadtCodec[C[_]](using macroCodec: MacroInstances[Unit, (codec: GadtCodec[C])]) {
-  given wildcardCodec: GenCodec[C[Any]] = macroCodec((), this).codec[Any]()
-  given [T] => GenCodec[C[T]] = wildcardCodec.asInstanceOf[GenCodec[C[T]]]
+
+  private val anyCodec: GenCodec[C[Any]] = macroCodec((), this).codec[Any]()
+  given [T] => GenCodec[C[T]] = anyCodec.asInstanceOf[GenCodec[C[T]]]
 }
 
 opaque type RecursiveCodec[T] <: GenCodec[T] = GenCodec[T]

@@ -2,7 +2,8 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.mirror.DerMirror
-import com.avsystem.commons.serialization.CodecTestData.{SomeObject, *}
+import com.avsystem.commons.misc.TypedMap
+import com.avsystem.commons.serialization.CodecTestData.{NamedTup, SomeObject, *}
 
 abstract class GenCodecRoundtripTest extends AbstractCodecTest {
   test("java collections") {
@@ -67,9 +68,9 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip(TransparentWrapperWithDependency("something"))
   }
 
-//  test("transparent wrapper companion") {
-//    testRoundtrip(StringId("lolfuu"), "lolfuu")
-//  }
+  test("transparent wrapper companion") {
+    testRoundtrip(StringId("lolfuu"))
+  }
 
   test("case class") {
     testRoundtrip(SomeCaseClass("dafuq", List(1, 2, 3)))
@@ -85,11 +86,11 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip(CaseClassWithOptionalFields("foo", Opt.Empty, None))
   }
 
-//  test("case class with auto optional fields") {
-//    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt(42), Some(true), NOpt(Opt(123))))
-//    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)))
-//    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.empty))
-//  }
+  test("case class with auto optional fields") {
+    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt(42), Some(true), NOpt(Opt(123))))
+    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt.Empty, Some(true), NOpt(Opt.Empty)))
+    testRoundtrip(CaseClassWithAutoOptionalFields("foo", Opt.Empty, None, NOpt.empty))
+  }
 
 //  test("case class like") {
 //    testRoundtrip(CaseClassLike("dafuq", List(1, 2, 3)))
@@ -138,9 +139,9 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip[CustomList](CustomCons(CustomCons(CustomTail)))
   }
 
-//  test("value class") {
-////    testRoundtrip(ValueClass("costam"), Map("str" -> "costam"))
-//  }
+  test("value class") {
+    testRoundtrip(ValueClass("costam"))
+  }
 
   test("sealed hierarchy") {
     testRoundtrip[SealedBase](SealedBase.CaseObject)
@@ -156,44 +157,42 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip[FlatSealedBase](FlatSealedBase.RecursiveCase("rec", Opt(FlatSealedBase.ThirdCase)))
   }
 
-//  test("flat sealed hierarchy with transparent cases") {
-//    testRoundtrip[TransparentFlatSealedBase](TransparentCaseWrap(TransparentFlatThing(42, "fuu")))
-//  }
-//
-//  test("GADT") {
-//    testRoundtrip[Expr[?]](NullExpr)
-//    testRoundtrip[Expr[?]](StringExpr("stringzor"))
-//    testRoundtrip[Expr[String]](StringExpr("stringzor"))
-//    testRoundtrip[Expr[Int]](IntExpr(42))
-//    testRoundtrip[BaseExpr](StringExpr("stringzor"))
-//    testRoundtrip[BaseExpr { type Value = String }](StringExpr("stringzor"))
-//  }
+  test("flat sealed hierarchy with transparent cases") {
+    testRoundtrip[TransparentFlatSealedBase](TransparentCaseWrap(TransparentFlatThing(42, "fuu")))
+  }
 
-//  test("recursive GADT") {
-//    testRoundtrip[RecExpr[Int]](IntRecExpr(42))
-//    testRoundtrip[RecExpr[Int]](NothingRecExpr)
-//    testRoundtrip[RecExpr[Int]](ArbitraryRecExpr(42))
-//    testRoundtrip[RecExpr[Int]](LazyRecExpr(IntRecExpr(42)))
-//    testRoundtrip[RecExpr[RecBounded]](RecBoundedExpr(RecBounded(42)))
-//  }
-//
-//  test("pure GADT") {
-//    testRoundtrip[PureGadtExpr[String]](StringLiteral("str"))
-//    testRoundtrip[PureGadtExpr[String]](Plus(StringLiteral("str"), StringLiteral("fag")))
-//  }
+  test("GADT") {
+    testRoundtrip[Expr[Null]](NullExpr)
+    testRoundtrip[Expr[String]](StringExpr("stringzor"))
+    testRoundtrip[Expr[String]](StringExpr("stringzor"))
+    testRoundtrip[Expr[Int]](IntExpr(42))
+    testRoundtrip[BaseExpr](StringExpr("stringzor"))
+    testRoundtrip[BaseExpr { type Value = String }](StringExpr("stringzor"))
+  }
+
+  test("recursive GADT") {
+    testRoundtrip[RecExpr[Int]](IntRecExpr(42))
+    testRoundtrip[RecExpr[Int]](NothingRecExpr)
+    testRoundtrip[RecExpr[Int]](ArbitraryRecExpr(42))
+    testRoundtrip[RecExpr[Int]](LazyRecExpr(IntRecExpr(42)))
+    testRoundtrip[RecExpr[RecBounded]](RecBoundedExpr(RecBounded(42)))
+  }
+
+  test("pure GADT") {
+    testRoundtrip[PureGadtExpr[String]](StringLiteral("str"))
+    testRoundtrip[PureGadtExpr[String]](Plus(StringLiteral("str"), StringLiteral("fag")))
+  }
 //  type IntBranch = Branch[Int]
-//  showAst{
-//    compiletime.summonInline[Mirror.Of[IntTree]]
-//  }
+
 
 //  GenCodec.derived[IntTree]
   
-  case class Node[T](value: T, children: List[Node[T]] = Nil) 
+//  case class Node[T](value: T, children: List[Node[T]] = Nil) derives GenCodec
 //  GenCodec.derived[IntBranch]
 
-//  test("recursive generic ADT") {
-//    testRoundtrip[Tree[Int]](Branch(Leaf(1), Branch(Leaf(2), Leaf(3))))
-//  }
+  test("recursive generic ADT") {
+    testRoundtrip[Tree[Int]](Branch(Leaf(1), Branch(Leaf(2), Leaf(3))))
+  }
 
   test("sealed enum") {
     testRoundtrip[Enumz](Enumz.First)
@@ -207,10 +206,10 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip[KeyEnumz](KeyEnumz.Third)
   }
 
-//  test("typed map") {
-//    import SealedKey.*
-//    testRoundtrip(TypedMap(StringKey -> "lol", IntKey -> 42, BooleanKey -> true))
-//  }
+  test("typed map") {
+    import SealedKey.*
+    testRoundtrip(TypedMap(StringKey -> "lol", IntKey -> 42, BooleanKey -> true))
+  }
 
   test("customized flat sealed hierarchy") {
     testRoundtrip[CustomizedSeal](CustomizedCase("dafuq"))
@@ -265,9 +264,9 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testWithCodec(using implCodec)
   }
 
-//  test("auto materialized key codec") {
-//    testRoundtrip[Map[ThingId, ThingId]](Map(ThingId("a") -> ThingId("b")))
-//  }
+  test("auto materialized key codec") {
+    testRoundtrip[Map[ThingId, ThingId]](Map(ThingId("a") -> ThingId("b")))
+  }
 
   test("Java builder based codec") {
     testRoundtrip[BuildablePojo](BuildablePojo.builder().build())
@@ -276,6 +275,7 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
   }
 
   test("named tuple codec") {
+    import NamedTup.given
     testRoundtrip[NamedTup]((name = "foo", value = 42))
   }
 }

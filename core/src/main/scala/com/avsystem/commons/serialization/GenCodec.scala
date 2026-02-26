@@ -11,7 +11,7 @@ import com.avsystem.commons.misc.{Bytes, Timestamp}
 import java.util.UUID
 import scala.NamedTuple.*
 import scala.annotation.{implicitNotFound, tailrec, targetName}
-import scala.collection.{mutable, Factory}
+import scala.collection.{Factory, mutable}
 
 /**
  * Type class for types that can be serialized to [[Output]] (format-agnostic "output stream") and deserialized from
@@ -48,7 +48,6 @@ object GenCodec extends GenCodecMacros {
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
-
   inline def derived[T]: GenCodec[T] = {
     given deferred: Deferred[T] = new Deferred[T]
     val underlying = unsafeDerived[T](using compiletime.summonInline[DerMirror.Of[T]])
@@ -62,14 +61,7 @@ object GenCodec extends GenCodecMacros {
   inline given [Tup <: Tuple] => GenCodec[Tup] = mkTupleCodec(
     compiletime.summonAll[Tuple.Map[Tup, GenCodec]],
   )
-
-  inline given [NT <: AnyNamedTuple: TypeRepr as typeRepr] => GenCodec[NT] =
-    deriveProduct[DropNames[NT]](
-      typeRepr,
-      compiletime.summonAll[Tuple.Map[DropNames[NT], GenCodec]].toArrayOf[GenCodec[?]],
-      compiletime.constValueTuple[Names[NT]].toArrayOf[String],
-      arr => Tuple.fromArray(arr).asInstanceOf[DropNames[NT]],
-    ).asInstanceOf[GenCodec[NT]]
+  
 
   def materialize[T]: GenCodec[T] = ???
   @explicitGenerics
@@ -119,8 +111,14 @@ object GenCodec extends GenCodecMacros {
     input => keyCodec.read(input.readSimple().readString()),
     (output, value) => output.writeSimple().writeString(keyCodec.write(value)),
   )
-  inline def forSealedEnum[T: {DerMirror.SumOf, ClassTag}]: GenCodec[T] = GenCodec.fromKeyCodec(using GenKeyCodec.forSealedEnum[T])
-  def underlyingCodec(codec: GenCodec[?]): GenCodec[?] = codec match {
+
+  // for some reason cannot be DerMirror.SumOf as parameter
+  inline def forSealedEnum[T: {DerMirror.Of as m, ClassTag}]: GenCodec[T] = inline m match {
+    case given DerMirror.SumOf[T] => GenCodec.fromKeyCodec(using GenKeyCodec.forSealedEnum[T])
+    case _ => compiletime.error("Unsupported derivation for GenCodec.forSealedEnum")
+  }
+
+  @tailrec def underlyingCodec(codec: GenCodec[?]): GenCodec[?] = codec match {
     case tc: Transformed[_, _] => underlyingCodec(tc.wrapped)
     case _ => codec
   }

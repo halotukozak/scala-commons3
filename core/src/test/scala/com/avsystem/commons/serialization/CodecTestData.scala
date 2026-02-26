@@ -3,12 +3,13 @@ package serialization
 
 import com.avsystem.commons.annotation.AnnotationAggregate
 import com.avsystem.commons.meta.{AutoOptionalParams, MacroInstances}
-import com.avsystem.commons.mirror.{DerMirror, generated, name, optionalParam, transparent}
+import com.avsystem.commons.mirror.*
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, TypedKey}
 
 import scala.annotation.meta.getter
 
 object CodecTestData {
+  type NamedTup = (name: String, value: Int)
   val jArrayList: JArrayList[Int] = col(new JArrayList[Int])
   val jLinkedList: JLinkedList[Int] = col(new JLinkedList[Int])
   val jHashSet: JHashSet[Int] = col(new JHashSet[Int])
@@ -195,7 +196,6 @@ object CodecTestData {
     @generated var varUpper: String = value.toUpperCase
     def abstractUpper: String = value.toUpperCase
   }
-
   object ValueClass extends HasGenCodec[ValueClass]
   object SealedBase {
     DerMirror.derived[InnerBase]
@@ -227,7 +227,6 @@ object CodecTestData {
     @generated def random: Int = 42
     given GenCodec[SomeObject.type] = GenCodec.derived[SomeObject.type]
   }
-
   object NoArgCaseClass extends HasGenCodec[NoArgCaseClass]
   object SingleArgCaseClass extends HasGenCodec[SingleArgCaseClass]
   object TransparentWrapper extends HasGenCodec[TransparentWrapper]
@@ -236,9 +235,9 @@ object CodecTestData {
     given stringCodec: GenCodec[String] = GenCodec.given_GenCodec_String
     given GenCodec[TransparentWrapperWithDependency] = GenCodec.derived
   }
-  object StringId extends TransparentWrapperCompanion[String, StringId]
-  
+
   DerMirror.derived[SomeCaseClass]
+  object StringId extends TransparentWrapperCompanion[String, StringId]
   object SomeCaseClass extends HasGenCodec[SomeCaseClass]
   object Stuff {
     given GenCodec[Stuff[?]] = GenCodec.create(
@@ -279,9 +278,9 @@ object CodecTestData {
   object CustomList extends HasGenCodec[CustomList]
   case object NullExpr extends Expr[Null](null)
   object BaseExpr {
-    given baseGenericCodec[T]: GenCodec[BaseExpr { type Value = T }] = GenCodec.materialize
-    given baseCodec: GenCodec[BaseExpr] = GenCodec.materialize
-    given stringCodec: GenCodec[Expr[String]] = GenCodec.materialize
+    given baseGenericCodec[T]: GenCodec[BaseExpr { type Value = T }] = GenCodec.derived
+    given baseCodec: GenCodec[BaseExpr] = GenCodec.derived
+    given stringCodec: GenCodec[Expr[String]] = GenCodec.derived
   }
   object Expr extends HasGadtCodec[Expr]
   object RecBounded extends HasGenCodec[RecBounded]
@@ -302,7 +301,7 @@ object CodecTestData {
     case object Third extends Enumz
   }
   object KeyEnumz {
-    given GenCodec[KeyEnumz] = GenCodec.derived[KeyEnumz]
+    given GenCodec[KeyEnumz] = GenCodec.forSealedEnum
     @name("Primary")
     case object First extends KeyEnumz
     case object Second extends KeyEnumz
@@ -318,22 +317,19 @@ object CodecTestData {
   object CustomizedSeal extends HasGenCodec[CustomizedSeal]
   object ItsOverTwentyTwo extends HasGenCodec[ItsOverTwentyTwo]
   object HasColl extends HasRecursiveGenCodec[HasColl]
-  object SealedRefined {
-    given [T: GenCodec] => GenCodec[SealedRefined { type X = T }] = ???
-//    GenCodec.derived
-    final case class First[Type](foo: Type) extends SealedRefined {
-      type X = Type
-    }
-  }
 
   locally {
     case class LocalStuff()
     object LocalStuff extends HasGenCodec[LocalStuff](using MacroInstances.materialize)
   }
+  object SealedRefined {
+    given [T: GenCodec] => GenCodec[SealedRefined { type X = T }] = GenCodec.derived
+    final case class First[Type](foo: Type) extends SealedRefined {
+      type X = Type
+    }
+  }
   object OuterThing extends HasRecursiveGenCodec[OuterThing]
   object ThingId extends StringWrapperCompanion[ThingId]
   object Generator extends HasGenCodec[Generator]
-
-  type NamedTup = (name: String, value: Int)
   object NamedTup extends HasGenCodec[NamedTup]
 }

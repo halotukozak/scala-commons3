@@ -280,8 +280,8 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   }
 
   test("GADT") {
-//    testWrite[Expr[?]](NullExpr, Map("NullExpr" -> Map()))
-//    testWrite[Expr[?]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+    testWrite[Expr[Null]](NullExpr, Map("NullExpr" -> Map()))
+    testWrite[Expr[String]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
     testWrite[Expr[String]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
     testWrite[Expr[Int]](IntExpr(42), Map("IntExpr" -> Map("int" -> 42)))
     testWrite[BaseExpr](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
@@ -318,7 +318,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   GenCodec.derived[IntBranch]
 
   case class Node[T](value: T, children: List[Node[T]] = Nil)
-  
+
 //  object Node extends HasGadtCodec[Node]
 
 //  test("recursive generic ADT") {
@@ -457,6 +457,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   }
 
   test("named tuple") {
+    import NamedTup.given
     testWrite[NamedTup](
       (name = "foo", value = 42),
       Map("name" -> "foo", "value" -> 42),
