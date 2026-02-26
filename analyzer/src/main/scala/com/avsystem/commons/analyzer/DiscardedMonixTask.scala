@@ -3,11 +3,13 @@ package analyzer
 
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.{Symbols, Types}
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
+import dotty.tools.dotc.core.Types.Type
 
 class DiscardedMonixTask(using Context) extends AnalyzerRule("discardedMonixTask") {
   private lazy val monixTaskClass: Symbol = Symbols.getClassIfDefined("monix.eval.Task")
+  private lazy val monixTaskTpe: Type = monixTaskClass.info
   override def requiredSymbols: List[Symbol] = monixTaskClass :: Nil
 
   override def verifyBlock(tree: tpd.Block)(using Context): Unit =
@@ -21,7 +23,7 @@ class DiscardedMonixTask(using Context) extends AnalyzerRule("discardedMonixTask
     reportIfTask(tree.finalizer)
   }
   private def reportIfTask(tree: tpd.Tree)(using Context): Unit =
-    if (tree.tpe.widenDealias.classSymbol.derivesFrom(monixTaskClass))
+    if (tree.tpe <:< monixTaskTpe) {
       report(tree, "discarded monix.eval.Task value - this Task will not execute its side effects")
-
+    }
 }

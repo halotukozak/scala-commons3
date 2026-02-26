@@ -10,12 +10,7 @@ import dotty.tools.dotc.core.Symbols.defn
 class ThrowableObjects extends AnalyzerRule("throwableObjects") {
   override def verifyTypeDef(tree: tpd.TypeDef)(using Context): Unit = {
     val sym = tree.symbol
-    // Check if it's a module (object) class definition
-    if (
-      sym.is(Flags.Module) && sym.isClass
-      // Check if the object extends Throwable (subtype check)
-      && sym.asClass.typeRef <:< defn.ThrowableType
-    ) {
+    if (sym.is(Flags.Module) && sym.isClass && sym.derivesFrom(defn.ThrowableClass)) {
       // Look up fillInStackTrace member on the object's type
       val fillInMember = sym.info.member(termName("fillInStackTrace"))
 

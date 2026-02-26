@@ -13,9 +13,9 @@ class VarargsAtLeast(using Context) extends AnalyzerRule("varargsAtLeast") {
   override def requiredSymbols: List[Symbols.Symbol] = atLeastAnnotClass :: Nil
 
   override def verifyApply(tree: tpd.Apply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
-    val paramInfoss = tree.fun.symbol.info.paramInfoss
+    val paramInfoss = tree.fun.symbol.paramSymss
     paramInfoss match {
-      case params :: _ if params.nonEmpty && params.last.isRepeatedParam =>
+      case params :: _ if params.nonEmpty && params.last.info.isRepeatedParam =>
         // In Scala 3, varargs are always passed as a single Typed(SeqLiteral(...), tpt) node.
         // Explicit splices (seq*) are Typed(expr, tpt) where expr is NOT a SeqLiteral.
         // We need to look inside the Typed to distinguish and count elements.

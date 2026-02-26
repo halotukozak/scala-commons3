@@ -3,12 +3,9 @@ package analyzer
 
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Flags
 import dotty.tools.dotc.core.StdNames.nme
-import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.{Flags, Symbols}
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
-
-import scala.collection.mutable
 
 //imo it can be removed
 class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRule("valueEnumExhaustiveMatch") {
@@ -28,7 +25,7 @@ class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRule("valueEnumExh
     val classSym = selectorTpe.classSymbol
     val companion = classSym.companionModule
 
-    if (companion != NoSymbol && companion.info.derivesFrom(valueEnumCompanionClass)) {
+    if (companion != NoSymbol && companion.derivesFrom(valueEnumCompanionClass)) {
       // Collect expected enum values: final, non-lazy, public vals of the selector type
       val all = companion.info.decls.iterator.filter { s =>
         s.isTerm && s.is(Flags.Final, butNot = Flags.Lazy) && s.isPublic && s.info.finalResultType <:< selectorTpe

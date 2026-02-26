@@ -6,8 +6,11 @@ import org.scalatest.funsuite.AnyFunSuite
 final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
 
   // language=Scala
-  val need3ParamDefinition =
-    """def need3Params(@atLeast(3) params: Int*): Unit = ()"""
+  private val need3ParamDefinition =
+    """
+      |import com.avsystem.commons.annotation.atLeast
+      |def need3Params(@atLeast(3) params: Int*): Unit = ()
+      |""".stripMargin
 
   test("too few varargs parameters should be rejected") {
     assertErrors(
