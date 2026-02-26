@@ -6,6 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 final class ImplicitParamDefaultsTest extends AnyFunSuite with AnalyzerTest {
 
   private val DummyDefinition =
+    // language=Scala
     """
       |class Scheduler
       |object Scheduler {

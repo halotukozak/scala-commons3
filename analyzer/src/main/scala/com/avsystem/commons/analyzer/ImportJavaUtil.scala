@@ -16,7 +16,7 @@ class ImportJavaUtil(using Context) extends AnalyzerRule("importJavaUtil") {
           // Check if any non-renamed selector imports `util` from `java` (i.e. import java.util)
           val importsJavaUtil = qualPath == "java" &&
             imp.selectors.exists(sel => sel.name.toString == "util" && sel.renamed.isEmpty)
-          
+
           if (importsJavaUtil) {
             report(
               imp,

@@ -31,7 +31,7 @@ class CatchThrowable extends AnalyzerRule("catchThrowable") {
     // Handle direct type patterns
     case _ if pat.tpe =:= defn.ThrowableType && !isCustomExtractor(pat) =>
       report(caseDef, "Catching Throwable is discouraged, catch specific exceptions instead")
-      
+
     case _ =>
   }
 

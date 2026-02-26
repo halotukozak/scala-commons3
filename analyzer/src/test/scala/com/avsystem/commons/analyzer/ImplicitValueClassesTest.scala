@@ -105,7 +105,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
 }
 
 final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
-  override def pluginOptions= List("AVSystemAnalyzer:+implicitValueClasses:all")
+  override def pluginOptions = List("AVSystemAnalyzer:+implicitValueClasses:all")
 
   test("nested implicit class not extending AnyVal should fail") {
     assertErrors(

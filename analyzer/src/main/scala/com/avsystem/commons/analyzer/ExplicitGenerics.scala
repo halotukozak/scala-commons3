@@ -14,7 +14,7 @@ class ExplicitGenerics(using Context) extends AnalyzerRule("explicitGenerics") {
 
   override def verifyTypeApply(tree: tpd.TypeApply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
     val sym = tree.fun.symbol
-    
+
     if (sym.hasOrInheritsAnnotation(explicitGenericsAnnotClass)) {
       // Inferred type args in Scala 3 have their span set to the fun's span
       // (identical start/end), while explicit type args have distinct spans

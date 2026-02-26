@@ -4,7 +4,7 @@ package analyzer
 import org.scalatest.wordspec.AnyWordSpec
 
 final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest {
-  override def pluginOptions = List("AVSystemAnalyzer:+nothingAsFunctionArgument")
+  override def pluginOptions: List[String] = List("AVSystemAnalyzer:+nothingAsFunctionArgument")
 
   "The ThrownExceptionNotInFunction rule" should {
     "detect improper usage of thrown exceptions" when {
