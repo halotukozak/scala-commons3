@@ -12,7 +12,7 @@ class BasePackage(using Context) extends AnalyzerRule("basePackage") {
 
   private lazy val requiredBasePackage = argument.map(Symbols.requiredPackage)
 
-  override def requiredSymbols: Seq[Symbol] = requiredBasePackage.toList
+  override def requiredSymbols: List[Symbol] = requiredBasePackage.toList
 
   override def verifyUnit(tree: tpd.Tree)(using Context): Unit = {
     println(s"=== transformUnit START ===")

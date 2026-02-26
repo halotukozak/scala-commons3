@@ -10,7 +10,7 @@ import dotty.tools.dotc.core.Symbols.NoSymbol
 class VarargsAtLeast(using Context) extends AnalyzerRule("varargsAtLeast") {
   private lazy val atLeastAnnotClass = Symbols.getClassIfDefined("com.avsystem.commons.annotation.atLeast")
 
-  override def requiredSymbols: Seq[Symbols.Symbol] = atLeastAnnotClass :: Nil
+  override def requiredSymbols: List[Symbols.Symbol] = atLeastAnnotClass :: Nil
 
   override def verifyApply(tree: tpd.Apply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
     val paramInfoss = tree.fun.symbol.info.paramInfoss

@@ -18,7 +18,7 @@ class ValueEnumExhaustiveMatch(using Context) extends AnalyzerRule("valueEnumExh
   private lazy val valueEnumCompanionClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.misc.ValueEnumCompanion")
 
-  override def requiredSymbols: Seq[Symbol] = valueEnumClass :: valueEnumCompanionClass :: Nil
+  override def requiredSymbols: List[Symbol] = valueEnumClass :: valueEnumCompanionClass :: Nil
 
   override def verifyMatch(tree: tpd.Match)(using Context): Unit =
     if (tree.selector.tpe.widenDealias.classSymbol.derivesFrom(valueEnumClass)) checkExhaustiveness(tree)

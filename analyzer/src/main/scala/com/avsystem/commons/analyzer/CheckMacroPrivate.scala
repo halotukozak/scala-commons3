@@ -10,7 +10,7 @@ class CheckMacroPrivate(using Context) extends AnalyzerRule("macroPrivate") {
   private lazy val macroPrivateAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.macroPrivate")
 
-  override def requiredSymbols: Seq[Symbol] = macroPrivateAnnotClass :: Nil
+  override def requiredSymbols: List[Symbol] = macroPrivateAnnotClass :: Nil
 
   override def verifyIdent(tree: tpd.Ident)(using Context): Unit =
     checkMacroPrivate(tree)

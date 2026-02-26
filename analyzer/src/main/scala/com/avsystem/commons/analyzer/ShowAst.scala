@@ -10,7 +10,7 @@ class ShowAst(using Context) extends AnalyzerRule("showAst", level = Level.Error
   private lazy val showAstAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.showAst")
 
-  override def requiredSymbols: Seq[Symbol] = showAstAnnotClass :: Nil
+  override def requiredSymbols: List[Symbol] = showAstAnnotClass :: Nil
 
   override def verifyValDef(tree: tpd.ValDef)(using Context): Unit =
     checkShowAst(tree)

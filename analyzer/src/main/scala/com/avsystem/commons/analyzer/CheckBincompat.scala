@@ -11,7 +11,7 @@ class CheckBincompat(using Context) extends AnalyzerRule("bincompat") {
   private lazy val bincompatAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.bincompat")
 
-  override def requiredSymbols: Seq[Symbol] = bincompatAnnotClass :: Nil
+  override def requiredSymbols: List[Symbol] = bincompatAnnotClass :: Nil
 
   override def verifyIdent(tree: tpd.Ident)(using Context): Unit = checkTree(tree)
 

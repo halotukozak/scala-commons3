@@ -10,7 +10,7 @@ import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 class ExplicitGenerics(using Context) extends AnalyzerRule("explicitGenerics") {
   private lazy val explicitGenericsAnnotClass =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.explicitGenerics")
-  override def requiredSymbols: Seq[Symbol] = explicitGenericsAnnotClass :: Nil
+  override def requiredSymbols: List[Symbol] = explicitGenericsAnnotClass :: Nil
 
   override def verifyTypeApply(tree: tpd.TypeApply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
     val sym = tree.fun.symbol

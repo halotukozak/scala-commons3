@@ -9,8 +9,6 @@ import dotty.tools.dotc.core.Symbols.{defn, NoSymbol}
 import scala.annotation.tailrec
 
 class NothingAsFunctionArgument extends AnalyzerRule("nothingAsFunctionArgument") {
-  override def requiredSymbols: Seq[Symbols.Symbol] = Nil
-
   override def verifyApply(tree: tpd.Apply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
     val paramInfoss = tree.fun.symbol.info.paramInfoss
 

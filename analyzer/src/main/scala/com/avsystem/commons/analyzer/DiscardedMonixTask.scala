@@ -8,7 +8,7 @@ import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
 class DiscardedMonixTask(using Context) extends AnalyzerRule("discardedMonixTask") {
   private lazy val monixTaskClass: Symbol = Symbols.getClassIfDefined("monix.eval.Task")
-  override def requiredSymbols: Seq[Symbol] = monixTaskClass :: Nil
+  override def requiredSymbols: List[Symbol] = monixTaskClass :: Nil
 
   override def verifyBlock(tree: tpd.Block)(using Context): Unit =
     tree.stats.foreach(reportIfTask)
