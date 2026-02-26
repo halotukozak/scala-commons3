@@ -7,8 +7,7 @@ import dotty.tools.dotc.core.Flags
 import dotty.tools.dotc.core.Symbols.defn
 import dotty.tools.dotc.core.Types.Type
 
-class ImplicitFunctionParams extends AnalyzerRule {
-  val name: String = "implicitFunctionParams"
+class ImplicitFunctionParams extends AnalyzerRule("implicitFunctionParams") {
 
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree = {
     tree.termParamss.foreach { paramList =>

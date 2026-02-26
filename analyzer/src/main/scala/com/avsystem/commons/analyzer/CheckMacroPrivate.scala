@@ -6,10 +6,8 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class CheckMacroPrivate(using Context) extends AnalyzerRule {
-  val name: String = "macroPrivate"
-
-  private val macroPrivateAnnotClass: Symbol =
+class CheckMacroPrivate(using Context) extends AnalyzerRule("macroPrivate") {
+  private lazy val macroPrivateAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.macroPrivate")
 
   override def transformIdent(tree: tpd.Ident)(using Context): tpd.Tree = {

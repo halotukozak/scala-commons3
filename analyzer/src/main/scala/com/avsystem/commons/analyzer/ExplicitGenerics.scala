@@ -6,10 +6,8 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class ExplicitGenerics(using Context) extends AnalyzerRule {
-  val name: String = "explicitGenerics"
-
-  private val explicitGenericsAnnotClass: Symbol =
+class ExplicitGenerics(using Context) extends AnalyzerRule("explicitGenerics") {
+  private lazy val explicitGenericsAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.explicitGenerics")
 
   override def transformTypeApply(tree: tpd.TypeApply)(using Context): tpd.Tree = {

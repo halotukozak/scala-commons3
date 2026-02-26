@@ -6,8 +6,7 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags
 import dotty.tools.dotc.core.Types.ConstantType
 
-class ConstantDeclarations extends AnalyzerRule {
-  val name: String = "constantDeclarations"
+class ConstantDeclarations extends AnalyzerRule("constantDeclarations") {
   level = Level.Off
 
   override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree = {

@@ -7,9 +7,7 @@ import dotty.tools.dotc.core.Flags
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.Symbols.defn
 
-class ThrowableObjects extends AnalyzerRule {
-  val name: String = "throwableObjects"
-
+class ThrowableObjects extends AnalyzerRule("throwableObjects") {
   override def transformTypeDef(tree: tpd.TypeDef)(using Context): tpd.Tree = {
     val sym = tree.symbol
     // Check if it's a module (object) class definition

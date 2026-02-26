@@ -6,8 +6,7 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class ShowAst(using Context) extends AnalyzerRule {
-  val name: String = "showAst"
+class ShowAst(using Context) extends AnalyzerRule("showAst") {
   level = Level.Error
 
   private val showAstAnnotClass: Symbol =

@@ -5,9 +5,7 @@ import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.{defn, NoSymbol}
 
-class NothingAsFunctionArgument extends AnalyzerRule {
-  val name: String = "nothingAsFunctionArgument"
-
+class NothingAsFunctionArgument extends AnalyzerRule("nothingAsFunctionArgument") {
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree = {
     if (tree.fun.symbol != NoSymbol) {
       val paramInfoss = tree.fun.symbol.info.paramInfoss

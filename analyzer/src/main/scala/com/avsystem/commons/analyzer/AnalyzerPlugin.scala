@@ -65,7 +65,7 @@ class AnalyzerPlugin extends StandardPlugin {
               ruleArg.foreach(arg => rule.argument = Some(arg))
             case None => dotty.tools.dotc.report.error(s"Unrecognized AVS analyzer rule: $name")
           }
+        }
       }
     }
-  }
 }

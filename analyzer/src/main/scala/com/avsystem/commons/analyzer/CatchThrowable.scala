@@ -5,8 +5,7 @@ import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.defn
 
-class CatchThrowable extends AnalyzerRule {
-  val name: String = "catchThrowable"
+class CatchThrowable extends AnalyzerRule("catchThrowable") {
 
   override def transformTry(tree: tpd.Try)(using Context): tpd.Tree = {
     tree.cases.foreach { caseDef =>

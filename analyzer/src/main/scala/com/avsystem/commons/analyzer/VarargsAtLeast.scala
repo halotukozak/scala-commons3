@@ -7,10 +7,8 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols
 import dotty.tools.dotc.core.Symbols.NoSymbol
 
-class VarargsAtLeast(using Context) extends AnalyzerRule {
-  val name: String = "varargsAtLeast"
-
-  private val atLeastAnnotClass = Symbols.getClassIfDefined("com.avsystem.commons.annotation.atLeast")
+class VarargsAtLeast(using Context) extends AnalyzerRule("varargsAtLeast") {
+  private lazy val atLeastAnnotClass = Symbols.getClassIfDefined("com.avsystem.commons.annotation.atLeast")
 
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree = {
     if (tree.fun.symbol != NoSymbol) {

@@ -8,10 +8,15 @@ import dotty.tools.dotc.core.Symbols.Symbol
 
 import scala.annotation.tailrec
 
-class BasePackage(using Context) extends AnalyzerRule {
+class BasePackage(
+  level: Level = Level.Warn,
+  argument: Option[String] = None,
+)(using Context) extends AnalyzerRule("basePackage", level, argument) {
+
+  def withConfig(level: Level, argument: Option[String]): AnalyzerRule =
+    new BasePackage(level, argument)
   private lazy val requiredBasePackage = argument.map(Symbols.requiredPackage)
 
-  val name: String = "basePackage"
   override def transformUnit(tree: tpd.Tree)(using Context): tpd.Tree = {
     println(s"=== transformUnit START ===")
     dumpTree(tree)

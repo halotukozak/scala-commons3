@@ -5,9 +5,7 @@ import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.NoSymbol
 
-class FindUsages extends AnalyzerRule {
-  val name: String = "findUsages"
-
+class FindUsages extends AnalyzerRule("findUsages") {
   private lazy val rejectedSymbols: Set[String] =
     argument.map(_.split(";").toSet).getOrElse(Set.empty)
 

@@ -6,10 +6,9 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class DiscardedMonixTask(using Context) extends AnalyzerRule {
-  val name: String = "discardedMonixTask"
-
-  private val monixTaskClass: Symbol = Symbols.getClassIfDefined("monix.eval.Task")
+class DiscardedMonixTask(using Context) extends AnalyzerRule("discardedMonixTask") {
+  private lazy val monixTaskClass: Symbol = Symbols.getClassIfDefined("monix.eval.Task")
+  
   override def transformBlock(tree: tpd.Block)(using Context): tpd.Tree = {
     tree.stats.foreach(reportIfTask)
     tree

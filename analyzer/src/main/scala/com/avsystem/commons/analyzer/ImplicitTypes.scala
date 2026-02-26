@@ -17,8 +17,7 @@ import dotty.tools.dotc.core.Names.termName
  *  - compiler-generated (Synthetic) definitions
  *  - parameters (they have different semantics)
  */
-class ImplicitTypes extends AnalyzerRule {
-  val name: String = "implicitTypes"
+class ImplicitTypes extends AnalyzerRule("implicitTypes") {
 
   override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree = {
     checkImplicitType(tree, tree.tpt)

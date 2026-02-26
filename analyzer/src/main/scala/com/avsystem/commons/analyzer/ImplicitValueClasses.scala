@@ -4,10 +4,9 @@ package analyzer
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags
-import dotty.tools.dotc.core.Symbols.{Symbol, defn}
+import dotty.tools.dotc.core.Symbols.{defn, Symbol}
 
-class ImplicitValueClasses extends AnalyzerRule {
-  val name: String = "implicitValueClasses"
+class ImplicitValueClasses extends AnalyzerRule("implicitValueClasses") {
 
   override def transformTypeDef(tree: tpd.TypeDef)(using Context): tpd.Tree = {
     val sym = tree.symbol
@@ -32,9 +31,8 @@ class ImplicitValueClasses extends AnalyzerRule {
     val allParams = ctor.paramSymss.flatten.filterNot(_.isType)
     val hasImplicitParams = allParams.exists(_.isOneOf(Flags.GivenOrImplicit))
     // A val parameter creates a public (non-private) field accessor on the class
-    val hasValParam = sym.info.decls.exists(d =>
-      d.is(Flags.ParamAccessor) && !d.is(Flags.Method) && !d.isType && !d.is(Flags.Private)
-    )
+    val hasValParam =
+      sym.info.decls.exists(d => d.is(Flags.ParamAccessor) && !d.is(Flags.Method) && !d.isType && !d.is(Flags.Private))
     hasValidParents && !hasImplicitParams && hasValParam
   }
 }

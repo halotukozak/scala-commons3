@@ -18,10 +18,7 @@ import dotty.tools.dotc.transform.Pickler
  * Rules MUST return the original tree unchanged from every `transformX` override
  * (analysis-only; no tree modification).
  */
-trait AnalyzerRule extends PluginPhase {
-
-  /** Short name used in plugin options, e.g. `catchThrowable` for `-P:AVSystemAnalyzer:+catchThrowable`. */
-  val name: String
+trait AnalyzerRule(name: String) extends PluginPhase {
 
   /** Current diagnostic level. Mutable so [[AnalyzerPlugin]] can configure it from plugin options. */
   var level: Level = Level.Warn

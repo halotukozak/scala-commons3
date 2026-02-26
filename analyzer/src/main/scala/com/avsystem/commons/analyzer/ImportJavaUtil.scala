@@ -6,9 +6,7 @@ import dotty.tools.dotc.ast.tpd.TreeTraverser
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.NoSymbol
 
-class ImportJavaUtil extends AnalyzerRule {
-  val name: String = "importJavaUtil"
-
+class ImportJavaUtil(using Context) extends AnalyzerRule("importJavaUtil") {
   override def transformUnit(tree: tpd.Tree)(using Context): tpd.Tree = {
     object ImportChecker extends TreeTraverser {
       override def traverse(tree: tpd.Tree)(using Context): Unit = tree match {
