@@ -19,19 +19,15 @@ import dotty.tools.dotc.core.Names.termName
  */
 class ImplicitTypes extends AnalyzerRule("implicitTypes") {
 
-  override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree = {
+  override def verifyValDef(tree: tpd.ValDef)(using Context): Unit =
     checkImplicitType(tree, tree.tpt)
-    tree
-  }
 
-  override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree = {
+  override def verifyDefDef(tree: tpd.DefDef)(using Context): Unit =
     checkImplicitType(tree, tree.tpt)
-    tree
-  }
 
   private def checkImplicitType(tree: tpd.MemberDef, tpt: tpd.Tree)(using Context): Unit = {
     val sym = tree.symbol
-    if (sym.isOneOf(Flags.GivenOrImplicit) && !sym.is(Flags.Synthetic) && !sym.is(Flags.Param)) {
+    if (sym.isOneOf(Flags.GivenOrImplicit, butNot = Flags.Synthetic | Flags.Param)) {
       // Skip generated implicit conversion methods for implicit classes.
       // The compiler generates an implicit def with the same name as the class.
       val isImplicitClassConversion = sym.is(Flags.Method) && {

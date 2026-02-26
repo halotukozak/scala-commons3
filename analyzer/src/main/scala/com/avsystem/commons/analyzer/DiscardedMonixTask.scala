@@ -8,31 +8,20 @@ import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
 class DiscardedMonixTask(using Context) extends AnalyzerRule("discardedMonixTask") {
   private lazy val monixTaskClass: Symbol = Symbols.getClassIfDefined("monix.eval.Task")
-  
-  override def transformBlock(tree: tpd.Block)(using Context): tpd.Tree = {
+  override def requiredSymbols: Seq[Symbol] = monixTaskClass :: Nil
+
+  override def verifyBlock(tree: tpd.Block)(using Context): Unit =
     tree.stats.foreach(reportIfTask)
-    tree
+  override def verifyTemplate(tree: tpd.Template)(using Context): Unit = tree.body.foreach {
+    case _: tpd.DefTree => ()
+    case stat => reportIfTask(stat)
   }
-  override def transformTemplate(tree: tpd.Template)(using Context): tpd.Tree = {
-    tree.body.foreach {
-      case _: tpd.DefTree => ()
-      case stat => reportIfTask(stat)
-    }
-    tree
-  }
-  override def transformWhileDo(tree: tpd.WhileDo)(using Context): tpd.Tree = {
-    reportIfTask(tree.body)
-    tree
-  }
-  override def transformTry(tree: tpd.Try)(using Context): tpd.Tree = {
-    if (!tree.finalizer.isEmpty) {
-      reportIfTask(tree.finalizer)
-    }
-    tree
+  override def verifyWhileDo(tree: tpd.WhileDo)(using Context): Unit = reportIfTask(tree.body)
+  override def verifyTry(tree: tpd.Try)(using Context): Unit = if (!tree.finalizer.isEmpty) {
+    reportIfTask(tree.finalizer)
   }
   private def reportIfTask(tree: tpd.Tree)(using Context): Unit =
-    if (monixTaskClass != NoSymbol && tree.tpe.widenDealias.classSymbol.derivesFrom(monixTaskClass)) {
+    if (tree.tpe.widenDealias.classSymbol.derivesFrom(monixTaskClass))
       report(tree, "discarded monix.eval.Task value - this Task will not execute its side effects")
-    }
 
 }

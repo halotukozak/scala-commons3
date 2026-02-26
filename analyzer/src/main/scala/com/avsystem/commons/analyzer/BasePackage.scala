@@ -8,21 +8,17 @@ import dotty.tools.dotc.core.Symbols.Symbol
 
 import scala.annotation.tailrec
 
-class BasePackage(
-  level: Level = Level.Warn,
-  argument: Option[String] = None,
-)(using Context) extends AnalyzerRule("basePackage", level, argument) {
+class BasePackage(using Context) extends AnalyzerRule("basePackage") {
 
-  def withConfig(level: Level, argument: Option[String]): AnalyzerRule =
-    new BasePackage(level, argument)
   private lazy val requiredBasePackage = argument.map(Symbols.requiredPackage)
 
-  override def transformUnit(tree: tpd.Tree)(using Context): tpd.Tree = {
+  override def requiredSymbols: Seq[Symbol] = requiredBasePackage.toList
+
+  override def verifyUnit(tree: tpd.Tree)(using Context): Unit = {
     println(s"=== transformUnit START ===")
     dumpTree(tree)
     println(s"=== transformUnit END ===")
     requiredBasePackage.foreach(validate(tree, _))
-    tree
   }
 
   private def dumpTree(tree: tpd.Tree, indent: String = "")(using Context): Unit = tree match {
@@ -30,7 +26,7 @@ class BasePackage(
       println(s"${indent}PackageDef(pid=${pkg.pid.show}, pid.sym=${pkg.pid.symbol}, stats.size=${pkg.stats.size})")
       pkg.stats.foreach(s => dumpTree(s, indent + "  "))
     case _ =>
-      println(s"${indent}${tree.getClass.getSimpleName}(sym=${tree.symbol})")
+      println(s"$indent${tree.getClass.getSimpleName}(sym=${tree.symbol})")
   }
 
   @tailrec

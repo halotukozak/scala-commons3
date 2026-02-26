@@ -31,7 +31,9 @@ class AnalyzerPlugin extends StandardPlugin {
       new ImplicitFunctionParams,
     )
     parseOptions(options, rules)
-    rules.filter(_.level != Level.Off)
+    rules
+      .filter(_.level != Level.Off)
+      .filter(_.requiredSymbols.forall(_.exists))
   }
 
   private def parseOptions(options: List[String], rules: List[AnalyzerRule])(using Context): Unit = {
@@ -65,7 +67,7 @@ class AnalyzerPlugin extends StandardPlugin {
               ruleArg.foreach(arg => rule.argument = Some(arg))
             case None => dotty.tools.dotc.report.error(s"Unrecognized AVS analyzer rule: $name")
           }
-        }
       }
     }
+  }
 }

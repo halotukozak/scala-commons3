@@ -6,13 +6,8 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags
 
 class FinalCaseClasses extends AnalyzerRule("finalCaseClasses") {
-  override def transformTypeDef(tree: tpd.TypeDef)(using Context): tpd.Tree = {
-    if (tree.isClassDef) {
-      val flags = tree.symbol.flags
-      if (flags.is(Flags.Case) && !flags.is(Flags.Final) && !flags.is(Flags.Sealed)) {
-        report(tree, "Case classes should be marked as final")
-      }
+  override def verifyTypeDef(tree: tpd.TypeDef)(using Context): Unit =
+    if (tree.isClassDef && tree.symbol.flags.is(Flags.Case, butNot = Flags.FinalOrSealed)) {
+      report(tree, "Case classes should be marked as final")
     }
-    tree
-  }
 }

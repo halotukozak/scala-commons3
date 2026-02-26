@@ -3,7 +3,7 @@ package analyzer
 
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.{Flags, Symbols}
 import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
 class CheckBincompat(using Context) extends AnalyzerRule("bincompat") {
@@ -11,31 +11,21 @@ class CheckBincompat(using Context) extends AnalyzerRule("bincompat") {
   private lazy val bincompatAnnotClass: Symbol =
     Symbols.getClassIfDefined("com.avsystem.commons.annotation.bincompat")
 
-  override def transformIdent(tree: tpd.Ident)(using Context): tpd.Tree = {
-    checkTree(tree)
-    tree
-  }
+  override def requiredSymbols: Seq[Symbol] = bincompatAnnotClass :: Nil
 
-  override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree = {
-    checkTree(tree)
-    tree
-  }
+  override def verifyIdent(tree: tpd.Ident)(using Context): Unit = checkTree(tree)
 
-  override def transformNew(tree: tpd.New)(using Context): tpd.Tree = {
-    checkTree(tree)
-    tree
-  }
+  override def verifySelect(tree: tpd.Select)(using Context): Unit = checkTree(tree)
 
-  private def checkTree(tree: tpd.Tree)(using Context): Unit = {
-    if (tree.symbol != NoSymbol && bincompatAnnotClass != NoSymbol) {
-      val sym = tree.symbol
-      val hasAnnot = sym.annotations.exists(annot => annot.symbol == bincompatAnnotClass)
-      if (hasAnnot && !isDefinitionSite(sym, tree)) {
-        report(
-          tree,
-          "Symbols annotated as @bincompat exist only for binary compatibility and should not be used directly",
-        )
-      }
+  override def verifyNew(tree: tpd.New)(using Context): Unit = checkTree(tree)
+
+  private def checkTree(tree: tpd.Tree)(using Context): Unit = if (tree.symbol != NoSymbol) {
+    val sym = tree.symbol
+    if (sym.hasAnnotation(bincompatAnnotClass) && !isDefinitionSite(sym, tree)) {
+      report(
+        tree,
+        "Symbols annotated as @bincompat exist only for binary compatibility and should not be used directly",
+      )
     }
   }
 
@@ -50,21 +40,22 @@ class CheckBincompat(using Context) extends AnalyzerRule("bincompat") {
    */
   private def isDefinitionSite(sym: Symbol, tree: tpd.Tree)(using Context): Boolean = {
     val treeSpan = tree.span
-    if (!treeSpan.exists) return false
 
-    def spanContains(s: Symbol): Boolean = {
-      val sp = s.span
-      sp.exists && sp.contains(treeSpan)
-    }
+    treeSpan.exists && {
+      def spanContains(s: Symbol): Boolean = {
+        val sp = s.span
+        sp.exists && sp.contains(treeSpan)
+      }
 
-    spanContains(sym) || {
-      // For module classes, also check the module val (companion module)
-      // For module vals, also check the module class
-      val companion =
-        if (sym.is(dotty.tools.dotc.core.Flags.ModuleClass)) sym.companionModule
-        else if (sym.is(dotty.tools.dotc.core.Flags.Module)) sym.companionClass
-        else NoSymbol
-      companion != NoSymbol && spanContains(companion)
+      spanContains(sym) || {
+        // For module classes, also check the module val (companion module)
+        // For module vals, also check the module class
+        val companion =
+          if (sym.is(Flags.ModuleClass)) sym.companionModule
+          else if (sym.is(Flags.Module)) sym.companionClass
+          else NoSymbol
+        companion != NoSymbol && spanContains(companion)
+      }
     }
   }
 }

@@ -6,14 +6,11 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags
 
 class ImplicitParamDefaults extends AnalyzerRule("implicitParamDefaults") {
-  override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree = {
-    tree.termParamss.zipWithIndex.foreach { (paramList, idx) =>
-      paramList.foreach { param =>
-        if (param.symbol.isOneOf(Flags.GivenOrImplicit) && param.symbol.is(Flags.HasDefault)) {
-          report(param, "Implicit parameters should not have default values")
-        }
-      }
-    }
-    tree
+  override def verifyDefDef(tree: tpd.DefDef)(using Context): Unit = for {
+    (paramList, idx) <- tree.termParamss.zipWithIndex
+    param <- paramList
+    if param.symbol.isOneOf(Flags.GivenOrImplicit) && param.symbol.is(Flags.HasDefault)
+  } {
+    report(param, "Implicit parameters should not have default values")
   }
 }

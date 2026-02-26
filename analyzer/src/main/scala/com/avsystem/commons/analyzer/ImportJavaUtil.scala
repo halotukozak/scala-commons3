@@ -7,16 +7,16 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.NoSymbol
 
 class ImportJavaUtil(using Context) extends AnalyzerRule("importJavaUtil") {
-  override def transformUnit(tree: tpd.Tree)(using Context): tpd.Tree = {
+  override def verifyUnit(tree: tpd.Tree)(using Context): Unit = {
     object ImportChecker extends TreeTraverser {
       override def traverse(tree: tpd.Tree)(using Context): Unit = tree match {
         case imp: tpd.Import if imp.expr.symbol != NoSymbol =>
           val qualPath = imp.expr.symbol.fullName.toString
           // In Scala 3, `import java.util` is represented as qualifier=java, selector=util
           // Check if any non-renamed selector imports `util` from `java` (i.e. import java.util)
-          val importsJavaUtil = qualPath == "java" && imp.selectors.exists { sel =>
-            sel.name.toString == "util" && sel.renamed.isEmpty
-          }
+          val importsJavaUtil = qualPath == "java" &&
+            imp.selectors.exists(sel => sel.name.toString == "util" && sel.renamed.isEmpty)
+          
           if (importsJavaUtil) {
             report(
               imp,
@@ -30,6 +30,5 @@ class ImportJavaUtil(using Context) extends AnalyzerRule("importJavaUtil") {
       }
     }
     ImportChecker.traverse(tree)
-    tree
   }
 }
