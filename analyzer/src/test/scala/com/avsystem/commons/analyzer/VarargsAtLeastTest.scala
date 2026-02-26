@@ -5,12 +5,16 @@ import org.scalatest.funsuite.AnyFunSuite
 
 final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
 
+  // language=Scala
+  val need3ParamDefinition =
+    """def need3Params(@atLeast(3) params: Int*): Unit = ()"""
+
   test("too few varargs parameters should be rejected") {
     assertErrors(
       1,
       scala"""
-             |import com.avsystem.commons.analyzer.TestUtils
-             |TestUtils.need3Params(1, 2)
+             |$need3ParamDefinition
+             |need3Params(1, 2)
              |""".stripMargin,
     )
   }
@@ -18,9 +22,10 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
   test("enough varargs parameters should not be rejected") {
     assertNoErrors(
       scala"""
-             |import com.avsystem.commons.analyzer.TestUtils
-             |TestUtils.need3Params(1, 2, 3)
-             |TestUtils.need3Params(1, 2, 3, 4)
+             |$need3ParamDefinition
+             |
+             |need3Params(1, 2, 3)
+             |need3Params(1, 2, 3, 4)
              |""".stripMargin,
     )
   }
@@ -28,8 +33,9 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
   test("collection passed as varargs parameter should not be rejected") {
     assertNoErrors(
       scala"""
-             |import com.avsystem.commons.analyzer.TestUtils
-             |TestUtils.need3Params(List(1, 2)*)
+             |$need3ParamDefinition
+             |
+             |need3Params(List(1, 2)*)
              |""".stripMargin,
     )
   }
