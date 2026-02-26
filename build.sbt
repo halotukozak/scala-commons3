@@ -15,7 +15,6 @@ val scalatestplusScalacheckVersion = "3.2.14.0"
 val scalacheckVersion = "1.19.0"
 val jettyVersion = "12.1.5"
 val mongoVersion = "5.6.2"
-val springVersion = "6.2.15"
 val typesafeConfigVersion = "1.4.5"
 val commonsIoVersion = "1.3.2" // test only
 val scalaLoggingVersion = "3.9.6"
@@ -118,7 +117,7 @@ def commonSettings: Seq[Def.Setting[?]] = Seq(
         Seq(
           "-deprecation",
           "-feature",
-          // "-explain",
+//           "-explain",
           "-unchecked",
           "-language:noAutoTupling",
           "-Vprofile",
@@ -222,8 +221,6 @@ lazy val jvm = project
     jetty,
 //    mongo,
     hocon,
-//    spring,
-//    redis,
   )
   .settings(aggregateProjectSettings)
 
@@ -314,20 +311,6 @@ lazy val `core-js` = project
 //    sourceDirsSettings(_.getParentFile),
 //  )
 //
-//lazy val redis = project
-//  .dependsOn(core % CompileAndTest)
-//  .settings(
-//    jvmCommonSettings,
-//    libraryDependencies ++= Seq(
-//      "com.google.guava" % "guava" % guavaVersion,
-//      "org.apache.pekko" %% "pekko-stream" % pekkoVersion,
-//      "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
-//      "io.monix" %% "monix" % monixVersion,
-//    ),
-//    Test / parallelExecution := false,
-//    Compile / scalacOptions += "-Wconf:cat=deprecation:is", // only inform about deprecations due to scheduled removal
-//    Test / skip := true,
-//  )
 
 lazy val hocon = project
   .dependsOn(core % CompileAndTest)
@@ -335,16 +318,6 @@ lazy val hocon = project
     jvmCommonSettings,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % typesafeConfigVersion,
-    ),
-  )
-
-lazy val spring = project
-  .dependsOn(hocon % CompileAndTest)
-  .settings(
-    jvmCommonSettings,
-    libraryDependencies ++= Seq(
-      "org.springframework" % "spring-context" % springVersion,
-      "com.google.code.findbugs" % "jsr305" % jsr305Version % Optional,
     ),
   )
 
