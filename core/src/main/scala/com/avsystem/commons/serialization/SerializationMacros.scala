@@ -24,15 +24,10 @@ trait GenRefImplicitsMacros {
 }
 
 object SerializationMacros {
-  def materializeImpl[T: Type, R[_]: Type](using Quotes): Expr[R[T]] = '{ ??? }.asInstanceOf[Expr[R[T]]]
   def fromApplyUnapplyProviderImpl[T: Type, R[_]: Type](applyUnapplyProvider: Expr[Any])(using Quotes): Expr[R[T]] = '{
     ???
   }.asInstanceOf[Expr[R[T]]]
   def applyUnapplyCodecImpl[T: Type](using Quotes): Expr[ApplyUnapplyCodec[T]] = '{ ??? }
-  def materializeRecursivelyImpl[T: Type](using Quotes): Expr[GenCodec[T]] = '{ ??? }
-  def materializeImplicitlyImpl[T: Type](allow: Expr[AllowImplicitMacro[GenCodec[T]]])(using Quotes)
-    : Expr[GenCodec[T]] = '{ ??? }
 
   def refImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[Nothing] = ???
-  def fun2GenRefImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[Nothing] = ???
 }

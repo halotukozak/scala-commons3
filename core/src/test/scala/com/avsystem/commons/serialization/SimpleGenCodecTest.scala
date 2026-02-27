@@ -44,7 +44,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   }
 
   test("NoState") {
-    type NoState = Nothing { type Dummy = Nothing }
+    type NoState = Nothing {type Dummy = Nothing}
     assert(summon[GenCodec[NoState]] == GenCodec.given_GenCodec_Nothing)
   }
 
@@ -135,17 +135,17 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     )
   }
 
-//  test("case class like") {
-//    testWrite(CaseClassLike("dafuq", List(1, 2, 3)), Map("some.str" -> "dafuq", "intList" -> List(1, 2, 3)))
-//  }
+  //  test("case class like") {
+  //    testWrite(CaseClassLike("dafuq", List(1, 2, 3)), Map("some.str" -> "dafuq", "intList" -> List(1, 2, 3)))
+  //  }
 
-//  test("case class like with inherited apply/unapply") {
-//    testWrite(HasInheritedApply("dafuq", List(1, 2, 3)), Map("a" -> "dafuq", "lb" -> List(1, 2, 3)))
-//  }
+  //  test("case class like with inherited apply/unapply") {
+  //    testWrite(HasInheritedApply("dafuq", List(1, 2, 3)), Map("a" -> "dafuq", "lb" -> List(1, 2, 3)))
+  //  }
 
-//  test("apply/unapply provider based codec") {
-//    testWrite(ThirdParty(42, "lol"), Map("str" -> "lol", "int" -> 42))
-//  }
+  //  test("apply/unapply provider based codec") {
+  //    testWrite(ThirdParty(42, "lol"), Map("str" -> "lol", "int" -> 42))
+  //  }
 
   test("varargs case class") {
     testWrite(VarargsCaseClass(42, "foo", "bar"), Map("int" -> 42, "strings" -> List("foo", "bar")))
@@ -155,13 +155,13 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(OnlyVarargsCaseClass("42", "420"), Map("strings" -> List("42", "420")))
   }
 
-//  test("varargs case class like") {
-//    testWrite(VarargsCaseClassLike("dafuq", 1, 2, 3), Map("some.str" -> "dafuq", "ints" -> List(1, 2, 3)))
-//  }
+  //  test("varargs case class like") {
+  //    testWrite(VarargsCaseClassLike("dafuq", 1, 2, 3), Map("some.str" -> "dafuq", "ints" -> List(1, 2, 3)))
+  //  }
 
-//  test("only varargs case class like") {
-//    testWrite(OnlyVarargsCaseClassLike("dafuq", "indeed"), Map("strings" -> List("dafuq", "indeed")))
-//  }
+  //  test("only varargs case class like") {
+  //    testWrite(OnlyVarargsCaseClassLike("dafuq", "indeed"), Map("strings" -> List("dafuq", "indeed")))
+  //  }
 
   test("case class with default values") {
     testWrite(HasDefaults(str = "lol"), Map("str" -> "lol"))
@@ -173,36 +173,36 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   // test type dealiasing during materialization
   type IntTree = Tree[Int]
 
-//  test("recursive generic case class") {
-//    testWrite(
-//      Node(
-//        123,
-//        List(
-//          Node(
-//            42,
-//            List(
-//              Node(52),
-//              Node(53),
-//            ),
-//          ),
-//          Node(43),
-//        ),
-//      ),
-//      Map[String, Any](
-//        "value" -> 123,
-//        "children" -> List(
-//          Map[String, Any](
-//            "value" -> 42,
-//            "children" -> List(
-//              Map[String, Any]("value" -> 52, "children" -> List()),
-//              Map[String, Any]("value" -> 53, "children" -> List()),
-//            ),
-//          ),
-//          Map[String, Any]("value" -> 43, "children" -> List()),
-//        ),
-//      ),
-//    )
-//  }
+  //  test("recursive generic case class") {
+  //    testWrite(
+  //      Node(
+  //        123,
+  //        List(
+  //          Node(
+  //            42,
+  //            List(
+  //              Node(52),
+  //              Node(53),
+  //            ),
+  //          ),
+  //          Node(43),
+  //        ),
+  //      ),
+  //      Map[String, Any](
+  //        "value" -> 123,
+  //        "children" -> List(
+  //          Map[String, Any](
+  //            "value" -> 42,
+  //            "children" -> List(
+  //              Map[String, Any]("value" -> 52, "children" -> List()),
+  //              Map[String, Any]("value" -> 53, "children" -> List()),
+  //            ),
+  //          ),
+  //          Map[String, Any]("value" -> 43, "children" -> List()),
+  //        ),
+  //      ),
+  //    )
+  //  }
 
   test("recursively defined sealed hierarchy with explicit case class codec") {
     testWrite[CustomList](CustomTail, Map("CustomTail" -> Map()))
@@ -285,7 +285,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite[Expr[String]](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
     testWrite[Expr[Int]](IntExpr(42), Map("IntExpr" -> Map("int" -> 42)))
     testWrite[BaseExpr](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
-    testWrite[BaseExpr { type Value = String }](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
+    testWrite[BaseExpr {type Value = String}](StringExpr("stringzor"), Map("StringExpr" -> Map("str" -> "stringzor")))
   }
 
   test("recursive GADT") {
@@ -319,30 +319,30 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
 
   case class Node[T](value: T, children: List[Node[T]] = Nil)
 
-//  object Node extends HasGadtCodec[Node]
+  //  object Node extends HasGadtCodec[Node]
 
-//  test("recursive generic ADT") {
-//    testWrite[Tree[Int]](
-//      Branch(
-//        Leaf(1),
-//        Branch(
-//          Leaf(2),
-//          Leaf(3),
-//        ),
-//      ),
-//      Map(
-//        "Branch" -> Map(
-//          "left" -> Map("Leaf" -> Map("value" -> 1)),
-//          "right" -> Map(
-//            "Branch" -> Map(
-//              "left" -> Map("Leaf" -> Map("value" -> 2)),
-//              "right" -> Map("Leaf" -> Map("value" -> 3)),
-//            ),
-//          ),
-//        ),
-//      ),
-//    )
-//  }
+  test("recursive generic ADT") {
+    testWrite[Tree[Int]](
+      Branch(
+        Leaf(1),
+        Branch(
+          Leaf(2),
+          Leaf(3),
+        ),
+      ),
+      Map(
+        "Branch" -> Map(
+          "left" -> Map("Leaf" -> Map("value" -> 1)),
+          "right" -> Map(
+            "Branch" -> Map(
+              "left" -> Map("Leaf" -> Map("value" -> 2)),
+              "right" -> Map("Leaf" -> Map("value" -> 3)),
+            ),
+          ),
+        ),
+      ),
+    )
+  }
 
   test("sealed enum") {
     testWrite[Enumz](Enumz.First, Map("Primary" -> Map()))
@@ -408,7 +408,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   }
 
   test("refined sealed type with type member") {
-    testWrite[SealedRefined { type X = Int }](
+    testWrite[SealedRefined {type X = Int}](
       SealedRefined.First(42),
       Map("First" -> Map("foo" -> 42)),
     )
