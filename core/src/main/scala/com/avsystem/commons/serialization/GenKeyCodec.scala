@@ -2,7 +2,7 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.annotation.explicitGenerics
-import com.avsystem.commons.mirror.{DerMirror, DerSubSingletonElem}
+import made.*
 import com.avsystem.commons.misc.{Bytes, Timestamp}
 import com.avsystem.commons.serialization.GenCodec.{ReadFailure, WriteFailure}
 
@@ -97,7 +97,7 @@ object GenKeyCodec {
   // Warning! Changing the order of implicit params of this method causes divergent implicit expansion (WTF?)
   given [R, T] => (tw: TransparentWrapping[R, T]) => (wrappedCodec: GenKeyCodec[R]) => GenKeyCodec[T] =
     new Transformed(wrappedCodec, tw.unwrap, tw.wrap)
-  inline def forSealedEnum[T: {DerMirror.SumOf as m, ClassTag}]: GenKeyCodec[T] = {
+  inline def forSealedEnum[T: {Made.SumOf as m, ClassTag}]: GenKeyCodec[T] = {
     type IsSingleton[X] = X match {
       case Singleton => true
       case _ => false
@@ -113,7 +113,7 @@ object GenKeyCodec {
     deriveForSum(
       compiletime.constValue[m.MirroredLabel],
       compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
-      m.mirroredElems.toArrayOf[DerSubSingletonElem.Of[T]].map(_.value),
+      m.mirroredElems.toArrayOf[MadeSubSingletonElem.Of[T]].map(_.value),
     )
   }
   inline def forTransparentWrapper[R, T](

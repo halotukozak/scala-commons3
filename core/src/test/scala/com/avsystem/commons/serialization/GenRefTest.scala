@@ -1,8 +1,8 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.{generated, name, transparent}
 import org.scalatest.funsuite.AnyFunSuite
+import made.annotation.*
 
 @flatten sealed trait Seal {
   def id: String

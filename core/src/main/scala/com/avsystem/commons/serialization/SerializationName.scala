@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.name
+import made.annotation.*
 import com.avsystem.commons.misc.{AnnotationOf, SimpleClassName}
 
 case class SerializationName[T](name: String) extends AnyVal

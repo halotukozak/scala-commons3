@@ -22,9 +22,10 @@ val pekkoVersion = "1.4.0"
 val monixVersion = "3.4.1"
 val scalajsBenchmarkVersion = "0.10.0"
 val slf4jVersion = "2.0.17" // test only
+val madeVersion = "0.0.1"
 
 val scala2Version = "2.13.18"
-val scala3Version = "3.8.1"
+val scala3Version = "3.8.2"
 
 // for binary compatibility checking
 val previousCompatibleVersions: Set[String] = Set("2.2.4")
@@ -264,6 +265,7 @@ lazy val core = project
     jvmCommonSettings,
     sourceDirsSettings(_ / "jvm"),
     libraryDependencies ++= Seq(
+      "io.github.halotukozak" %% "made" % madeVersion,
       "com.google.guava" % "guava" % guavaVersion % Optional,
       "io.monix" %% "monix" % monixVersion % Optional,
     ),

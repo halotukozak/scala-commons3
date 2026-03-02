@@ -3,8 +3,8 @@ package serialization
 
 import com.avsystem.commons.annotation.{bincompat, positioned}
 import com.avsystem.commons.meta.*
-import com.avsystem.commons.mirror.{name, optionalParam, transparent}
-
+import made.*
+import made.annotation.*
 sealed trait GenInfo[T] extends TypedMetadata[T] {
   def sourceName: String
   def annotName: Opt[name]

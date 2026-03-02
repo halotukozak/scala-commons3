@@ -3,6 +3,7 @@ package serialization
 
 import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.meta.AllowDerivation
+import made.TransparentWrapping
 
 import scala.annotation.implicitNotFound
 

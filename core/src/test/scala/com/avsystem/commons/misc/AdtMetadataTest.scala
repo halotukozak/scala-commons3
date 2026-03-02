@@ -3,8 +3,9 @@ package misc
 
 import com.avsystem.commons.annotation.positioned
 import com.avsystem.commons.meta.*
-import com.avsystem.commons.mirror.name
 import com.avsystem.commons.serialization.*
+
+import made.annotation.*
 
 abstract class HasGenCodecStructure[T](
   using macroInstances: MacroInstances[Unit, (codec: GenCodec[T], structure: GenStructure[T])],

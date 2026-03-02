@@ -5,13 +5,15 @@ import com.avsystem.commons.annotation.explicitGenerics
 import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.jiop.JFactory
 import com.avsystem.commons.meta.{AllowDerivation, AllowRecursiveDerivation, Fallback}
-import com.avsystem.commons.mirror.{DerElem, DerMirror, GeneratedDerElem}
+
 import com.avsystem.commons.misc.{Bytes, Timestamp}
 
 import java.util.UUID
 import scala.NamedTuple.*
 import scala.annotation.{implicitNotFound, tailrec, targetName}
 import scala.collection.{Factory, mutable}
+import made.*
+import made.annotation.*
 
 /**
  * Type class for types that can be serialized to [[Output]] (format-agnostic "output stream") and deserialized from
@@ -50,7 +52,7 @@ object GenCodec extends GenCodecMacros {
 
   inline def derived[T]: GenCodec[T] = {
     given deferred: Deferred[T] = new Deferred[T]
-    val underlying = unsafeDerived[T](using compiletime.summonInline[DerMirror.Of[T]])
+    val underlying = unsafeDerived[T](using compiletime.summonInline[Made.Of[T]])
     deferred.underlying = underlying
     underlying
   }
@@ -61,7 +63,7 @@ object GenCodec extends GenCodecMacros {
   inline given [Tup <: Tuple] => GenCodec[Tup] = mkTupleCodec(
     compiletime.summonAll[Tuple.Map[Tup, GenCodec]],
   )
-  
+
 
   def materialize[T]: GenCodec[T] = ???
   @explicitGenerics
@@ -112,9 +114,9 @@ object GenCodec extends GenCodecMacros {
     (output, value) => output.writeSimple().writeString(keyCodec.write(value)),
   )
 
-  // for some reason cannot be DerMirror.SumOf as parameter
-  inline def forSealedEnum[T: {DerMirror.Of as m, ClassTag}]: GenCodec[T] = inline m match {
-    case given DerMirror.SumOf[T] => GenCodec.fromKeyCodec(using GenKeyCodec.forSealedEnum[T])
+  // for some reason cannot be Made.SumOf as parameter
+  inline def forSealedEnum[T: {Made.Of as m, ClassTag}]: GenCodec[T] = inline m match {
+    case given Made.SumOf[T] => GenCodec.fromKeyCodec(using GenKeyCodec.forSealedEnum[T])
     case _ => compiletime.error("Unsupported derivation for GenCodec.forSealedEnum")
   }
 
@@ -245,55 +247,55 @@ object GenCodec extends GenCodecMacros {
     fallback.value
   inline def fromJavaBuilder[T, B](inline newBuilder: B)(inline build: B => T): GenCodec[T] =
     ${ fromJavaBuilderImpl[T, B]('{ newBuilder }, '{ build }) }
-  inline given [T: DerMirror.Of] => (AllowRecursiveDerivation.type) => GenCodec[T] = GenCodec.derived[T]
-  inline given [T: DerMirror.Of] => (AllowDerivation[GenCodec[T]]) => GenCodec[T] = GenCodec.derived[T]
-  inline private def unsafeDerived[T: DerMirror.Of as derMirror]: GenCodec[T] = {
-    val label = compiletime.constValue[derMirror.MirroredLabel]
+  inline given [T: Made.Of] => (AllowRecursiveDerivation.type) => GenCodec[T] = GenCodec.derived[T]
+  inline given [T: Made.Of] => (AllowDerivation[GenCodec[T]]) => GenCodec[T] = GenCodec.derived[T]
+  inline private def unsafeDerived[T: Made.Of as made]: GenCodec[T] = {
+    val label = compiletime.constValue[made.MirroredLabel]
     val generatedNames = compiletime
       .constValueTuple[Tuple.Map[
-        derMirror.GeneratedElems,
+        made.GeneratedElems,
         [Elem] =>> Elem match {
-          case DerElem.LabelOf[label] => label
+          case MadeElem.LabelOf[label] => label
         },
       ]]
       .toArrayOf[String]
-    val generatedExtractors = derMirror.generatedElems.toArrayOf[GeneratedDerElem.OuterOf[T]]
+    val generatedExtractors = made.generatedElems.toArrayOf[GeneratedMadeElem.OuterOf[T]]
     val generatedCodecs = summonInstances[Tuple.Map[
-      derMirror.GeneratedElems,
+      made.GeneratedElems,
       [Elem] =>> Elem match {
-        case DerElem.Of[elem] => elem
+        case MadeElem.Of[elem] => elem
       },
     ]](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]]
 
-    inline derMirror match {
-      case m: DerMirror.TransparentOf[T, u] =>
+    inline made match {
+      case made: Made.TransparentOf[T, u] =>
         deriveTransparentWrapper[T, u](
           compiletime.summonInline[GenCodec[u]],
-          m.wrap,
-          m.unwrap,
+          made.wrap,
+          made.unwrap,
         )
 
-      case m: DerMirror.SingletonOf[T] =>
-        compiletime.erasedValue[Tuple.Size[m.GeneratedElems]] match {
-          case _: 0 => deriveSingleton(label, m.value)
-          case _ => deriveSingletonWithGenerated(label, m.value, generatedNames, generatedExtractors, generatedCodecs)
+      case made: Made.SingletonOf[T] =>
+        compiletime.erasedValue[Tuple.Size[made.GeneratedElems]] match {
+          case _: 0 => deriveSingleton(label, made.value)
+          case _ => deriveSingletonWithGenerated(label, made.value, generatedNames, generatedExtractors, generatedCodecs)
         }
 
-      case m: DerMirror.ProductOf[T] =>
+      case made: Made.ProductOf[T] =>
         deriveProduct(
           label,
-          summonInstances[m.MirroredElemTypes](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
-          compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
-          m.fromUnsafeArray,
+          summonInstances[made.MirroredElemTypes](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
+          compiletime.constValueTuple[made.MirroredElemLabels].toArrayOf[String],
+          made.fromUnsafeArray,
         )
 
-      case m: DerMirror.SumOf[T] =>
+      case made: Made.SumOf[T] =>
         val instances =
-          summonInstances[m.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
-        val labels = compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String]
-        val classTags = compiletime.summonAll[Tuple.Map[m.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
+          summonInstances[made.MirroredElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
+        val labels = compiletime.constValueTuple[made.MirroredElemLabels].toArrayOf[String]
+        val classTags = compiletime.summonAll[Tuple.Map[made.MirroredElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
 
-        m.getAnnotation[flatten] match {
+        made.getAnnotation[flatten] match {
           case Some(f) => deriveFlattenSum(label, instances, labels, f.caseFieldName, classTags)
           case _ => deriveNestedSum(label, instances, labels, classTags)
         }
@@ -325,7 +327,7 @@ object GenCodec extends GenCodecMacros {
     typeRepr: String,
     value: T,
     generatedNames: Array[String],
-    generatedExtractors: Array[GeneratedDerElem.OuterOf[T]],
+    generatedExtractors: Array[GeneratedMadeElem.OuterOf[T]],
     generatedCodecs: Array[GenCodec[?]],
   ): GenCodec[T] =
     new SingletonCodec[T & Singleton](typeRepr, value.asInstanceOf[T & Singleton]) {

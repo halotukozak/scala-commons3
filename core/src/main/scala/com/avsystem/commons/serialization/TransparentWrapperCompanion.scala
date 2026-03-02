@@ -2,57 +2,12 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.meta.{AllowDerivation, MacroInstances}
-import com.avsystem.commons.mirror.transparent
+import made.*
 
 import scala.util.NotGiven
 
-trait TransparentWrapping[R, T] {
-  def wrap(r: R): T
-  def unwrap(t: T): R
-}
-object TransparentWrapping {
-  private val reusableIdentity = new TransparentWrapping[Any, Any] {
-    def wrap(r: Any): Any = r
-    def unwrap(t: Any): Any = t
-  }
-
-  // unfortunately can't make this implicit, the compiler is not good enough and gets lost in implicit divergence
-  def identity[T]: TransparentWrapping[T, T] =
-    reusableIdentity.asInstanceOf[TransparentWrapping[T, T]]
-
-  inline given [R, T] => (AllowDerivation[TransparentWrapping[R, T]]) => TransparentWrapping[R, T] =
-    TransparentWrapping.derived[R, T]
-
-  inline def derived[R, T]: TransparentWrapping[R, T] = ${ derivedImpl[R, T] }
-  private def derivedImpl[R: Type, T: Type](using quotes: Quotes): Expr[TransparentWrapping[R, T]] = {
-    import quotes.reflect.*
-
-    val symbol = TypeRepr.of[T].typeSymbol
-    val field = symbol.caseFields match {
-      case field :: Nil => field
-      case _ => report.errorAndAbort(s"Expected a single case field for ${symbol.name}")
-    }
-    field.termRef.widen.asType match {
-      case '[R] =>
-        '{
-          new TransparentWrapping[R, T] {
-            def unwrap(value: T): R =
-              ${ '{ value }.asTerm.select(field).asExprOf[R] }
-
-            def wrap(v: R): T =
-              ${
-                New(TypeTree.of[T])
-                  .select(symbol.primaryConstructor)
-                  .appliedToArgs(List('{ v }.asTerm))
-                  .asExprOf[T]
-              }
-          }
-        }
-      case '[fieldType] =>
-        report.errorAndAbort(s"Expected a single case field of type ${TypeRepr.of[fieldType]} for ${symbol.name}")
-    }
-  }
-}
+inline given [R, T] => (AllowDerivation[TransparentWrapping[R, T]]) => TransparentWrapping[R, T] =
+  TransparentWrapping.derived[R, T]
 
 /**
  * Base class for companion objects of case classes which are transparent wrappers ("newtypes") over their only field.

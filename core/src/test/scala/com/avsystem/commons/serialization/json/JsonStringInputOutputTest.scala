@@ -10,7 +10,8 @@ import org.scalactic.source.Position
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-
+import made.*
+import made.annotation.*
 import scala.collection.mutable.ListBuffer
 
 class JsonStringInputOutputTest

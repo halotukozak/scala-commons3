@@ -2,7 +2,8 @@ package com.avsystem.commons
 package serialization
 
 import org.scalatest.funsuite.AnyFunSuite
-
+import made.*
+import made.annotation.*
 class WhenAbsentTest extends AnyFunSuite {
   test("whenAbsent.value macro") {
     case class Test(@whenAbsent(42) foo: Int = whenAbsent.value)

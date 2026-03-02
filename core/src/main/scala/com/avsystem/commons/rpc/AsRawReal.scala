@@ -3,7 +3,8 @@ package rpc
 
 import com.avsystem.commons.meta.Fallback
 import com.avsystem.commons.misc.ImplicitNotFound
-import com.avsystem.commons.serialization.TransparentWrapping
+import made.*
+import made.annotation.*
 
 import scala.annotation.implicitNotFound
 

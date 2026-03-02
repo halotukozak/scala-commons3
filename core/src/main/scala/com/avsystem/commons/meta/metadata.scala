@@ -1,7 +1,8 @@
 package com.avsystem.commons
 package meta
 
-import com.avsystem.commons.mirror.{DerMirror, name, transparent}
+import made.*
+import made.annotation.*
 import com.avsystem.commons.serialization.{GenCodec, HasGenCodec}
 import com.avsystem.commons.serialization.GenCodec.given
 

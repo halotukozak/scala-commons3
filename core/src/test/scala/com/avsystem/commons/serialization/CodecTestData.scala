@@ -3,10 +3,12 @@ package serialization
 
 import com.avsystem.commons.annotation.AnnotationAggregate
 import com.avsystem.commons.meta.{AutoOptionalParams, MacroInstances}
-import com.avsystem.commons.mirror.*
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, TypedKey}
 
 import scala.annotation.meta.getter
+import made.annotation.*
+import made.*
+import made.annotation.*
 
 object CodecTestData {
   type NamedTup = (name: String, value: Int)
@@ -198,7 +200,6 @@ object CodecTestData {
   }
   object ValueClass extends HasGenCodec[ValueClass]
   object SealedBase {
-    DerMirror.derived[InnerBase]
 
     given GenCodec[SealedBase] = GenCodec.derived[SealedBase]
     sealed trait InnerBase extends SealedBase
@@ -235,8 +236,6 @@ object CodecTestData {
     given stringCodec: GenCodec[String] = GenCodec.given_GenCodec_String
     given GenCodec[TransparentWrapperWithDependency] = GenCodec.derived
   }
-
-  DerMirror.derived[SomeCaseClass]
   object StringId extends TransparentWrapperCompanion[String, StringId]
   object SomeCaseClass extends HasGenCodec[SomeCaseClass]
   object Stuff {

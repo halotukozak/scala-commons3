@@ -1,10 +1,10 @@
 package com.avsystem.commons
 package rpc
 
-import com.avsystem.commons.mirror.optionalParam
 import com.avsystem.commons.rpc.DummyRPC.{*, given}
 import com.avsystem.commons.rpc.Tag.given
 import com.avsystem.commons.serialization.*
+import made.annotation.*
 
 import scala.annotation.nowarn
 

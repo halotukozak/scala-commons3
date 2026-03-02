@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.MetaAnnotation
+import made.annotation.MetaAnnotation
 
 import scala.annotation.RefiningAnnotation
 

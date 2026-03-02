@@ -3,10 +3,11 @@ package serialization.cbor
 
 import com.avsystem.commons.annotation.{AnnotationAggregate, positioned}
 import com.avsystem.commons.meta.*
-import com.avsystem.commons.mirror.name
+import made.*
 import com.avsystem.commons.serialization.*
 import com.avsystem.commons.serialization.GenCodec.OOOFieldsObjectCodec
-
+import made.*
+import made.annotation.*
 extension [T](instances: (stdCodec: GenObjectCodec[T], metadata: CborAdtMetadata[T])) private def cborCodec
   : GenObjectCodec[T] =
   instances.metadata.setup(_.validate()).adjustCodec(instances.stdCodec)

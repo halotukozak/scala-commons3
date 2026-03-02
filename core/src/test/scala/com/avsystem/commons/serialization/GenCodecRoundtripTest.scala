@@ -1,10 +1,12 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.DerMirror
+import made.*
+import made.annotation.*
 import com.avsystem.commons.misc.TypedMap
 import com.avsystem.commons.serialization.CodecTestData.{NamedTup, SomeObject, *}
 
+import made.annotation.*
 abstract class GenCodecRoundtripTest extends AbstractCodecTest {
   test("java collections") {
     testRoundtrip[JCollection[Int]](jArrayList)

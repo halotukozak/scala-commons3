@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.DerMirror
+import made.annotation.*
 import com.avsystem.commons.misc.{TypedKey, TypedMap}
 
 import scala.annotation.nowarn

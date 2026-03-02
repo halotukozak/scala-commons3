@@ -2,6 +2,7 @@ package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.meta.{AllowDerivation, MacroInstances}
+import made.TransparentWrapping
 
 import scala.util.NotGiven
 
