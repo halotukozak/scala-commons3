@@ -4,7 +4,7 @@ package analyzer
 import org.scalatest.wordspec.AnyWordSpec
 
 final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest {
-  settings.pluginOptions.value ++= List("AVSystemAnalyzer:-discardedMonixTask")
+  override def pluginOptions: List[String] = List("AVSystemAnalyzer:+nothingAsFunctionArgument")
 
   "The ThrownExceptionNotInFunction rule" should {
     "detect improper usage of thrown exceptions" when {
@@ -99,14 +99,6 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                    |""".stripMargin,
           )
 
-          "occurs within a do-while loop" in assertErrors(
-            1,
-            scala"""
-                   |$definition
-                   |do sth.$methodName(throw ex) while (true)
-                   |""".stripMargin,
-          )
-
           "occurs within a function invocation" in assertErrors(
             1,
             scala"""
@@ -134,9 +126,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                    |Seq(1, 2, 3).foreach(_ => sth.$methodName(_ => throw ex))
                    |
                    |while (true) sth.$methodName(_ => throw ex)
-                   |
-                   |do sth.$methodName(_ => throw ex) while (true)
-                   |""".stripMargin
+                   |""".stripMargin,
           )
         }
       }
@@ -181,7 +171,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                  |f2(identity)(identity)
                  |f3(identity)(42)(identity)
                  |f4(42, 42, identity)
-                 |""".stripMargin
+                 |""".stripMargin,
         )
       }
 
@@ -227,7 +217,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                  |a.f2(identity)(identity)
                  |a.f3(identity)(42)(identity)
                  |a.f4(42, 42, identity)
-                 |""".stripMargin
+                 |""".stripMargin,
         )
       }
 

@@ -1,20 +1,29 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Symbols.NoSymbol
 
-class FindUsages(g: Global) extends AnalyzerRule(g, "findUsages") {
+class FindUsages extends AnalyzerRule("findUsages") {
+  private lazy val rejectedSymbols: Set[String] =
+    argument.map(_.split(";").toSet).getOrElse(Set.empty)
 
-  import global._
+  override def verifyIdent(tree: tpd.Ident)(using Context): Unit = checkTree(tree)
 
-  lazy val rejectedSymbols: Set[String] =
-    if (argument == null) Set.empty else argument.split(";").toSet
+  override def verifySelect(tree: tpd.Select)(using Context): Unit = checkTree(tree)
 
-  override def analyze(unit: CompilationUnit): Unit = if (rejectedSymbols.nonEmpty) {
-    unit.body.foreach { tree =>
-      if (tree.symbol != null && rejectedSymbols.contains(tree.symbol.fullName)) {
-        report(tree.pos, s"found usage of ${tree.symbol.fullName}")
+  override def verifyApply(tree: tpd.Apply)(using Context): Unit = checkTree(tree)
+
+  override def verifyNew(tree: tpd.New)(using Context): Unit = checkTree(tree)
+
+  override def verifyOther(tree: tpd.Tree)(using Context): Unit = checkTree(tree)
+
+  private def checkTree(tree: tpd.Tree)(using Context): Unit =
+    if (rejectedSymbols.nonEmpty && tree.symbol != NoSymbol) {
+      val fullName = tree.symbol.fullName.toString
+      if (rejectedSymbols.contains(fullName)) {
+        report(tree, s"found usage of $fullName")
       }
     }
-  }
 }

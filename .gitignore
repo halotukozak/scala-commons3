@@ -30,3 +30,4 @@ masterSlave/
 .metals/
 .vscode/
 metals.sbt
+.planning/

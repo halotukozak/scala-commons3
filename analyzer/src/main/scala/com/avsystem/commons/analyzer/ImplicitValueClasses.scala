@@ -1,56 +1,41 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Flags
+import dotty.tools.dotc.core.Symbols.{defn, Symbol}
 
-class ImplicitValueClasses(g: Global) extends AnalyzerRule(g, "implicitValueClasses", Level.Warn) {
+class ImplicitValueClasses extends AnalyzerRule("implicitValueClasses") {
 
-  import global.*
-  import definitions.*
-
-  private lazy val defaultClasses = Set[Symbol](AnyClass, AnyValClass, ObjectClass)
-
-  private lazy val reportOnNestedClasses = argument match {
-    case "all" => true
-    case "top-level-only" | null => false
-    case _ => throw new IllegalArgumentException(s"Unknown ImplicitValueClasses option: $argument")
+  override def verifyTypeDef(tree: tpd.TypeDef)(using Context): Unit = {
+    val sym = tree.symbol
+    if (
+      sym.isClass && sym.is(Flags.Implicit, butNot = Flags.Synthetic | Flags.Module) &&
+      !sym.derivesFrom(defn.AnyValClass) && couldBeValueClass(sym)
+    ) {
+      report(tree, "implicit classes should extend AnyVal to avoid runtime overhead")
+    }
   }
 
-  def analyze(unit: CompilationUnit): Unit = unit.body.foreach {
-    case cd: ClassDef if cd.mods.hasFlag(Flag.IMPLICIT) =>
-      val tpe = cd.symbol.typeSignature
-      val primaryCtor = tpe.member(termNames.CONSTRUCTOR).alternatives.find(_.asMethod.isPrimaryConstructor)
-      val paramLists = primaryCtor.map(_.asMethod.paramLists)
-      val inheritsAnyVal = tpe.baseClasses contains AnyValClass
+  private def couldBeValueClass(sym: Symbol)(using Context): Boolean = {
+    // Check parents: only AnyVal, Any, Object, or universal traits allowed
+    def hasValidParents = sym.info.parents.forall { parent =>
+      val cls = parent.classSymbol
+      cls == defn.AnyValClass || cls == defn.AnyClass || cls == defn.ObjectClass ||
+      (cls.is(Flags.Trait) && !cls.derivesFrom(defn.ObjectClass))
+    }
 
-      def inheritsOtherClass = tpe.baseClasses.exists { cls =>
-        def isDefault = defaultClasses contains cls
+    def hasImplicitParams = {
+      // Check constructor: no implicit parameter lists, and must have val parameter
+      val ctor = sym.primaryConstructor
+      val allParams = ctor.paramSymss.flatten.filterNot(_.isType)
+      allParams.exists(_.isOneOf(Flags.GivenOrImplicit))
+    }
+    // A val parameter creates a public (non-private) field accessor on the class
+    def hasValParam =
+      sym.info.decls.exists(d => d.is(Flags.ParamAccessor, butNot = Flags.Method | Flags.Private) && !d.isType)
 
-        def isUniversalTrait = cls.isTrait && cls.superClass == AnyClass
-
-        cls != cd.symbol && !isDefault && !isUniversalTrait
-      }
-
-      def hasExactlyOneParam = paramLists.exists(lists => lists.size == 1 && lists.head.size == 1)
-
-      def paramIsValueClass = paramLists.exists { lists =>
-        /* lists.nonEmpty && lists.head.nonEmpty && */
-        lists.head.head.typeSignature.typeSymbol.isDerivedValueClass
-      }
-
-      if (!inheritsAnyVal && !inheritsOtherClass && hasExactlyOneParam && !paramIsValueClass) {
-        val isNestedClass =
-          // implicit classes are always nested classes, so we want to check if the outer class's an object
-          /*cd.symbol.isNestedClass &&*/ !cd.symbol.isStatic
-
-        val message = "Implicit classes should always extend AnyVal to become value classes" +
-          (if (isNestedClass) ". Nested classes should be extracted to top-level objects" else "")
-
-        if (reportOnNestedClasses || !isNestedClass)
-          report(cd.pos, message)
-        else
-          report(cd.pos, message, level = Level.Info)
-      }
-    case _ =>
+    hasValidParents && !hasImplicitParams && hasValParam
   }
 }

@@ -1,35 +1,32 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.SymDenotations.NoDenotation.hasAnnotation
+import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class ExplicitGenerics(g: Global) extends AnalyzerRule(g, "explicitGenerics") {
+class ExplicitGenerics(using Context) extends AnalyzerRule("explicitGenerics") {
+  private lazy val explicitGenericsAnnotClass =
+    Symbols.getClassIfDefined("com.avsystem.commons.annotation.explicitGenerics")
+  override def requiredSymbols: List[Symbol] = explicitGenericsAnnotClass :: Nil
 
-  import global._
+  override def verifyTypeApply(tree: tpd.TypeApply)(using Context): Unit = if (tree.fun.symbol != NoSymbol) {
+    val sym = tree.fun.symbol
 
-  lazy val explicitGenericsAnnotTpe: Type = classType("com.avsystem.commons.annotation.explicitGenerics")
-
-  def analyze(unit: CompilationUnit): Unit = if (explicitGenericsAnnotTpe != NoType) {
-    def requiresExplicitGenerics(sym: Symbol): Boolean =
-      sym != NoSymbol && (sym :: sym.overrides).flatMap(_.annotations).exists(_.tree.tpe <:< explicitGenericsAnnotTpe)
-
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case t @ TypeApply(pre, args) if requiresExplicitGenerics(pre.symbol) =>
-            val inferredTypeParams = args.forall {
-              case tt: TypeTree => tt.original == null || tt.original == EmptyTree
-              case _ => false
-            }
-            if (inferredTypeParams) {
-              report(t.pos, s"${pre.symbol} requires that its type arguments are explicit (not inferred)")
-            }
-          case _ =>
-        }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
+    if (sym.hasOrInheritsAnnotation(explicitGenericsAnnotClass)) {
+      // Inferred type args in Scala 3 have their span set to the fun's span
+      // (identical start/end), while explicit type args have distinct spans
+      // that come after the fun span (inside the [T1, T2] brackets).
+      val funSpan = tree.fun.span
+      val allInferred = tree.args.forall { arg =>
+        val s = arg.span
+        !s.exists || (s.start == funSpan.start && s.end == funSpan.end)
+      }
+      if (allInferred) {
+        report(tree, s"${sym.name} requires explicit type arguments")
+      }
     }
-    analyzeTree(unit.body)
   }
 }

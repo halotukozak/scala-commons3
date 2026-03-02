@@ -6,10 +6,10 @@ import org.scalatest.funsuite.AnyFunSuite
 final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
   test("implicit final class extending AnyVal should pass") {
     assertNoErrors(scala"""
-             |implicit final class GoodImplicitClass(val x: Int) extends AnyVal {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |implicit final class GoodImplicitClass(val x: Int) extends AnyVal {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class not extending AnyVal should fail") {
@@ -36,33 +36,35 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
 
   test("regular class should not be affected") {
     assertNoErrors(scala"""
-             |class RegularClass(val x: Int) {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |class RegularClass(val x: Int) {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class with implicit parameter should not be affected") {
-    assertNoErrors(scala"""
+    assertNoErrors(
+      scala"""
              |implicit final class ImplicitClassWithImplicitParameter(val x: Int)(implicit dummy: DummyImplicit) {
              |  def double: Int = x * 2
              |}
-             |""".stripMargin)
+             |""".stripMargin,
+    )
   }
 
   test("implicit class extending other classes should not be affected") {
     assertNoErrors(scala"""
-             |class SomeClass
-             |
-             |implicit final class GoodImplicitClass1(val x: Int) extends SomeClass {
-             |  def double: Int = x * 2
-             |}
-             |
-             |trait SomeTrait
-             |implicit final class GoodImplicitClass2(val x: Int) extends SomeTrait {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |class SomeClass
+                          |
+                          |implicit final class GoodImplicitClass1(val x: Int) extends SomeClass {
+                          |  def double: Int = x * 2
+                          |}
+                          |
+                          |trait SomeTrait
+                          |implicit final class GoodImplicitClass2(val x: Int) extends SomeTrait {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class extending AnyVal with traits should be handled correctly") {
@@ -80,27 +82,30 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
     )
   }
 
-  test("nested implicit class not extending AnyVal should pass") {
-    assertNoErrors(scala"""
+  test("nested implicit class not extending AnyVal should be handled correctly") {
+    assertErrors(
+      1,
+      scala"""
              |class Outer {
              |  implicit final class NestedImplicitClass(val x: Int) {
              |    def double: Int = x * 2
              |  }
              |}
-             |""".stripMargin)
+             |""".stripMargin,
+    )
   }
 
   test("implicit class for value class should not be affected") {
     assertNoErrors(scala"""
-             |implicit final class ValueClass(x: com.avsystem.commons.misc.Timestamp) {
-             |  def sth: Long = x.millis
-             |}
-             |""".stripMargin)
+                          |implicit final class ValueClass(x: com.avsystem.commons.misc.Timestamp) {
+                          |  def sth: Long = x.millis
+                          |}
+                          |""".stripMargin)
   }
 }
 
 final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
-  settings.pluginOptions.value ++= List("AVSystemAnalyzer:+implicitValueClasses:all")
+  override def pluginOptions = List("AVSystemAnalyzer:+implicitValueClasses:all")
 
   test("nested implicit class not extending AnyVal should fail") {
     assertErrors(
@@ -145,27 +150,27 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
 
   test("regular class should not be affected") {
     assertNoErrors(scala"""
-             |class RegularClass(val x: Int) {
-             | def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |class RegularClass(val x: Int) {
+                          | def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class extending other classes should not be affected") {
     assertNoErrors(scala"""
-             |class Outer {
-             | class SomeClass
-             |
-             | implicit final class GoodImplicitClass1(val x: Int) extends SomeClass {
-             |   def double: Int = x * 2
-             | }
-             |
-             | trait SomeTrait
-             | implicit final class GoodImplicitClass2(val x: Int) extends SomeTrait {
-             |   def double: Int = x * 2
-             | }
-             |}
-             |""".stripMargin)
+                          |class Outer {
+                          | class SomeClass
+                          |
+                          | implicit final class GoodImplicitClass1(val x: Int) extends SomeClass {
+                          |   def double: Int = x * 2
+                          | }
+                          |
+                          | trait SomeTrait
+                          | implicit final class GoodImplicitClass2(val x: Int) extends SomeTrait {
+                          |   def double: Int = x * 2
+                          | }
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class extending AnyVal with traits should be handled correctly") {

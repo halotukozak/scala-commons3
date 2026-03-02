@@ -4,7 +4,11 @@ package analyzer
 import org.scalatest.funsuite.AnyFunSuite
 
 final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
-  def source(caseDefs: String): String =
+
+  // Only enable the valueEnumExhaustiveMatch rule to avoid interference from other rules
+  override protected def pluginOptions: List[String] = List("AVSystemAnalyzer:+valueEnumExhaustiveMatch")
+
+  private def source(caseDefs: String): String =
     scala"""
            |import com.avsystem.commons.misc._
            |
@@ -14,9 +18,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
            |}
            |
            |object Main {
-           |  val enum: Enumz = Enumz.One
+           |  val value: Enumz = Enumz.One
            |  import Enumz._
-           |  enum match {
+           |  value match {
            |    $caseDefs
            |  }
            |}
@@ -27,9 +31,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case Enumz.One =>
-        |case null =>
-      """.stripMargin
+          |case Enumz.One =>
+          |case null =>
+        """.stripMargin,
       ),
     )
   }
@@ -39,9 +43,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case Enumz.One =>
-        |case Enumz.Two =>
-      """.stripMargin
+          |case Enumz.One =>
+          |case Enumz.Two =>
+        """.stripMargin,
       ),
     )
   }
@@ -51,8 +55,8 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case One | Two =>
-      """.stripMargin
+          |case One | Two =>
+        """.stripMargin,
       ),
     )
   }
@@ -61,9 +65,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case _ =>
-      """.stripMargin
-      )
+          |case _ =>
+        """.stripMargin,
+      ),
     )
   }
 
@@ -71,9 +75,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case x if x.ordinal > 1 =>
-      """.stripMargin
-      )
+          |case x if x.ordinal > 1 =>
+        """.stripMargin,
+      ),
     )
   }
 
@@ -81,9 +85,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case One | Two | Three =>
-      """.stripMargin
-      )
+          |case One | Two | Three =>
+        """.stripMargin,
+      ),
     )
   }
 
@@ -91,11 +95,11 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case Enumz.One =>
-        |case Enumz.Two =>
-        |case Three =>
-      """.stripMargin
-      )
+          |case Enumz.One =>
+          |case Enumz.Two =>
+          |case Three =>
+        """.stripMargin,
+      ),
     )
   }
 }

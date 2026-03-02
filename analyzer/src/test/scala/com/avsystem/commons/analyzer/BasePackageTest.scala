@@ -4,15 +4,16 @@ package analyzer
 import org.scalatest.funsuite.AnyFunSuite
 
 final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
-  settings.pluginOptions.value ++= List("AVSystemAnalyzer:+basePackage:com.avsystem.commons")
+  override protected def pluginOptions: List[String] =
+    List("AVSystemAnalyzer:+_", "AVSystemAnalyzer:+basePackage:com.avsystem")
 
   test("base package only") {
     // language=Scala
     assertNoErrors("""
-        |package com.avsystem.commons
-        |
-        |object bar
-        |""".stripMargin)
+                     |package com.avsystem.commons
+                     |
+                     |object bar
+                     |""".stripMargin)
   }
 
   test("chained base package") {
@@ -23,7 +24,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package commons
         |
         |object bar
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -35,7 +36,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package core
         |
         |object bar
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -46,7 +47,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package com.avsystem
         |
         |package object commons
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -60,7 +61,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |import scala.collection.mutable.Set
         |
         |package object commons
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 

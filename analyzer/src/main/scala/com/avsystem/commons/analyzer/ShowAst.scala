@@ -1,30 +1,28 @@
 package com.avsystem.commons
 package analyzer
 
-import scala.tools.nsc.Global
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.Symbols.{NoSymbol, Symbol}
 
-class ShowAst(g: Global) extends AnalyzerRule(g, "showAst", Level.Error) {
+class ShowAst(using Context) extends AnalyzerRule("showAst", level = Level.Error) {
+  private lazy val showAstAnnotClass: Symbol =
+    Symbols.getClassIfDefined("com.avsystem.commons.annotation.showAst")
 
-  import global._
+  override def requiredSymbols: List[Symbol] = showAstAnnotClass :: Nil
 
-  lazy val showAstAnnotType: Type = classType("com.avsystem.commons.annotation.showAst")
+  override def verifyValDef(tree: tpd.ValDef)(using Context): Unit =
+    checkShowAst(tree)
 
-  def analyze(unit: CompilationUnit): Unit = if (showAstAnnotType != NoType) {
-    def analyzeTree(tree: Tree): Unit = analyzer.macroExpandee(tree) match {
-      case `tree` | EmptyTree =>
-        tree match {
-          case Annotated(annot, arg) if annot.tpe <:< showAstAnnotType =>
-            report(arg.pos, showCode(arg))
-          case Typed(expr, tpt) if tpt.tpe.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(expr.pos, showCode(expr))
-          case _: MemberDef if tree.symbol.annotations.exists(_.tpe <:< showAstAnnotType) =>
-            report(tree.pos, showCode(tree))
-          case _ =>
-        }
-        tree.children.foreach(analyzeTree)
-      case prevTree =>
-        analyzeTree(prevTree)
+  override def verifyDefDef(tree: tpd.DefDef)(using Context): Unit =
+    checkShowAst(tree)
+
+  override def verifyTypeDef(tree: tpd.TypeDef)(using Context): Unit =
+    checkShowAst(tree)
+
+  private def checkShowAst(tree: tpd.MemberDef)(using Context): Unit =
+    if (tree.symbol != NoSymbol && tree.symbol.hasAnnotation(showAstAnnotClass)) {
+      report(tree, tree.show)
     }
-    analyzeTree(unit.body)
-  }
 }

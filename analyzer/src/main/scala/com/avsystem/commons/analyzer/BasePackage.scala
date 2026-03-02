@@ -1,29 +1,43 @@
 package com.avsystem.commons
 package analyzer
 
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Symbols
+import dotty.tools.dotc.core.Symbols.Symbol
+
 import scala.annotation.tailrec
-import scala.tools.nsc.Global
 
-class BasePackage(g: Global) extends AnalyzerRule(g, "basePackage") {
+class BasePackage(using Context) extends AnalyzerRule("basePackage") {
 
-  import global._
+  private lazy val requiredBasePackage = argument.map(Symbols.requiredPackage)
 
-  object SkipImports {
-    @tailrec def unapply(stats: List[Tree]): Some[List[Tree]] = stats match {
-      case Import(_, _) :: tail => unapply(tail)
-      case stats => Some(stats)
-    }
+  override def requiredSymbols: List[Symbol] = requiredBasePackage.toList
+
+  override def verifyUnit(tree: tpd.Tree)(using Context): Unit = {
+    requiredBasePackage.foreach(validate(tree, _))
   }
 
-  def analyze(unit: CompilationUnit): Unit = if (argument != null) {
-    val requiredBasePackage = argument
+  @tailrec
+  private def validate(tree: tpd.Tree, required: Symbol)(using Context): Unit = tree match {
+    case pkg: tpd.PackageDef if pkg.pid.symbol == required =>
+    // Found the required base package -- validation passes
+    case pkg: tpd.PackageDef =>
 
-    @tailrec def validate(tree: Tree): Unit = tree match {
-      case PackageDef(pid, _) if pid.symbol.hasPackageFlag && pid.symbol.fullName == requiredBasePackage =>
-      case PackageDef(_, SkipImports(List(stat))) => validate(stat)
-      case t => report(t.pos, s"`$requiredBasePackage` must be one of the base packages in this file")
-    }
-
-    validate(unit.body)
+      // For dotted package names like `package com.avsystem.commons`, check if required
+      // is a direct qualifier in the pid tree (e.g. `avsystem` in `com.avsystem.commons`).
+      pkg.pid match {
+        case sel: tpd.Select if sel.qualifier.symbol == required =>
+          // Skip imports, recurse into the single remaining stat (if exactly one)
+          val nonImports = pkg.stats.filterNot(_.isInstanceOf[tpd.Import])
+          nonImports match {
+            case stat :: Nil => validate(stat, required)
+            case _ => report(tree, s"`$required` must be one of the base packages in this file")
+          }
+        case _ =>
+      }
+    case _ =>
+      report(tree, s"`$required` must be one of the base packages in this file")
   }
+
 }
