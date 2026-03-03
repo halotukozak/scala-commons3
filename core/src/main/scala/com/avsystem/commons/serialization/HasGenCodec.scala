@@ -4,6 +4,7 @@ package serialization
 import com.avsystem.commons.meta.{AllowDerivation, MacroInstances}
 import made.TransparentWrapping
 
+import scala.annotation.nowarn
 import scala.util.NotGiven
 
 /**
@@ -163,6 +164,7 @@ abstract class HasGenAndKeyCodec[T](
 
 opaque type AUCodec[AU, T] <: AU => GenCodec[T] = AU => GenCodec[T]
 
+@nowarn("msg=fromApplyUnapplyProvider .* is deprecated")
 object AUCodec {
   def materialize[AU, T]: AUCodec[AU, T] = GenCodec.fromApplyUnapplyProvider[T](_)
   given [AU, T] => (AllowDerivation[AUCodec[AU, T]]) => AUCodec[AU, T] = GenCodec.fromApplyUnapplyProvider[T](_)
