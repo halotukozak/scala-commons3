@@ -51,6 +51,8 @@ object OptionLike {
     new OptionLikeImpl(OptArg.Empty, OptArg.some, _.isDefined, _.get, ignoreNulls = true)
   given [A] => OptionLike.Aux[NOpt[A], A] =
     new OptionLikeImpl(NOpt.Empty, NOpt.some, _.isDefined, _.get, ignoreNulls = false)
+
+  given [O] => (optionLike: OptionLike[O]) => made.Default[O] = () => optionLike.none
 }
 
 /**

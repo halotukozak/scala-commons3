@@ -5,12 +5,6 @@ import com.avsystem.commons.serialization
 
 import scala.quoted.*
 
-trait GenCodecMacros {
-  inline def fromApplyUnapplyProvider[T](inline applyUnapplyProvider: Any): GenCodec[T] =
-    ${ SerializationMacros.fromApplyUnapplyProviderImpl[T, GenCodec]('applyUnapplyProvider) }
-  inline def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = ${ SerializationMacros.applyUnapplyCodecImpl[T] }
-}
-
 trait RawRefCreatorMacros[S] {
   inline def ref[T](fun: S => T): RawRef = ${ SerializationMacros.refImpl[S, T]('fun) }
 }
@@ -24,10 +18,6 @@ trait GenRefImplicitsMacros {
 }
 
 object SerializationMacros {
-  def fromApplyUnapplyProviderImpl[T: Type, R[_]: Type](applyUnapplyProvider: Expr[Any])(using Quotes): Expr[R[T]] = '{
-    ???
-  }.asInstanceOf[Expr[R[T]]]
-  def applyUnapplyCodecImpl[T: Type](using Quotes): Expr[ApplyUnapplyCodec[T]] = '{ ??? }
 
   def refImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[Nothing] = ???
 }
