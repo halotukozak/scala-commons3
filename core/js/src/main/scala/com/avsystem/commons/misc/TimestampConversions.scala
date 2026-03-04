@@ -1,4 +1,5 @@
-package com.avsystem.commons.misc
+package com.avsystem.commons
+package misc
 
 import scala.scalajs.js
 import com.avsystem.commons.JDate

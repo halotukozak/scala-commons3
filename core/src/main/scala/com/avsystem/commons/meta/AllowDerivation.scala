@@ -1,4 +1,5 @@
-package com.avsystem.commons.meta
+package com.avsystem.commons
+package meta
 
 sealed trait AllowDerivation[T]
 object AllowDerivation {

@@ -1,10 +1,12 @@
 package com.avsystem.commons
 package serialization
 
+import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.meta.{AllowDerivation, OptionLike}
 import com.avsystem.commons.serialization.GenCodec.*
 
 import scala.annotation.tailrec
+import made.*
 
 class SingletonCodec[T <: Singleton](
   typeRepr: String,
@@ -390,4 +392,123 @@ abstract class JavaBuilderBasedCodec[T, B](
     if (idx >= fieldNames.length) -1
     else if (fieldNames(idx) == fieldName) idx
     else fieldIndex(fieldName, idx + 1)
+}
+trait GenCodecImpl { this: GenCodec.type =>
+
+  trait SizedCodec[T] extends GenCodec[T] {
+    def size(value: T): Int = size(value, Opt.Empty)
+
+    def size(value: T, output: Opt[SequentialOutput]): Int
+
+    protected final def declareSizeFor(output: SequentialOutput, value: T): Unit =
+      if (output.sizePolicy != SizePolicy.Ignored) {
+        output.declareSize(size(value, output.opt))
+      }
+  }
+  trait OOOFieldsObjectCodec[T] extends ObjectCodec[T] with SizedCodec[T] {
+    def readObject(input: ObjectInput, outOfOrderFields: FieldValues): T
+    def writeFields(output: ObjectOutput, value: T): Unit
+
+    final def readObject(input: ObjectInput): T =
+      readObject(input, FieldValues.Empty)
+
+    final def writeObject(output: ObjectOutput, value: T): Unit = {
+      declareSizeFor(output, value)
+      writeFields(output, value)
+    }
+  }
+  trait NullableCodec[T] extends GenCodec[T | Null] {
+    override final def write(output: Output, value: T | Null): Unit =
+      if (value == null) output.writeNull()
+      else writeNonNull(output, value)
+    override final def read(input: Input): T | Null =
+      if (input.readNull()) null
+      else readNonNull(input)
+    def readNonNull(input: Input): T
+    def writeNonNull(output: Output, value: T): Unit
+  }
+  trait SimpleCodec[T] extends GenCodec[T] {
+    def readSimple(input: SimpleInput): T
+    def writeSimple(output: SimpleOutput, value: T): Unit
+
+    final def write(output: Output, value: T): Unit =
+      writeSimple(output.writeSimple(), value)
+
+    final def read(input: Input): T =
+      readSimple(input.readSimple())
+  }
+  trait ListCodec[T] extends GenCodec[T] {
+    def readList(input: ListInput): T
+    def writeList(output: ListOutput, value: T): Unit
+
+    final def write(output: Output, value: T): Unit = {
+      val lo = output.writeList()
+      writeList(lo, value)
+      lo.finish()
+    }
+    final def read(input: Input): T = {
+      val li = input.readList()
+      val result = readList(li)
+      li.skipRemaining()
+      result
+    }
+  }
+  trait ObjectCodec[T] extends GenObjectCodec[T] {
+    def readObject(input: ObjectInput): T
+    def writeObject(output: ObjectOutput, value: T): Unit
+
+    final def writeNonNull(output: Output, value: T): Unit = {
+      val oo = output.writeObject()
+      writeObject(oo, value)
+      oo.finish()
+    }
+    final def readNonNull(input: Input): T = {
+      val oi = input.readObject()
+      val result = readObject(oi)
+      oi.skipRemaining()
+      result
+    }
+  }
+  @deprecatedName("Transformed", since = "3.0.0")
+  final class TransformedCodec[A, B](val wrapped: GenCodec[B], onWrite: A => B, onRead: B => A) extends GenCodec[A] {
+    def read(input: Input): A = {
+      val wrappedValue = wrapped.read(input)
+      try onRead(wrappedValue)
+      catch {
+        case NonFatal(cause) => throw new ReadFailure(s"onRead conversion failed", cause)
+      }
+    }
+
+    def write(output: Output, value: A): Unit = {
+      val wrappedValue =
+        try onWrite(value)
+        catch {
+          case NonFatal(cause) => throw new WriteFailure(s"onWrite conversion failed", cause)
+        }
+      wrapped.write(output, wrappedValue)
+    }
+  }
+  class SubclassCodec[T: ClassTag, S >: T : GenCodec] extends GenCodec[T] {
+    override def read(input: Input): T = GenCodec.read[S](input) match {
+      case sub: T => sub
+      case v => throw new ReadFailure(s"$v is not an instance of ${classTag[T].runtimeClass}")
+    }
+    override def write(output: Output, value: T): Unit = GenCodec.write[S](output, value)
+  }
+  object OOOFieldsObjectCodec {
+    given [R, T] =>(tw: TransparentWrapping[R, T]) => (wrapped: OOOFieldsObjectCodec[R]) => OOOFieldsObjectCodec[T] =
+      new Transformed(wrapped, tw.unwrap, tw.wrap)
+    // this was introduced so that transparent wrapper cases are possible in flat sealed hierarchies
+    final class Transformed[A, B](val wrapped: OOOFieldsObjectCodec[B], onWrite: A => B, onRead: B => A)
+      extends OOOFieldsObjectCodec[A] {
+      def size(value: A, output: Opt[SequentialOutput]): Int =
+        wrapped.size(onWrite(value), output)
+
+      def readObject(input: ObjectInput, outOfOrderFields: FieldValues): A =
+        onRead(wrapped.readObject(input, outOfOrderFields))
+
+      def writeFields(output: ObjectOutput, value: A): Unit =
+        wrapped.writeFields(output, onWrite(value))
+    }
+  }
 }
