@@ -146,7 +146,9 @@ trait NamedEnumCompanion[T <: NamedEnum] extends SealedEnumCompanion[T] {
       ),
     )
 
+  @deprecatedName("keyCodec", since = "3.0.0")
   given GenKeyCodec[T] = GenKeyCodec.create(decode, _.name)
+  @deprecatedName("codec", since = "3.0.0")
   given GenCodec[T] = GenCodec.createSimple[T](
     input => decode(input.readString()),
     (output, value) => output.writeString(value.name),
@@ -178,6 +180,7 @@ object OrderedEnum {
     def compare(x: OrderedEnum, y: OrderedEnum): Int = Integer.compare(x.sourceInfo.offset, y.sourceInfo.offset)
   }
 
+  @deprecatedName("ordering", since="3.0.0")
   given [T <: OrderedEnum] => Ordering[T] = reusableOrdering.asInstanceOf[Ordering[T]]
 }
 

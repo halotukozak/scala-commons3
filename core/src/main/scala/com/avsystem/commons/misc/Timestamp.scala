@@ -52,7 +52,9 @@ object Timestamp {
 
   def now(): Timestamp = Timestamp(System.currentTimeMillis())
 
+  @deprecatedName("conversions", since = "3.0.0")
   given Conversion[Timestamp, TimestampConversions] = timestamp => TimestampConversions(timestamp.millis)
 
+  @deprecatedName("ordering", since= "3.0.0")
   given Ordering[Timestamp] = Ordering.by(_.millis)
 }

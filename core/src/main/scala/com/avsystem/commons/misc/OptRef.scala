@@ -15,6 +15,8 @@ object OptRef {
       if (optRef.isEmpty) Opt.Empty else Opt(unboxing.fun(optRef.get))
   }
 
+  @deprecatedName("opt2Iterable", since = "3.0.0")
+
   given [A] => Conversion[OptRef[A], IIterable[A]] = _.toList
 
   final val Empty: OptRef[Nothing] = new OptRef[Nothing](null.asInstanceOf[Nothing])

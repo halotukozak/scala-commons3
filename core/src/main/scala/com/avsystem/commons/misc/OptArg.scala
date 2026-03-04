@@ -12,9 +12,9 @@ object OptArg {
   implicit def argToOptArg[A](value: A): OptArg[A] = OptArg(value)
 
   // additional implicits to cover most common, safe numeric promotions
-  @targetName("int_to_long_conversion")
+  @targetName("intToOptArgLong")
   given Conversion[Int, OptArg[Long]] = OptArg(_)
-  @targetName("int_to_double_conversion")
+  @targetName("intToOptArgDouble")
   given Conversion[Int, OptArg[Double]] = OptArg(_)
 
   private object EmptyMarker extends Serializable

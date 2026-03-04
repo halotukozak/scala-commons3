@@ -29,10 +29,12 @@ object TypeString {
   inline given [T] => TypeString[T] = ${ materializeImpl[T] }
   def of[T: TypeString]: String = TypeString[T].value
   def apply[T](using ts: TypeString[T]): TypeString[T] = ts
-  given GenKeyCodec[TypeString[?]] =
-    GenKeyCodec.create[TypeString[?]](new TypeString(_), _.value)
-  given GenCodec[TypeString[?]] =
-    GenCodec.createSimple[TypeString[?]](i => new TypeString(i.readString()), (o, ts) => o.writeString(ts.value))
+  @deprecatedName("keyCodec", since = "3.0.0")
+  given [T] => GenKeyCodec[TypeString[T]] =
+    GenKeyCodec.create[TypeString[T]](new TypeString(_), _.value)
+  @deprecatedName("codec", since = "3.0.0")
+  given [T] => GenCodec[TypeString[T]] =
+    GenCodec.createSimple[TypeString[T]](i => new TypeString(i.readString()), (o, ts) => o.writeString(ts.value))
   private def materializeImpl[T: Type](using quotes: Quotes) = {
     import quotes.reflect.*
     val tpe = TypeRepr.of[T].dealias
@@ -51,23 +53,36 @@ object TypeString {
 class JavaClassName[T](val value: String) extends AnyVal {
   override def toString: String = value
 }
-object JavaClassName {
-  inline given [T] => JavaClassName[T] = ${ materializeImpl[T] }
+object JavaClassName extends JavaClassNameLowPriority {
   def apply[T](using ts: JavaClassName[T]): JavaClassName[T] = ts
   def of[T: JavaClassName]: String = JavaClassName[T].value
+  @deprecatedName("NothingClassName", since = "3.0.0")
   given JavaClassName[Nothing] = new JavaClassName("scala.runtime.Nothing$")
+  @deprecatedName("NothingArrayClassName", since = "3.0.0")
   given JavaClassName[Array[Nothing]] = new JavaClassName("[Lscala.runtime.Nothing$;")
+  @deprecatedName("UnitClassName", since = "3.0.0")
   given JavaClassName[Unit] = new JavaClassName("void")
+  @deprecatedName("BooleanClassName", since = "3.0.0")
   given JavaClassName[Boolean] = new JavaClassName("boolean")
+  @deprecatedName("ByteClassName", since = "3.0.0")
   given JavaClassName[Byte] = new JavaClassName("byte")
+  @deprecatedName("ShortClassName", since = "3.0.0")
   given JavaClassName[Short] = new JavaClassName("short")
+  @deprecatedName("IntClassName", since = "3.0.0")
   given JavaClassName[Int] = new JavaClassName("int")
+  @deprecatedName("LongClassName", since = "3.0.0")
   given JavaClassName[Long] = new JavaClassName("long")
+  @deprecatedName("FloatClassName", since = "3.0.0")
   given JavaClassName[Float] = new JavaClassName("float")
+  @deprecatedName("DoubleClassName", since = "3.0.0")
   given JavaClassName[Double] = new JavaClassName("double")
+  @deprecatedName("CharClassName", since = "3.0.0")
   given JavaClassName[Char] = new JavaClassName("char")
+  @deprecatedName("AnyClassName", since = "3.0.0")
   given JavaClassName[Any] = new JavaClassName("java.lang.Object")
+  @deprecatedName("AnyValClassName", since = "3.0.0")
   given JavaClassName[AnyVal] = new JavaClassName("java.lang.Object")
+  @deprecatedName("arrayClassName", since = "3.0.0")
   given [T: JavaClassName] => JavaClassName[Array[T]] = {
     val elementName = JavaClassName.of[T] match {
       case "void" => "Lscala.runtime.BoxedUnit;"
@@ -84,29 +99,37 @@ object JavaClassName {
     }
     new JavaClassName("[" + elementName)
   }
+  @deprecatedName("keyCodec", since = "3.0.0")
   given GenKeyCodec[JavaClassName[?]] =
     GenKeyCodec.create[JavaClassName[?]](new JavaClassName(_), _.value)
+  @deprecatedName("codec", since = "3.0.0")
   given GenCodec[JavaClassName[?]] =
     GenCodec.createSimple[JavaClassName[?]](i => new JavaClassName(i.readString()), (o, ts) => o.writeString(ts.value))
-  private def materializeImpl[T: Type](using quotes: Quotes) = {
-    import quotes.reflect.*
-    def javaClassName(sym: Symbol): String = {
-      val nameSuffix = if (sym.flags.is(Flags.Module) && !sym.flags.is(Flags.Package)) "$" else ""
-      val selfName = sym.name + nameSuffix
-      val owner = sym.owner
-      val prefix =
-        if (owner == defn.RootClass) ""
-        else if (owner.flags.is(Flags.Package)) javaClassName(owner) + "."
-        else if (owner.flags.is(Flags.Module)) javaClassName(owner)
-        else javaClassName(owner) + "$"
-      prefix + selfName
-    }
+}
 
-    val tpe = TypeRepr.of[T].dealias
-    if (tpe.typeSymbol.isClassDef && tpe.typeSymbol != defn.ArrayClass) {
-      val name = Expr(javaClassName(tpe.typeSymbol))
-      '{ new JavaClassName[T]($name) }
-    } else
-      report.errorAndAbort(s"${Type.show[T]} does not represent a regular class")
+trait JavaClassNameLowPriority { this: JavaClassName.type =>
+  @deprecatedName("materialize", since = "3.0.0")
+  inline given derived[T]: JavaClassName[T] = ${ derivedImpl[T] }
+}
+
+def derivedImpl[T: Type](using quotes: Quotes) = {
+  import quotes.reflect.*
+  def javaClassName(sym: Symbol): String = {
+    val nameSuffix = if (sym.flags.is(Flags.Module) && !sym.flags.is(Flags.Package)) "$" else ""
+    val selfName = sym.name + nameSuffix
+    val owner = sym.owner
+    val prefix =
+      if (owner == defn.RootClass) ""
+      else if (owner.flags.is(Flags.Package)) javaClassName(owner) + "."
+      else if (owner.flags.is(Flags.Module)) javaClassName(owner)
+      else javaClassName(owner) + "$"
+    prefix + selfName
   }
+
+  val tpe = TypeRepr.of[T].dealias
+  if (tpe.typeSymbol.isClassDef && tpe.typeSymbol != defn.ArrayClass) {
+    val name = Expr(javaClassName(tpe.typeSymbol))
+    '{ new JavaClassName[T]($name) }
+  } else
+    report.errorAndAbort(s"${Type.show[T]} does not represent a regular class")
 }

@@ -14,6 +14,7 @@ object Opt {
     if (value != null) new Opt[A](value)
     else throw new NullPointerException
 
+  @deprecatedName("opt2Iterable", since = "3.0.0")
   given [A] => Conversion[Opt[A], IIterable[A]] = _.toList
 
   final val Empty: Opt[Nothing] = new Opt(EmptyMarker)

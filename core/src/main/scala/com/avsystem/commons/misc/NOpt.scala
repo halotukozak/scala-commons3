@@ -22,6 +22,7 @@ object NOpt {
   def some[A](value: A): NOpt[A] =
     new NOpt(if (value == null) NullMarker else value)
 
+  @deprecatedName("opt2Iterable", since = "3.0.0")
   given [A] => Conversion[NOpt[A], IIterable[A]] = _.toList
 
   final val Empty: NOpt[Nothing] = new NOpt(EmptyMarker)

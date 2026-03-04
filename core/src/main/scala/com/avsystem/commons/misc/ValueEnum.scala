@@ -100,8 +100,8 @@ trait ValueEnumCompanion[T <: ValueEnum] extends NamedEnumCompanion[T] { compani
   private var finished: Boolean = false
   private var awaitingRegister: Boolean = false
 
+  @deprecatedName("ordering", since = "3.0.0")
   given Ordering[T] = Ordering.by(_.ordinal)
-  given [T: Ordering] => Conversion[T, Ordered[T]] = Ordered.orderingToOrdered(_)
 
   private class Ctx(val valName: String, val ordinal: Int) extends EnumCtx {
     if (awaitingRegister) {
