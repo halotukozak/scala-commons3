@@ -1,8 +1,6 @@
 package com.avsystem.commons.misc
 
-import com.avsystem.commons.IIterable
-
-object NOpt {
+object NOpt extends NOptCompat {
   // These two are used as NOpt's raw value to represent empty NOpt and NOpt(null).
   // Unfortunately, null itself can't be used for that purpose because https://github.com/scala/bug/issues/7396
   private object EmptyMarker extends Serializable
@@ -22,8 +20,7 @@ object NOpt {
   def some[A](value: A): NOpt[A] =
     new NOpt(if (value == null) NullMarker else value)
 
-  @deprecatedName("opt2Iterable", since = "3.0.0")
-  given [A] => Conversion[NOpt[A], IIterable[A]] = _.toList
+  given [A] => Conversion[NOpt[A], Iterable[A]] = _.toList
 
   final val Empty: NOpt[Nothing] = new NOpt(EmptyMarker)
 

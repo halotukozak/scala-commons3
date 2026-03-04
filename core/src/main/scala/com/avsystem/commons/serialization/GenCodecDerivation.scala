@@ -11,9 +11,6 @@ trait GenCodecDerivation { this: GenCodec.type =>
     underlying
   }
 
-  @deprecatedName("Use GenCodec.deriveRecursibely instead", since = "3.0.0")
-  inline def materializeRecursively[T]: GenCodec[T] = deriveRecursively[T]
-
   inline def deriveRecursively[T]: GenCodec[T] = {
     given AllowRecursiveDerivation.type = AllowRecursiveDerivation
     derived[T]

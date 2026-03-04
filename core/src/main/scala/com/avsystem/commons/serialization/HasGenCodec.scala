@@ -134,7 +134,7 @@ abstract class HasGadtCodec[C[_]](using macroCodec: MacroInstances[Unit, (codec:
 opaque type RecursiveCodec[T] <: GenCodec[T] = GenCodec[T]
 
 object RecursiveCodec {
-  inline given [T] => RecursiveCodec[T] = GenCodec.materializeRecursively
+  inline given [T] => RecursiveCodec[T] = GenCodec.deriveRecursively
 }
 
 /**

@@ -469,12 +469,14 @@ trait GenCodecImpl { this: GenCodec.type =>
       result
     }
   }
-  @deprecatedName("Deferred", since = "3.0.0")
+  @deprecated("Use DeferredCodec instead", since = "3.0.0")
+  type Deferred[T] = DeferredCodec[T]
   final class DeferredCodec[T] extends DeferredInstance[GenCodec[T]] with GenCodec[T] {
     def read(input: Input): T = underlying.read(input)
     def write(output: Output, value: T): Unit = underlying.write(output, value)
   }
-  @deprecatedName("Transformed", since = "3.0.0")
+  @deprecated("Use TransformedCodec instead", since = "3.0.0")
+  type Transformed[A, B] = TransformedCodec[A, B]
   final class TransformedCodec[A, B](val wrapped: GenCodec[B], onWrite: A => B, onRead: B => A) extends GenCodec[A] {
     def read(input: Input): A = {
       val wrappedValue = wrapped.read(input)

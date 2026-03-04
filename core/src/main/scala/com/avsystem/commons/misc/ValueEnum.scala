@@ -79,7 +79,7 @@ sealed trait EnumCtx extends Any {
  * Base trait for companion objects of value based enums. See [[ValueEnum]] for more information. NOTE: if possible,
  * prefer using [[AbstractValueEnumCompanion]] instead of this trait directly.
  */
-trait ValueEnumCompanion[T <: ValueEnum] extends NamedEnumCompanion[T] { companion =>
+trait ValueEnumCompanion[T <: ValueEnum] extends NamedEnumCompanion[T] with ValueEnumCompanionCompat[T] { companion =>
   type Value = T
 
   /**
@@ -100,7 +100,6 @@ trait ValueEnumCompanion[T <: ValueEnum] extends NamedEnumCompanion[T] { compani
   private var finished: Boolean = false
   private var awaitingRegister: Boolean = false
 
-  @deprecatedName("ordering", since = "3.0.0")
   given Ordering[T] = Ordering.by(_.ordinal)
 
   private class Ctx(val valName: String, val ordinal: Int) extends EnumCtx {

@@ -129,7 +129,7 @@ trait LowerCaseAutoNamedEnum extends AutoNamedEnum {
  * [[com.avsystem.commons.serialization.GenKeyCodec GenKeyCodec]] and
  * [[com.avsystem.commons.serialization.GenCodec GenCodec]].
  */
-trait NamedEnumCompanion[T <: NamedEnum] extends SealedEnumCompanion[T] {
+trait NamedEnumCompanion[T <: NamedEnum] extends SealedEnumCompanion[T] with NamedEnumCompanionCompat[T] {
 
   /**
    * Returns a map from all case objects names to their instances. Since `byName` uses [[caseObjects]] macro it does
@@ -146,9 +146,7 @@ trait NamedEnumCompanion[T <: NamedEnum] extends SealedEnumCompanion[T] {
       ),
     )
 
-  @deprecatedName("keyCodec", since = "3.0.0")
   given GenKeyCodec[T] = GenKeyCodec.create(decode, _.name)
-  @deprecatedName("codec", since = "3.0.0")
   given GenCodec[T] = GenCodec.createSimple[T](
     input => decode(input.readString()),
     (output, value) => output.writeString(value.name),
@@ -175,12 +173,11 @@ trait NamedEnumCompanion[T <: NamedEnum] extends SealedEnumCompanion[T] {
 trait OrderedEnum {
   def sourceInfo: SourceInfo
 }
-object OrderedEnum {
+object OrderedEnum extends OrderedEnumCompat {
   private object reusableOrdering extends Ordering[OrderedEnum] {
     def compare(x: OrderedEnum, y: OrderedEnum): Int = Integer.compare(x.sourceInfo.offset, y.sourceInfo.offset)
   }
 
-  @deprecatedName("ordering", since="3.0.0")
   given [T <: OrderedEnum] => Ordering[T] = reusableOrdering.asInstanceOf[Ordering[T]]
 }
 

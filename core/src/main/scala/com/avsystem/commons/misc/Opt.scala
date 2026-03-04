@@ -1,8 +1,6 @@
 package com.avsystem.commons.misc
 
-import com.avsystem.commons.IIterable
-
-object Opt {
+object Opt extends OptCompat {
   // Used as Opt's raw value to represent empty Opt. Unfortunately, null can't be used for that purpose
   // because https://github.com/scala/bug/issues/7396
   private object EmptyMarker extends Serializable
@@ -14,8 +12,7 @@ object Opt {
     if (value != null) new Opt[A](value)
     else throw new NullPointerException
 
-  @deprecatedName("opt2Iterable", since = "3.0.0")
-  given [A] => Conversion[Opt[A], IIterable[A]] = _.toList
+  given [A] => Conversion[Opt[A], Iterable[A]] = _.toList
 
   final val Empty: Opt[Nothing] = new Opt(EmptyMarker)
 

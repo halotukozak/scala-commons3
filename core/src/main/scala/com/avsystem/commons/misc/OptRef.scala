@@ -1,8 +1,6 @@
 package com.avsystem.commons.misc
 
-import com.avsystem.commons.IIterable
-
-object OptRef {
+object OptRef extends OptRefCompat {
   def apply[A](value: A | Null): OptRef[A] = new OptRef[A](value)
   def unapply[A](opt: OptRef[A]): OptRef[A] = opt // name-based extractor
 
@@ -15,9 +13,7 @@ object OptRef {
       if (optRef.isEmpty) Opt.Empty else Opt(unboxing.fun(optRef.get))
   }
 
-  @deprecatedName("opt2Iterable", since = "3.0.0")
-
-  given [A] => Conversion[OptRef[A], IIterable[A]] = _.toList
+  given [A] => Conversion[OptRef[A], Iterable[A]] = _.toList
 
   final val Empty: OptRef[Nothing] = new OptRef[Nothing](null.asInstanceOf[Nothing])
   def empty[A]: OptRef[A] = Empty

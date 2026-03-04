@@ -9,9 +9,7 @@ import scala.concurrent.duration.FiniteDuration
  * @param millis
  *   milliseconds since UNIX epoch, UTC
  */
-class Timestamp(val millis: Long) extends Comparable[Timestamp] {
-  def compareTo(o: Timestamp): Int = java.lang.Long.compare(millis, o.millis)
-
+class Timestamp(val millis: Long) extends AnyVal {
   // I don't want to inherit them from Ordered or something because that would cause boxing
   def <(other: Timestamp): Boolean = millis < other.millis
   def <=(other: Timestamp): Boolean = millis <= other.millis
@@ -43,18 +41,18 @@ class Timestamp(val millis: Long) extends Comparable[Timestamp] {
 
   override def toString: String = com.avsystem.commons.serialization.IsoInstant.format(millis)
 }
-object Timestamp {
-  final val Zero: Timestamp = Timestamp(0)
+object Timestamp extends TimestampCompat {
 
+  import scala.language.implicitConversions
+
+  implicit def toComparable(timestamp: Timestamp): Comparable[Timestamp] =
+    o => java.lang.Long.compare(timestamp.millis, o.millis)
+
+  final val Zero: Timestamp = Timestamp(0)
   def apply(millis: Long): Timestamp = new Timestamp(millis)
   def unapply(timestamp: Timestamp): Opt[Long] = Opt(timestamp.millis)
   def parse(str: String): Timestamp = Timestamp(com.avsystem.commons.serialization.IsoInstant.parse(str))
-
   def now(): Timestamp = Timestamp(System.currentTimeMillis())
-
-  @deprecatedName("conversions", since = "3.0.0")
   given Conversion[Timestamp, TimestampConversions] = timestamp => TimestampConversions(timestamp.millis)
-
-  @deprecatedName("ordering", since= "3.0.0")
   given Ordering[Timestamp] = Ordering.by(_.millis)
 }

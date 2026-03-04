@@ -46,7 +46,8 @@ trait GenCodec[T] {
 }
 
 object GenCodec
-  extends GenCodecDerivation, GenCodecImpl, GenCodecCreates, GenCodecFailures, GenCodecJavaBuilder, GenCodecUtils {
+  extends GenCodecCompat, GenCodecDerivation, GenCodecImpl, GenCodecCreates, GenCodecFailures, GenCodecJavaBuilder,
+    GenCodecUtils {
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
@@ -81,72 +82,41 @@ object GenCodec
     case tc: TransformedCodec[_, _] => underlyingCodec(tc.wrapped)
     case _ => codec
   }
-  @deprecatedName("NothingCodec", since = "3.0.0")
   given GenCodec[Nothing] =
     create[Nothing](_ => throw new ReadFailure("read Nothing"), (_, _) => throw new WriteFailure("write Nothing"))
-  @deprecatedName("NullCodec", since = "3.0.0")
   given GenCodec[Null] =
     create[Null](i => if (i.readNull()) null else notNull, (o, _) => o.writeNull())
-  @deprecatedName("UnitCodec", since = "3.0.0")
   given GenCodec[Unit] =
     create[Unit](i => if (i.readNull()) () else notNull, (o, _) => o.writeNull())
-  @deprecatedName("VoidCodec", since = "3.0.0")
   given GenCodec[Void] =
     create[Void](i => if (i.readNull()) null.asInstanceOf[Void] else notNull, (o, _) => o.writeNull())
-  @deprecatedName("BooleanCodec", since = "3.0.0")
   given GenCodec[Boolean] = createSimple(_.readBoolean(), _ `writeBoolean` _)
-  @deprecatedName("CharCodec", since = "3.0.0")
   given GenCodec[Char] = createSimple(_.readChar(), _ `writeChar` _)
-  @deprecatedName("ByteCodec", since = "3.0.0")
   given GenCodec[Byte] = createSimple(_.readByte(), _ `writeByte` _)
-  @deprecatedName("ShortCodec", since = "3.0.0")
   given GenCodec[Short] = createSimple(_.readShort(), _ `writeShort` _)
-  @deprecatedName("IntCodec", since = "3.0.0")
   given GenCodec[Int] = createSimple(_.readInt(), _ `writeInt` _)
-  @deprecatedName("LongCodec", since = "3.0.0")
   given GenCodec[Long] = createSimple(_.readLong(), _ `writeLong` _)
-  @deprecatedName("FloatCodec", since = "3.0.0")
   given GenCodec[Float] = createSimple(_.readFloat(), _ `writeFloat` _)
-  @deprecatedName("DoubleCodec", since = "3.0.0")
   given GenCodec[Double] = createSimple(_.readDouble(), _ `writeDouble` _)
-  @deprecatedName("BigIntCodec", since = "3.0.0")
   given GenCodec[BigInt] = createSimple(_.readBigInt(), _ `writeBigInt` _)
-  @deprecatedName("BigDecimalCodec", since = "3.0.0")
   given GenCodec[BigDecimal] = createSimple(_.readBigDecimal(), _ `writeBigDecimal` _)
-  @deprecatedName("JBooleanCodec", since = "3.0.0")
   given GenCodec[JBoolean] = createSimple(_.readBoolean(), _ `writeBoolean` _)
-  @deprecatedName("JCharacterCodec", since = "3.0.0")
   given GenCodec[JCharacter] = createSimple(_.readChar(), _ `writeChar` _)
-  @deprecatedName("JByteCodec", since = "3.0.0")
   given GenCodec[JByte] = createSimple(_.readByte(), _ `writeByte` _)
-  @deprecatedName("JShortCodec", since = "3.0.0")
   given GenCodec[JShort] = createSimple(_.readShort(), _ `writeShort` _)
-  @deprecatedName("JIntegerCodec", since = "3.0.0")
   given GenCodec[JInteger] = createSimple(_.readInt(), _ `writeInt` _)
-  @deprecatedName("JLongCodec", since = "3.0.0")
   given GenCodec[JLong] = createSimple(_.readLong(), _ `writeLong` _)
-  @deprecatedName("JFloatCodec", since = "3.0.0")
   given GenCodec[JFloat] = createSimple(_.readFloat(), _ `writeFloat` _)
-  @deprecatedName("JDoubleCodec", since = "3.0.0")
   given GenCodec[JDouble] = createSimple(_.readDouble(), _ `writeDouble` _)
-  @deprecatedName("JBigIntegerCodec", since = "3.0.0")
   given GenCodec[JBigInteger] = createSimple(_.readBigInt().bigInteger, (o, v) => o.writeBigInt(BigInt(v)))
-  @deprecatedName("JBigDecimalCodec", since = "3.0.0")
   given GenCodec[JBigDecimal] = createSimple(_.readBigDecimal().bigDecimal, (o, v) => o.writeBigDecimal(BigDecimal(v)))
-  @deprecatedName("JDateCodec", since = "3.0.0")
   given GenCodec[JDate] = createSimple(i => new JDate(i.readTimestamp()), (o, d) => o.writeTimestamp(d.getTime))
-  @deprecatedName("StringCodec", since = "3.0.0")
   given GenCodec[String] = createSimple(_.readString(), _ `writeString` _)
-  @deprecatedName("SymbolCodec", since = "3.0.0")
   given GenCodec[Symbol] = createSimple(i => Symbol(i.readString()), (o, s) => o.writeString(s.name))
-  @deprecatedName("ArrayByteCodec", since = "3.0.0")
   given GenCodec[Array[Byte]] = createSimple(_.readBinary(), _ `writeBinary` _)
-  @deprecatedName("UUIDCodec", since = "3.0.0")
   given GenCodec[UUID] = createSimple(i => UUID.fromString(i.readString()), (o, v) => o.writeString(v.toString))
-  @deprecatedName("TimestampCodec", since = "3.0.0")
   given GenCodec[Timestamp] =
     GenCodec.createSimple(i => Timestamp(i.readTimestamp()), (o, t) => o.writeTimestamp(t.millis))
-  @deprecatedName("BytesCodec", since = "3.0.0")
   given GenCodec[Bytes] = GenCodec.createSimple(i => Bytes(i.readBinary()), (o, b) => o.writeBinary(b.bytes))
   given [T] => (codec: GenCodec[T]) => GenCodec[T | Null] = createNullable(codec.read, codec.write)
   given [T: {ClassTag, GenCodec}] => GenCodec[Array[T]] = createList[Array[T]](
