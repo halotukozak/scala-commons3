@@ -260,9 +260,9 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
       testRoundtrip[StepOne](StepOne(StepTwo(Opt.Empty)))
       testRoundtrip[StepOne](StepOne(StepTwo(Opt(StepOne(StepTwo(Opt.Empty))))))
     }
-    testWithCodec(using GenCodec.materializeRecursively)
+    testWithCodec(using GenCodec.deriveRecursively)
 
-    given implCodec: GenCodec[StepOne] = GenCodec.materializeRecursively
+    given implCodec: GenCodec[StepOne] = GenCodec.deriveRecursively
     testWithCodec(using implCodec)
   }
 

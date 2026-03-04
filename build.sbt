@@ -301,20 +301,8 @@ lazy val core = project
       exclude[MissingClassProblem]("com.avsystem.commons.misc.HasAnnotation$"),
       exclude[MissingClassProblem]("com.avsystem.commons.misc.TypedKeyCompanion"), // i don't know what is it
 
-      // === Opt/NOpt/OptRef/OptArg: implicit conversions restructured ===
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.Opt.opt2Iterable"),
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.NOpt.opt2Iterable"),
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptRef.opt2Iterable"),
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptArg.intToOptArgDouble"),
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptArg.intToOptArgLong"),
-
       // === Timestamp: opaque type changed return types ===
       exclude[IncompatibleResultTypeProblem]("com.avsystem.commons.misc.Timestamp.*"),
-//      exclude[IncompatibleMethTypeProblem]("com.avsystem.commons.misc.Timestamp.compareTo"),
-
-
-      // === JavaClassName: vals became givens ===
-//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.JavaClassName.*"),
 
       // === SourceInfo: macro-generated apply changed ===
       exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.SourceInfo.apply"),
