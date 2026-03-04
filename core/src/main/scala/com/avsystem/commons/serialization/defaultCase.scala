@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package serialization
 
+import made.annotation.MetaAnnotation
+
 /**
  * When materializing a `GenCodec` for sealed hierarchy with `@flatten` annotation, you can use this annotation on one
  * of case classes or objects to mark it as the default one. If during deserialization the codec is unable to find the
@@ -14,6 +16,6 @@ package serialization
  *   if `true`, the codec will also not emit the `_case` field during writing of default case class/object (analogous
  *   to [[transientDefault]]).
  */
-class defaultCase(val transient: Boolean) extends StaticAnnotation {
+class defaultCase(val transient: Boolean) extends MetaAnnotation {
   def this() = this(transient = false)
 }

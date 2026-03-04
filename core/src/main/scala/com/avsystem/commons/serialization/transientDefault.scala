@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package serialization
 
+import made.annotation.MetaAnnotation
+
 import scala.annotation.RefiningAnnotation
 
 /**
@@ -22,4 +24,4 @@ import scala.annotation.RefiningAnnotation
  *
  * NOTE: [[transientDefault]] also works for method parameters in RPC framework.
  */
-class transientDefault extends RefiningAnnotation
+class transientDefault extends MetaAnnotation
