@@ -116,7 +116,7 @@ object TypedMap {
  * Base class for key types of [[TypedMap]] (typically enums parameterized by value type). Provides an instance of
  * [[GenCodecMapping]] which is necessary for [[GenCodec]] instance for [[TypedMap]] that uses this key type.
  */
-trait TypedKey[T] {
+abstract class TypedKey[T] {
   def valueCodec: GenCodec[T]
 }
 object TypedKey {
