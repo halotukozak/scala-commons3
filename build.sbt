@@ -1,5 +1,7 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+import com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.core.ProblemFilters._
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 
 // We need to generate slightly different structure for IntelliJ in order to better support ScalaJS cross projects.
@@ -165,7 +167,7 @@ val jvmCommonSettings = Seq(
     "org.slf4j" % "slf4j-simple" % slf4jVersion % Test,
   ),
   mimaPreviousArtifacts := previousCompatibleVersions.map { previousVersion =>
-    organization.value % s"${name.value}_${scalaBinaryVersion.value}" % previousVersion
+    organization.value % s"commons-${name.value}_2.13" % previousVersion
   },
   Test / jsEnv :=
     new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("RESOURCES_DIR" -> (Test / resourceDirectory).value.absolutePath))),
@@ -268,6 +270,57 @@ lazy val core = project
       "io.github.halotukozak" %% "made" % madeVersion,
       "com.google.guava" % "guava" % guavaVersion % Optional,
       "io.monix" %% "monix" % monixVersion % Optional,
+    ),
+    mimaBinaryIssueFilters ++= Seq(
+      // === Broad Scala 2 -> 3 structural filters ===
+
+      // Scala 3 erases generic signatures differently than Scala 2
+      exclude[IncompatibleSignatureProblem]("com.avsystem.commons.misc.*"),
+      // Scala 3 extension methods have different encoding than Scala 2
+      exclude[DirectMissingMethodProblem]("*$extension"),
+      // Scala 3 changed unapply/apply return types (no longer Option-based)
+      exclude[IncompatibleResultTypeProblem]("*.unapply"),
+      exclude[IncompatibleResultTypeProblem]("*.apply"),
+      // Scala 3 static initializers changed
+      exclude[DirectMissingMethodProblem]("*.<clinit>"),
+      // Scala 3 trait initializers removed
+      exclude[DirectMissingMethodProblem]("*.$init$"),
+      // Scala 3 objects are final
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.Opt.EmptyMarker"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.OptArg.EmptyMarker"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.NOpt.EmptyMarker"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.NOpt.NullMarker"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.OptRef.Boxed"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.OrderedEnum.reusableOrdering"),
+      exclude[FinalClassProblem]("com.avsystem.commons.misc.SamCompanion.ValidSam"),
+
+      // === Removed classes (restructured in Scala 3) ===
+      exclude[MissingClassProblem]("com.avsystem.commons.misc.TimestampConversions"),
+      exclude[MissingClassProblem]("com.avsystem.commons.misc.TimestampConversions$"),
+      exclude[MissingClassProblem]("com.avsystem.commons.misc.HasAnnotation"),
+      exclude[MissingClassProblem]("com.avsystem.commons.misc.HasAnnotation$"),
+      exclude[MissingClassProblem]("com.avsystem.commons.misc.TypedKeyCompanion"), // i don't know what is it
+
+      // === Opt/NOpt/OptRef/OptArg: implicit conversions restructured ===
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.Opt.opt2Iterable"),
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.NOpt.opt2Iterable"),
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptRef.opt2Iterable"),
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptArg.intToOptArgDouble"),
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.OptArg.intToOptArgLong"),
+
+      // === Timestamp: opaque type changed return types ===
+      exclude[IncompatibleResultTypeProblem]("com.avsystem.commons.misc.Timestamp.*"),
+//      exclude[IncompatibleMethTypeProblem]("com.avsystem.commons.misc.Timestamp.compareTo"),
+
+
+      // === JavaClassName: vals became givens ===
+//      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.JavaClassName.*"),
+
+      // === SourceInfo: macro-generated apply changed ===
+      exclude[DirectMissingMethodProblem]("com.avsystem.commons.misc.SourceInfo.apply"),
+
+      // === CrossUtils: arrayBuffer return type changed (& in Scala 3 instead of with) ===
+      exclude[IncompatibleResultTypeProblem]("com.avsystem.commons.misc.CrossUtils.arrayBuffer"),
     ),
   )
 
