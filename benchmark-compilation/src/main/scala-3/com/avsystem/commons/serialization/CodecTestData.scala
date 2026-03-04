@@ -1,9 +1,9 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.mirror.{name, optionalParam, transparent}
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, Opt, TypedKey}
-
+import made.*
+import made.annotation._
 import scala.reflect.ClassTag
 
 object CodecTestData {
