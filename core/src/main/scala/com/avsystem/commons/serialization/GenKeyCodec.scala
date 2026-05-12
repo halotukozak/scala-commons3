@@ -97,25 +97,12 @@ object GenKeyCodec {
   // Warning! Changing the order of implicit params of this method causes divergent implicit expansion (WTF?)
   given [R, T] => (tw: TransparentWrapping[R, T]) => (wrappedCodec: GenKeyCodec[R]) => GenKeyCodec[T] =
     new Transformed(wrappedCodec, tw.unwrap, tw.wrap)
-  inline def forSealedEnum[T: {Made.SumOf as m, ClassTag}]: GenKeyCodec[T] = {
-    type IsSingleton[X] = X match {
-      case Singleton => true
-      case _ => false
-    }
-
-    inline compiletime.erasedValue[Tuple.Filter[m.ElemTypes, IsSingleton]] match {
-      case _: EmptyTuple =>
-      case _ =>
-        compiletime.error("GenKeyCodec.forSealedEnum supports only sealed hierarchies of singletons (case objects/enum cases)")
-    }
-
-    given containsOnlyRefl[Tup <: Tuple, X]: (Tup containsOnly X) = containsOnly.refl
+  inline def forSealedEnum[T: {Made.SumOf as m, ClassTag}]: GenKeyCodec[T] =
     deriveForSum(
       compiletime.constValue[m.Label],
-      compiletime.constValueTuple[m.ElemLabels].toArrayOf[String],
-      m.elems.toArrayOf[MadeSubSingletonElem.Of[T]].map(_.value),
+      compiletime.constValueTuple[m.ElemLabels].toArrayOf[String](using containsOnly.refl),
+      m.elems.toArrayOf[MadeSubSingletonElem.Of[T]](using containsOnly.refl).map(_.value),
     )
-  }
   inline def forTransparentWrapper[R, T](
     using tw: TransparentWrapping[R, T],
     underlyingCodec: GenKeyCodec[R],

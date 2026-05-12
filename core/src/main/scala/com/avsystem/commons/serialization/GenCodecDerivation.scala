@@ -4,7 +4,6 @@ package serialization
 import com.avsystem.commons.meta.*
 import made.*
 trait GenCodecDerivation { this: GenCodec.type =>
-  private inline given containsOnlyRefl[Tup <: Tuple, T]: (Tup containsOnly T) = containsOnly.refl
   inline def derived[T]: GenCodec[T] = {
     given deferred: DeferredCodec[T] = new DeferredCodec[T]
     val underlying = unsafeDerived[T](using compiletime.summonInline[Made.Of[T]])
@@ -21,13 +20,13 @@ trait GenCodecDerivation { this: GenCodec.type =>
     val label = compiletime.constValue[made.Label]
     val generatedNames = compiletime
       .constValueTuple[Tuple.Map[made.GeneratedElems, MadeElem.ExtractLabel]]
-      .toArrayOf[String]
-    val generatedExtractors = made.generatedElems.toArrayOf[GeneratedMadeElem.OuterOf[T]]
+      .toArrayOf[String](using containsOnly.refl)
+    val generatedExtractors = made.generatedElems.toArrayOf[GeneratedMadeElem.OuterOf[T]](using containsOnly.refl)
     val generatedCodecs =
       summonInstances[Tuple.Map[made.GeneratedElems, MadeElem.ExtractOf]](
         summonAllowed = true,
         deriveAllowed = false,
-      ).toArrayOf[GenCodec[?]]
+      ).toArrayOf[GenCodec[?]](using containsOnly.refl)
 
     inline made match {
       case made: Made.TransparentOf[T] =>
@@ -44,13 +43,21 @@ trait GenCodecDerivation { this: GenCodec.type =>
         }
 
       case made: Made.ProductOf[T] =>
+        val fieldElems = made.elems.toArrayOf[MadeFieldElem](using containsOnly.refl)
+        val transientDefaults = made.elems.hasAnnotations[transientDefault]
+        val optionalNones = detectOptional[made.ElemTypes]
+        val madeDefaults: Array[Option[Any]] = fieldElems.map(_.default)
+        val effectiveDefaults: Array[Option[Any]] =
+          Array.tabulate(madeDefaults.length)(i => madeDefaults(i).orElse(optionalNones(i)))
         deriveProduct(
           label,
-          summonInstances[made.ElemTypes](summonAllowed = true, deriveAllowed = false).toArrayOf[GenCodec[?]],
-          made.elems.toArrayOf[MadeFieldElem].map(_.default),
-          compiletime.constValueTuple[made.ElemLabels].toArrayOf[String],
+          summonInstances[made.ElemTypes](summonAllowed = true, deriveAllowed = false)
+            .toArrayOf[GenCodec[?]](using containsOnly.refl),
+          effectiveDefaults,
+          compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl),
           made.fromUnsafeArray,
-          made.elems.toArrayOf[MadeFieldElem],
+          transientDefaults,
+          optionalNones.map(_.isDefined),
           generatedNames,
           generatedExtractors,
           generatedCodecs,
@@ -58,9 +65,12 @@ trait GenCodecDerivation { this: GenCodec.type =>
 
       case made: Made.SumOf[T] =>
         val instances =
-          summonInstances[made.ElemTypes](summonAllowed = false, deriveAllowed = true).toArrayOf[GenCodec[?]]
-        val labels = compiletime.constValueTuple[made.ElemLabels].toArrayOf[String]
-        val classTags = compiletime.summonAll[Tuple.Map[made.ElemTypes, ClassTag]].toArrayOf[ClassTag[?]]
+          summonInstances[made.ElemTypes](summonAllowed = false, deriveAllowed = true)
+            .toArrayOf[GenCodec[?]](using containsOnly.refl)
+        val labels = compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl)
+        val classTags = compiletime
+          .summonAll[Tuple.Map[made.ElemTypes, ClassTag]]
+          .toArrayOf[ClassTag[?]](using containsOnly.refl)
 
         made.getAnnotation[flatten] match {
           case Some(f) =>
@@ -71,12 +81,12 @@ trait GenCodecDerivation { this: GenCodec.type =>
               f.caseFieldName,
               classTags,
               made.elems
-                .toArrayOf[MadeFieldElem]
+                .toArrayOf[MadeFieldElem](using containsOnly.refl)
                 .iterator
                 .map(_.getAnnotation[defaultCase])
                 .zipWithIndex
                 .collectFirst { case (Some(default), i) => (i, default.transient) },
-              compiletime.constValueTuple[made.ElemLabels].toArrayOf[String].toSet,
+              labels.toSet,
             )
           case _ => deriveNestedSum(label, instances, labels, classTags)
         }
@@ -96,6 +106,23 @@ trait GenCodecDerivation { this: GenCodec.type =>
         }
         (elemCodec *: summonInstances[elems](summonAllowed, deriveAllowed)).asInstanceOf[Tuple.Map[Elems, GenCodec]]
       case _: EmptyTuple => EmptyTuple.asInstanceOf[Tuple.Map[Elems, GenCodec]]
+    }
+
+  inline private def detectOptional[Elems <: Tuple]: Array[Option[Any]] = {
+    val buf = scala.collection.mutable.ArrayBuilder.make[Option[Any]]
+    detectOptionalInto[Elems](buf)
+    buf.result()
+  }
+
+  inline private def detectOptionalInto[Elems <: Tuple](buf: scala.collection.mutable.ArrayBuilder[Option[Any]]): Unit =
+    inline compiletime.erasedValue[Elems] match {
+      case _: EmptyTuple => ()
+      case _: (elem *: elems) =>
+        buf += compiletime.summonFrom {
+          case ol: OptionLike[`elem`] => Some(ol.none)
+          case _ => None
+        }
+        detectOptionalInto[elems](buf)
     }
   inline private def deriveTransparentWrapper[T, U](underlying: => GenCodec[U], unwrap: U => T, wrap: T => U)
     : GenCodec[T] = new TransformedCodec[T, U](underlying, wrap, unwrap)
@@ -168,14 +195,13 @@ trait GenCodecDerivation { this: GenCodec.type =>
     defaults: Array[Option[Any]],
     fieldNames: Array[String],
     fromUnsafeArray: Array[Any] => T,
-    fieldElems: Array[MadeFieldElem],
+    transientDefaults: Array[Boolean],
+    isOptional: Array[Boolean],
     generatedNames: Array[String],
     generatedExtractors: Array[GeneratedMadeElem.OuterOf[T]],
     generatedCodecs: Array[GenCodec[?]],
   ): GenCodec[T] =
     new ApplyUnapplyCodec[T](typeRepr, fieldNames) {
-
-      private val transientDefaults: Array[Boolean] = fieldElems.map(_.hasAnnotation[transientDefault])
 
       override protected val dependencies: Array[GenCodec[?]] = instances
 
@@ -192,15 +218,15 @@ trait GenCodecDerivation { this: GenCodec.type =>
         fromUnsafeArray(values)
       }
 
-      private def isTransient(idx: Int, value: Any): Boolean =
-        transientDefaults(idx) && defaults(idx).contains(value)
+      private def isSkipped(idx: Int, value: Any): Boolean =
+        (transientDefaults(idx) || isOptional(idx)) && defaults(idx).contains(value)
 
       override def size(value: T, output: Opt[SequentialOutput]): Int = {
         val product = value.asInstanceOf[Product]
         var count = generatedExtractors.length
         var i = 0
         while (i < fieldNames.length) {
-          if (!isTransient(i, product.productElement(i))) count += 1
+          if (!isSkipped(i, product.productElement(i))) count += 1
           i += 1
         }
         count
@@ -211,7 +237,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
         var i = 0
         while (i < fieldNames.length) {
           val v = product.productElement(i)
-          if (!isTransient(i, v)) {
+          if (!isSkipped(i, v)) {
             writeField[Any](output, i, v)
           }
           i += 1

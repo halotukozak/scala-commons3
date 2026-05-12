@@ -22,7 +22,7 @@ val pekkoVersion = "1.4.0"
 val monixVersion = "3.4.1"
 val scalajsBenchmarkVersion = "0.10.0"
 val slf4jVersion = "2.0.17" // test only
-val madeVersion = "0.0.4"
+val madeVersion = "0.0.5-local"
 
 val scala2Version = "2.13.18"
 val scala3Version = "3.8.2"
