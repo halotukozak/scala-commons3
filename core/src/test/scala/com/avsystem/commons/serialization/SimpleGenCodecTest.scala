@@ -98,7 +98,7 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
   test("case class") {
     testWrite(
       SomeCaseClass("dafuq", List(1, 2, 3)),
-      Map("some.str" -> "dafuq", "intList" -> List(1, 2, 3)),
+      Map("some.str" -> "dafuq", "intList" -> List(1, 2, 3), "someStrLen" -> 5),
     )
   }
 

@@ -60,7 +60,7 @@ object GenCodec
     compiletime.summonAll[Tuple.Map[Tup, GenCodec]],
   )
 
-  def materialize[T]: GenCodec[T] = ???
+  inline def materialize[T]: GenCodec[T] = derived[T]
   @explicitGenerics
   def read[T: GenCodec](input: Input): T =
     apply[T].read(input)

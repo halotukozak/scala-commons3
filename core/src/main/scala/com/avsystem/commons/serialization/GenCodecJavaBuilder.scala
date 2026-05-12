@@ -12,17 +12,26 @@ def fromJavaBuilderImpl[T: Type, B: Type](
 ): Expr[GenCodec[T]] = {
   import quotes.reflect.*
 
+  def returnTypeOf(ownerTpe: TypeRepr, method: Symbol): TypeRepr =
+    ownerTpe.memberType(method).widen match
+      case MethodType(_, _, res) => res
+      case t => t
+
   extension (ms: Symbol) {
-    private def isJavaGetter: Boolean =
-      ms.paramSymss.exists(_.exists(_.isTypeParam)) && ms.paramSymss == List(Nil) && {
-        val expectedPrefix = if (ms.typeRef =:= TypeRepr.of[Boolean]) "is" else "get"
+    private def isJavaGetter(ownerTpe: TypeRepr): Boolean =
+      !ms.paramSymss.exists(_.exists(_.isTypeParam)) && ms.paramSymss == List(Nil) && {
+        val expectedPrefix = if (returnTypeOf(ownerTpe, ms) =:= TypeRepr.of[Boolean]) "is" else "get"
         ms.name.startsWith(expectedPrefix) && ms.name.length > expectedPrefix.length &&
         ms.name.charAt(expectedPrefix.length).isUpper
       }
 
-    private def isJavaSetter: Boolean =
-      ms.paramSymss.exists(_.exists(_.isTypeParam)) && ms.paramSymss.map(_.length) == List(1) && {
+    private def isJavaSetter(ownerTpe: TypeRepr, propTpe: TypeRepr): Boolean =
+      !ms.paramSymss.exists(_.exists(_.isTypeParam)) && ms.paramSymss.map(_.length) == List(1) && {
         ms.name.startsWith("set") && ms.name.length > 3 && ms.name.charAt(3).isUpper
+      } && {
+        ownerTpe.memberType(ms).widen match
+          case MethodType(_, List(paramT), _) => paramT =:= propTpe
+          case _ => false
       }
   }
 
@@ -31,15 +40,17 @@ def fromJavaBuilderImpl[T: Type, B: Type](
   val setters = new mutable.ListBuffer[Expr[(B, Any) => B]]
   val deps = new mutable.ListBuffer[Expr[GenCodec[?]]]
 
-  TypeRepr.of[T].typeSymbol.declaredMethods.iterator.foreach {
-    case getter if getter.isDefDef && getter.isJavaGetter =>
-      getter.typeRef.asType match {
+  val tTpe = TypeRepr.of[T]
+  val bTpe = TypeRepr.of[B]
+  (tTpe.typeSymbol.methodMembers ++ tTpe.typeSymbol.declaredMethods).distinct.iterator.foreach {
+    case getter if getter.isDefDef && getter.isJavaGetter(tTpe) =>
+      returnTypeOf(tTpe, getter).asType match {
         case '[propType] =>
           val getterName = getter.name
           val setterName = getterName.replaceFirst("^(get|is)", "set")
 
-          val setterOpt = TypeRepr.of[B].typeSymbol.methodMember(setterName).head.allOverriddenSymbols.find { s =>
-            s.isDefDef && s.isJavaSetter && s.paramSymss.head.head.typeRef =:= TypeRepr.of[propType]
+          val setterOpt = bTpe.typeSymbol.methodMember(setterName).find { s =>
+            s.isDefDef && s.isJavaSetter(bTpe, TypeRepr.of[propType])
           }
           setterOpt.foreach { setter =>
             val propName = setterName.charAt(3).toLower.toString + setterName.drop(4)
@@ -55,7 +66,7 @@ def fromJavaBuilderImpl[T: Type, B: Type](
             getters += Lambda(
               Symbol.spliceOwner,
               MethodType(List("v"))(_ => List(TypeRepr.of[T]), _ => TypeRepr.of[propType]),
-              (sym, args) => args.head.asInstanceOf[Term].select(getter),
+              (sym, args) => args.head.asInstanceOf[Term].select(getter).appliedToNone,
             ).asExprOf[T => propType]
 
             setters += Lambda(
