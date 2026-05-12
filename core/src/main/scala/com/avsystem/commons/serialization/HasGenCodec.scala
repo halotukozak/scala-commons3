@@ -14,7 +14,16 @@ import scala.util.NotGiven
  * etc.
  */
 abstract class HasGenCodec[T](using macroCodec: MacroInstances[Unit, (codec: GenCodec[T])]) {
-  given NotGiven[AllowDerivation[GenCodec[T]]] => GenCodec[T] = macroCodec((), this).codec
+  private val deferredCodec = new GenCodec.DeferredCodec[T]
+  @volatile private var inited = false
+  private def cachedCodec(): GenCodec[T] = this.synchronized {
+    if (!inited) {
+      inited = true
+      deferredCodec.underlying = macroCodec((), this).codec
+    }
+    deferredCodec
+  }
+  given NotGiven[AllowDerivation[GenCodec[T]]] => GenCodec[T] = cachedCodec()
 }
 
 /**

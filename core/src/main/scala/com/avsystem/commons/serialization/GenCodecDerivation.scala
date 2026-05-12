@@ -64,15 +64,15 @@ trait GenCodecDerivation { this: GenCodec.type =>
         )
 
       case made: Made.SumOf[T] =>
-        val instances =
-          summonInstances[made.ElemTypes](summonAllowed = false, deriveAllowed = true)
-            .toArrayOf[GenCodec[?]](using containsOnly.refl)
-        val labels = compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl)
-        val classTags = compiletime
-          .summonAll[Tuple.Map[made.ElemTypes, ClassTag]]
-          .toArrayOf[ClassTag[?]](using containsOnly.refl)
+        val labelsBuf = scala.collection.mutable.ArrayBuilder.make[String]
+        val codecsBuf = scala.collection.mutable.ArrayBuilder.make[GenCodec[?]]
+        val classTagsBuf = scala.collection.mutable.ArrayBuilder.make[ClassTag[?]]
+        collectFlatCases[made.ElemTypes, made.ElemLabels](labelsBuf, codecsBuf, classTagsBuf)
+        val labels = labelsBuf.result()
+        val instances = codecsBuf.result()
+        val classTags = classTagsBuf.result()
 
-        made.getAnnotation[flatten] match {
+        typeAnnotation[T, flatten] match {
           case Some(f) =>
             deriveFlattenSum(
               label,
@@ -81,7 +81,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
               f.caseFieldName,
               classTags,
               made.elems
-                .toArrayOf[MadeFieldElem](using containsOnly.refl)
+                .toArrayOf[MadeSubElem](using containsOnly.refl)
                 .iterator
                 .map(_.getAnnotation[defaultCase])
                 .zipWithIndex
@@ -92,6 +92,31 @@ trait GenCodecDerivation { this: GenCodec.type =>
         }
     }
   }
+
+  inline private def collectFlatCases[Es <: Tuple, Ls <: Tuple](
+    labels: scala.collection.mutable.ArrayBuilder[String],
+    codecs: scala.collection.mutable.ArrayBuilder[GenCodec[?]],
+    classTags: scala.collection.mutable.ArrayBuilder[ClassTag[?]],
+  ): Unit =
+    inline compiletime.erasedValue[Es] match {
+      case _: EmptyTuple => ()
+      case _: (h *: tEs) =>
+        inline compiletime.erasedValue[Ls] match {
+          case _: (lh *: tLs) =>
+            compiletime.summonFrom {
+              case subM: scala.deriving.Mirror.SumOf[`h`] =>
+                collectFlatCases[subM.MirroredElemTypes, subM.MirroredElemLabels](labels, codecs, classTags)
+              case _ =>
+                labels += compiletime.constValue[lh & String]
+                codecs += compiletime.summonFrom {
+                  case c: GenCodec[`h`] => c
+                  case _ => derived[h]
+                }
+                classTags += compiletime.summonInline[ClassTag[h]]
+            }
+            collectFlatCases[tEs, tLs](labels, codecs, classTags)
+        }
+    }
 
   inline private def summonInstances[Elems <: Tuple](
     summonAllowed: Boolean,
