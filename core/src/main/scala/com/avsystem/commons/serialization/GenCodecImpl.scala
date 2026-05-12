@@ -88,7 +88,10 @@ abstract class ApplyUnapplyCodec[T](
     fieldValues.getOpt(idx, optionLike)
 }
 object ApplyUnapplyCodec {
-  def derived[T]: ApplyUnapplyCodec[T] = ???
+  inline def derived[T]: ApplyUnapplyCodec[T] = {
+    val c: GenCodec[T] = GenCodec.derived[T]
+    c.asInstanceOf[ApplyUnapplyCodec[T]]
+  }
   given materialize[T](using AllowDerivation[ApplyUnapplyCodec[T]]): ApplyUnapplyCodec[T] = ???
 }
 
