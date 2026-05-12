@@ -103,17 +103,17 @@ object GenKeyCodec {
       case _ => false
     }
 
-    inline compiletime.erasedValue[Tuple.Filter[m.MirroredElemTypes, IsSingleton]] match {
+    inline compiletime.erasedValue[Tuple.Filter[m.ElemTypes, IsSingleton]] match {
       case _: EmptyTuple =>
-      case _ => 
-        throw Exception(compiletime.summonInline[TypeRepr[m.MirroredElemTypes]])
-//        compiletime.error("GenKeyCodec does not support not singletons")
+      case _ =>
+        compiletime.error("GenKeyCodec.forSealedEnum supports only sealed hierarchies of singletons (case objects/enum cases)")
     }
 
+    given containsOnlyRefl[Tup <: Tuple, X]: (Tup containsOnly X) = containsOnly.refl
     deriveForSum(
-      compiletime.constValue[m.MirroredLabel],
-      compiletime.constValueTuple[m.MirroredElemLabels].toArrayOf[String],
-      m.mirroredElems.toArrayOf[MadeSubSingletonElem.Of[T]].map(_.value),
+      compiletime.constValue[m.Label],
+      compiletime.constValueTuple[m.ElemLabels].toArrayOf[String],
+      m.elems.toArrayOf[MadeSubSingletonElem.Of[T]].map(_.value),
     )
   }
   inline def forTransparentWrapper[R, T](

@@ -72,9 +72,10 @@ def fromJavaBuilderImpl[T: Type, B: Type](
     case _ =>
   }
 
+  val typeReprStr = Expr(TypeRepr.of[T].show)
   '{
     new JavaBuilderBasedCodec[T, B](
-      compiletime.summonInline[com.avsystem.commons.serialization.TypeRepr[T]],
+      $typeReprStr,
       $newBuilder,
       $build,
       ${ Expr.ofList(fieldNames.result()) }.toArray,

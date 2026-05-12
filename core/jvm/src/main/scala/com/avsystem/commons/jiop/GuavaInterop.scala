@@ -2,6 +2,7 @@ package com.avsystem.commons
 package jiop
 
 import com.avsystem.commons.jiop.GuavaInterop.*
+import com.google.common.base as gbase
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, SettableFuture}
 
 import java.util.concurrent.{Executor, TimeUnit}

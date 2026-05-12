@@ -3,11 +3,9 @@ package serialization.cbor
 
 import com.avsystem.commons.annotation.{bincompat, positioned, AnnotationAggregate}
 import com.avsystem.commons.meta.*
-import com.avsystem.commons.misc.ValueOf
 import made.*
 import com.avsystem.commons.serialization.*
 import com.avsystem.commons.serialization.GenCodec.OOOFieldsObjectCodec
-import made.*
 import made.annotation.*
 extension [T](instances: (stdCodec: GenObjectCodec[T], metadata: CborAdtMetadata[T])) private def cborCodec
   : GenObjectCodec[T] =
