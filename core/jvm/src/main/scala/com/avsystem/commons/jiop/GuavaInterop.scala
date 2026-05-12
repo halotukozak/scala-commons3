@@ -1,8 +1,7 @@
 package com.avsystem.commons
 package jiop
 
-import com.avsystem.commons.misc.Sam
-import com.google.common.base as gbase
+import com.avsystem.commons.jiop.GuavaInterop.*
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, SettableFuture}
 
 import java.util.concurrent.{Executor, TimeUnit}
@@ -15,9 +14,9 @@ trait GuavaInterop {
   type GSupplier[T] = gbase.Supplier[T]
   type GPredicate[T] = gbase.Predicate[T]
 
-  def gFunction[F, T](fun: F => T): GFunction[F, T] = Sam[GFunction[F, T]](fun)
-  def gSupplier[T](expr: => T): GSupplier[T] = Sam[GSupplier[T]](expr)
-  def gPredicate[T](pred: T => Boolean): GPredicate[T] = Sam[GPredicate[T]](pred)
+  def gFunction[F, T](fun: F => T): GFunction[F, T] = fun(_)
+  def gSupplier[T](expr: => T): GSupplier[T] = () => expr
+  def gPredicate[T](pred: T => Boolean): GPredicate[T] = pred(_)
 
   extension [T](gfut: ListenableFuture[T]) {
     def asScala: Future[T] = gfut match {

@@ -1,8 +1,9 @@
 package com.avsystem.commons
 package serialization.cbor
 
-import com.avsystem.commons.annotation.{AnnotationAggregate, positioned}
+import com.avsystem.commons.annotation.{bincompat, positioned, AnnotationAggregate}
 import com.avsystem.commons.meta.*
+import com.avsystem.commons.misc.ValueOf
 import made.*
 import com.avsystem.commons.serialization.*
 import com.avsystem.commons.serialization.GenCodec.OOOFieldsObjectCodec
@@ -213,6 +214,7 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
     @infer @checked val value: ValueOf[T],
     @composite val keyInfo: CborKeyInfo[T],
   ) extends Case[T] {
+
     def adjustCodec(codec: GenObjectCodec[T]): GenObjectCodec[T] = codec
     def ensureUniqueKeys(discriminatorKey: Opt[RawCbor]): Unit = ()
     def validate(): Unit = ()

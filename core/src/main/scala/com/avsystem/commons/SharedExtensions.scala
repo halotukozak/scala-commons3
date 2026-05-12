@@ -537,35 +537,9 @@ trait SharedExtensions extends TupleOps {
           }
         }
       }
-    def distinctBy[B](f: A => B): Iterator[A] =
-      new AbstractIterator[A] {
-        private val seen = new MHashSet[B]
-        private var nextDistinct = NOpt.empty[A]
 
-//        @tailrec  //todo
-        override final def hasNext: Boolean = nextDistinct.nonEmpty || it.hasNext && {
-          nextDistinct = NOpt.some(it.next()).filter(a => seen.add(f(a)))
-          hasNext
-        }
+  }
 
-        override def next(): A =
-          if (hasNext) {
-            val result = nextDistinct.get
-            nextDistinct = NOpt.Empty
-            result
-          } else throw new NoSuchElementException
-      }
-  }
-  extension [A](ordering: Ordering[A]) {
-    def orElseBy[B: Ordering](f: A => B): Ordering[A] =
-      orElse(Ordering.by(f))
-    def orElse(whenEqual: Ordering[A]): Ordering[A] =
-      (x, y) =>
-        ordering.compare(x, y) match {
-          case 0 => whenEqual.compare(x, y)
-          case res => res
-        }
-  }
   extension (companion: Future.type) {
 
     /**

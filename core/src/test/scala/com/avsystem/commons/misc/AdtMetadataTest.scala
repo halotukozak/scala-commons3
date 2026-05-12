@@ -2,6 +2,8 @@ package com.avsystem.commons
 package misc
 
 import com.avsystem.commons.annotation.positioned
+import com.avsystem.commons.meta.{adtCaseMetadata, adtCaseSealedParentMetadata, adtParamMetadata, allowUnorderedSubtypes, checked, composite, infer, multi, AdtMetadataCompanion, MacroInstances, TypedMetadata}
+import com.avsystem.commons.serialization.{name, GenCaseInfo, GenCodec, GenParamInfo, GenUnionInfo}
 import com.avsystem.commons.meta.*
 import com.avsystem.commons.serialization.*
 

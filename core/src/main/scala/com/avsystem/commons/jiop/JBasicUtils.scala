@@ -1,16 +1,16 @@
 package com.avsystem.commons
 package jiop
 
+import com.avsystem.commons.misc.TimestampConversions
+
 import java.util.Comparator
 import java.util.concurrent.Callable
 import java.{lang as jl, math as jm, util as ju}
 
-import com.avsystem.commons.misc.{Sam, TimestampConversions}
-
 trait JBasicUtils {
-  def jRunnable(code: => Any): Runnable = Sam[Runnable](code)
-  def jCallable[T](expr: => T): Callable[T] = Sam[Callable[T]](expr)
-  def jComparator[T](cmp: (T, T) => Int): Comparator[T] = Sam[Comparator[T]](cmp)
+  def jRunnable(code: => Any): Runnable = () => code
+  def jCallable[T](expr: => T): Callable[T] = () => expr
+  def jComparator[T](cmp: (T, T) => Int): Comparator[T] = cmp(_, _)
 
   given Conversion[JDate, TimestampConversions] = date => TimestampConversions(date.getTime)
 
