@@ -9,18 +9,14 @@ final class NotUsedTransientDefault extends AnyFunSuite {
   test("no warnings when @transientDefault is used properly") {
     assertCompiles(
       // language=Scala
-      s"""
-         |GenCodec.materialize[Valid]
-         |""".stripMargin
+      "GenCodec.materialize[Valid]",
     )
   }
 
   test("fails to compile when missing default value") {
     assertDoesNotCompile(
       // language=Scala
-      s"""
-         |GenCodec.materialize[Invalid]
-         |""".stripMargin
+      "GenCodec.materialize[Invalid]",
     )
   }
 }
