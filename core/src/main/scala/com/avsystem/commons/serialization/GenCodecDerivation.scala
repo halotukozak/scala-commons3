@@ -45,10 +45,20 @@ trait GenCodecDerivation { this: GenCodec.type =>
       case made: Made.ProductOf[T] =>
         val fieldElems = made.elems.toArrayOf[MadeFieldElem](using containsOnly.refl)
         val transientDefaults = made.elems.hasAnnotations[transientDefault]
-        val optionalNones = detectOptional[made.ElemTypes]
+        val optionalParams = made.elems.hasAnnotations[_root_.made.annotation.optionalParam]
+        val optionalNones = detectAllOptional[made.ElemTypes]
+        val autoOptionals = detectAutoOptional[made.ElemTypes]
         val madeDefaults: Array[Option[Any]] = fieldElems.map(_.default)
         val effectiveDefaults: Array[Option[Any]] =
-          Array.tabulate(madeDefaults.length)(i => madeDefaults(i).orElse(optionalNones(i)))
+          Array.tabulate(madeDefaults.length) { i =>
+            madeDefaults(i).orElse {
+              if (optionalParams(i) || autoOptionals(i)) optionalNones(i) else None
+            }
+          }
+        val skipWhenDefault: Array[Boolean] =
+          Array.tabulate(madeDefaults.length) { i =>
+            transientDefaults(i) || optionalParams(i) || autoOptionals(i)
+          }
         deriveProduct(
           label,
           summonInstances[made.ElemTypes](summonAllowed = true, deriveAllowed = false)
@@ -56,8 +66,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
           effectiveDefaults,
           compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl),
           made.fromUnsafeArray,
-          transientDefaults,
-          optionalNones.map(_.isDefined),
+          skipWhenDefault,
+          Array.fill(madeDefaults.length)(false),
           generatedNames,
           generatedExtractors,
           generatedCodecs,
@@ -81,9 +91,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
               f.caseFieldName,
               classTags,
               made.elems
-                .toArrayOf[MadeSubElem](using containsOnly.refl)
+                .getAnnotations[defaultCase]
                 .iterator
-                .map(_.getAnnotation[defaultCase])
                 .zipWithIndex
                 .collectFirst { case (Some(default), i) => (i, default.transient) },
               labels.toSet,
@@ -133,13 +142,15 @@ trait GenCodecDerivation { this: GenCodec.type =>
       case _: EmptyTuple => EmptyTuple.asInstanceOf[Tuple.Map[Elems, GenCodec]]
     }
 
-  inline private def detectOptional[Elems <: Tuple]: Array[Option[Any]] = {
+  inline private def detectAllOptional[Elems <: Tuple]: Array[Option[Any]] = {
     val buf = scala.collection.mutable.ArrayBuilder.make[Option[Any]]
-    detectOptionalInto[Elems](buf)
+    detectAllOptionalInto[Elems](buf)
     buf.result()
   }
 
-  inline private def detectOptionalInto[Elems <: Tuple](buf: scala.collection.mutable.ArrayBuilder[Option[Any]]): Unit =
+  inline private def detectAllOptionalInto[Elems <: Tuple](
+    buf: scala.collection.mutable.ArrayBuilder[Option[Any]],
+  ): Unit =
     inline compiletime.erasedValue[Elems] match {
       case _: EmptyTuple => ()
       case _: (elem *: elems) =>
@@ -147,7 +158,24 @@ trait GenCodecDerivation { this: GenCodec.type =>
           case ol: OptionLike[`elem`] => Some(ol.none)
           case _ => None
         }
-        detectOptionalInto[elems](buf)
+        detectAllOptionalInto[elems](buf)
+    }
+
+  inline private def detectAutoOptional[Elems <: Tuple]: Array[Boolean] = {
+    val buf = scala.collection.mutable.ArrayBuilder.make[Boolean]
+    detectAutoOptionalInto[Elems](buf)
+    buf.result()
+  }
+
+  inline private def detectAutoOptionalInto[Elems <: Tuple](buf: scala.collection.mutable.ArrayBuilder[Boolean]): Unit =
+    inline compiletime.erasedValue[Elems] match {
+      case _: EmptyTuple => ()
+      case _: (elem *: elems) =>
+        buf += compiletime.summonFrom {
+          case _: AutoOptionalParam[`elem`] => true
+          case _ => false
+        }
+        detectAutoOptionalInto[elems](buf)
     }
   inline private def deriveTransparentWrapper[T, U](underlying: => GenCodec[U], unwrap: U => T, wrap: T => U)
     : GenCodec[T] = new TransformedCodec[T, U](underlying, wrap, unwrap)
@@ -220,8 +248,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
     defaults: Array[Option[Any]],
     fieldNames: Array[String],
     fromUnsafeArray: Array[Any] => T,
-    transientDefaults: Array[Boolean],
-    isOptional: Array[Boolean],
+    skipWhenDefault: Array[Boolean],
+    @scala.annotation.unused isOptional: Array[Boolean],
     generatedNames: Array[String],
     generatedExtractors: Array[GeneratedMadeElem.OuterOf[T]],
     generatedCodecs: Array[GenCodec[?]],
@@ -244,7 +272,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
       }
 
       private def isSkipped(idx: Int, value: Any): Boolean =
-        (transientDefaults(idx) || isOptional(idx)) && defaults(idx).contains(value)
+        skipWhenDefault(idx) && defaults(idx).contains(value)
 
       override def size(value: T, output: Opt[SequentialOutput]): Int = {
         val product = value.asInstanceOf[Product]
