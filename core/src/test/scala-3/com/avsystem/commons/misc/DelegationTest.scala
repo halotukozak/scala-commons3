@@ -1,5 +1,3 @@
-/* DISABLED for Scala 3 build: meth[C[+X] >: Null <: Iterable[X]] rejected under -Yexplicit-nulls
-   (`List does not conform to lower bound [X] =>> Null`). Either drop Null lower bound or relax strict-nulls.
 package com.avsystem.commons
 package misc
 
@@ -9,7 +7,7 @@ class DelegationTest extends AnyFunSuite {
   trait Destination[T] {
     val te: T
     def simple(omg: Int): String
-    def meth[C[+X] >: Null <: Iterable[X]](map: Map[T, C[String]]): C[(T, String)]
+    def meth[C[+X] <: Iterable[X]](map: Map[T, C[String]]): C[(T, String)]
     def multi(a: String)(b: String): String
     def vararg(values: String*): String
   }
@@ -17,12 +15,15 @@ class DelegationTest extends AnyFunSuite {
   class Source {
     val te: Double = 3.14
     def simple(omg: Int): String = omg.toString
-    def meth[C[+X] >: Null <: Iterable[X]](map: Map[Double, C[String]]): C[(Double, String)] = null
+    def meth[C[+X] <: Iterable[X]](map: Map[Double, C[String]]): C[(Double, String)] =
+      null.asInstanceOf[C[(Double, String)]]
     def multi(a: String)(b: String): String = a + b
     def vararg(values: String*): String = values.mkString("")
   }
 
-  test("simple test") {
+  ignore("simple test") {
+    // Delegation.apply / materializeDelegation are stubbed `???` in scala-3 MiscMacros.
+    // Re-enable once the macro is ported.
     val source = new Source
     val destination = Delegation[Destination[Double]](source)
 
@@ -33,4 +34,3 @@ class DelegationTest extends AnyFunSuite {
     assert(source.vararg("4", "2") == destination.vararg("4", "2"))
   }
 }
-*/
