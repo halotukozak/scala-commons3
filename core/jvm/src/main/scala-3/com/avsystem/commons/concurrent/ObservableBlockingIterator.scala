@@ -29,7 +29,11 @@ class ObservableBlockingIterator[T](
   @volatile private var last: Any = Empty
   @volatile private var ackPromise: Promise[Ack] | Null = scala.compiletime.uninitialized
   private val queue = new ArrayBlockingQueue[Any](bufferSize)
-  private lazy val cancelable = observable.subscribe(this)
+  // Subscribe must run eagerly so producers can fill the queue while consumers iterate.
+  // `this` is sufficiently initialized: all fields used by onNext/onError/onComplete
+  // (queue, ackPromise, last) are set above; cancelable itself is not touched from callbacks.
+  @nowarn("msg=Could not verify that the method argument is transitively initialized")
+  private val cancelable = observable.subscribe(this)
 
   def onNext(elem: T): Future[Ack] = {
     val safeElem = if (elem.asInstanceOf[AnyRef] eq null) Null else elem
