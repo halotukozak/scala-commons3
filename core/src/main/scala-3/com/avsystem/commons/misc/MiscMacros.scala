@@ -54,11 +54,40 @@ trait DelegationApplyMacros[B] {
 }
 
 object MiscMacros {
-  def materializeAnnotationOf[A: Type, T: Type](using Quotes): Expr[AnnotationOf[A, T]] = '{ ??? }
-  def materializeOptAnnotationOf[A: Type, T: Type](using Quotes): Expr[OptAnnotationOf[A, T]] = '{ ??? }
-  def materializeAnnotationsOf[A: Type, T: Type](using Quotes): Expr[AnnotationsOf[A, T]] = '{ ??? }
+  private def annotsOfT[A: Type, T: Type](using quotes: Quotes): List[quotes.reflect.Term] = {
+    import quotes.reflect.*
+    val aSym = TypeRepr.of[A].typeSymbol
+    TypeRepr.of[T].dealias.typeSymbol.annotations.filter(_.tpe.typeSymbol == aSym)
+  }
+
+  def materializeAnnotationOf[A: Type, T: Type](using quotes: Quotes): Expr[AnnotationOf[A, T]] = {
+    import quotes.reflect.*
+    annotsOfT[A, T].headOption match {
+      case Some(annot) => '{ AnnotationOf[A, T](${ annot.asExprOf[A] }) }
+      case None => report.errorAndAbort(s"${Type.show[T]} is not annotated with ${Type.show[A]}")
+    }
+  }
+
+  def materializeOptAnnotationOf[A: Type, T: Type](using quotes: Quotes): Expr[OptAnnotationOf[A, T]] = {
+    import quotes.reflect.*
+    val optExpr = annotsOfT[A, T].headOption match {
+      case Some(annot) => '{ Opt(${ annot.asExprOf[A] }) }
+      case None => '{ Opt.Empty }
+    }
+    '{ OptAnnotationOf[A, T]($optExpr) }
+  }
+
+  def materializeAnnotationsOf[A: Type, T: Type](using quotes: Quotes): Expr[AnnotationsOf[A, T]] = {
+    import quotes.reflect.*
+    val list = Expr.ofList(annotsOfT[A, T].map(_.asExprOf[A]))
+    '{ AnnotationsOf[A, T]($list) }
+  }
+
+  @TodoScala3Migration("SelfAnnotation family: needs enclosing class lookup like Scala 2 c.internal.enclosingOwner")
   def materializeSelfAnnotation[A: Type](using Quotes): Expr[SelfAnnotation[A]] = '{ ??? }
+  @TodoScala3Migration("SelfOptAnnotation family: needs enclosing class lookup")
   def materializeSelfOptAnnotation[A: Type](using Quotes): Expr[SelfOptAnnotation[A]] = '{ ??? }
+  @TodoScala3Migration("SelfAnnotations family: needs enclosing class lookup")
   def materializeSelfAnnotations[A: Type](using Quotes): Expr[SelfAnnotations[A]] = '{ ??? }
   def materializeSimpleClassName[T: Type](using quotes: Quotes): Expr[SimpleClassName[T]] = {
     import quotes.reflect.*
