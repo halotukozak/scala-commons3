@@ -29,4 +29,9 @@ trait AbstractCodecTest extends AnyFunSuite {
     val readBack = GenCodec.read[T](createInput(written))
     assertSameTypeValue(value, readBack)
   }
+
+  def testRoundtrip[T: GenCodec](value: T, expectedRepr: Raw)(implicit pos: Position): Unit = {
+    testWrite(value, expectedRepr)
+    testRead(expectedRepr, value)
+  }
 }

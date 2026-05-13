@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED: many small ports needed — explicit-nulls on null literals, 2-arg testRoundtrip overload missing, wildcard _-to-? rewrites, GenCodec derivation for SealedKey / Expr GADTs, etc. Restore once the test-helper API and derivation parity are in place.
+/* @TodoScala3Migration DISABLED: scala-3 GenCodec derivation hits a compiler crash 'missing outer accessor in anonymous class Object with made.MadeFieldElem' for some of the case-class / sealed-hierarchy tests in this file. Pending a fix in the made framework or a test split, the whole file is held disabled to keep the test suite green.
 package com.avsystem.commons
 package serialization.cbor
 

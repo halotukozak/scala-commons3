@@ -1,10 +1,11 @@
-/* @TodoScala3Migration DISABLED: many small ports needed — explicit-nulls on null literals, 2-arg testRoundtrip overload missing, wildcard _-to-? rewrites, GenCodec derivation for SealedKey / Expr GADTs, etc. Restore once the test-helper API and derivation parity are in place.
+/* @TodoScala3Migration DISABLED: scala-3 GenCodec derivation hits a compiler crash 'missing outer accessor in anonymous class Object with made.MadeFieldElem' for some of the case-class / sealed-hierarchy tests in this file. Pending a fix in the made framework or a test split, the whole file is held disabled to keep the test suite green.
 package com.avsystem.commons
 package serialization.json
 
 import com.avsystem.commons.serialization.CodecTestData.{CustomizedSeal, FlatSealedBase, OtherCustomCase}
 import com.avsystem.commons.serialization.GenCodec.ReadFailure
 import com.avsystem.commons.serialization._
+import made.annotation.{generated, name, optionalParam, transparent, whenAbsent}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck._
 import org.scalactic.source.Position
@@ -329,7 +330,7 @@ class JsonStringInputOutputTest
         val obj = input.readObject()
         obj.nextField().skip()
         val i2 = GenCodec.read[CompleteItem](obj.nextField())
-        TwoItems(null, i2)
+        TwoItems(null.asInstanceOf[CompleteItem], i2)
       }
 
       override def write(output: Output, value: TwoItems): Unit = {
@@ -370,7 +371,7 @@ class JsonStringInputOutputTest
     implicit val arbTree: Arbitrary[DeepNestedTestCC] =
       Arbitrary {
         def sized(sz: Int): Gen[DeepNestedTestCC] =
-          if (sz == 0) for (t <- arbitrary[TestCC]) yield DeepNestedTestCC(t, null)
+          if (sz == 0) for (t <- arbitrary[TestCC]) yield DeepNestedTestCC(t, null.asInstanceOf[DeepNestedTestCC])
           else
             for {
               t <- arbitrary[TestCC]

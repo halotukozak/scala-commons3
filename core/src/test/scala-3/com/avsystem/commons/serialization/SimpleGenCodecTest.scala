@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED: many small ports needed — explicit-nulls on null literals, 2-arg testRoundtrip overload missing, wildcard _-to-? rewrites, GenCodec derivation for SealedKey / Expr GADTs, etc. Restore once the test-helper API and derivation parity are in place.
+/* @TodoScala3Migration DISABLED: assertions reference case-class-like classes (CaseClassLike, HasInheritedApply, VarargsCaseClassLike, OnlyVarargsCaseClassLike) that are commented out in CodecTestData until apply/unapply detection is ported. Plus Expr[?] GADT and TypedMap[SealedKey] derivation gaps.
 package com.avsystem.commons
 package serialization
 
