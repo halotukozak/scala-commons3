@@ -59,10 +59,18 @@ trait GenCodecDerivation { this: GenCodec.type =>
           Array.tabulate(madeDefaults.length) { i =>
             transientDefaults(i) || optionalParams(i) || autoOptionals(i)
           }
+        val rawCodecs =
+          summonInstances[made.ElemTypes](summonAllowed = true, deriveAllowed = false)
+            .toArrayOf[GenCodec[?]](using containsOnly.refl)
+        val optionalCodecs = summonOptionalFieldCodecs[made.ElemTypes]
+        val finalCodecs: Array[GenCodec[?]] =
+          Array.tabulate(rawCodecs.length) { i =>
+            if (optionalParams(i) || autoOptionals(i)) optionalCodecs(i).getOrElse(rawCodecs(i))
+            else rawCodecs(i)
+          }
         deriveProduct(
           label,
-          summonInstances[made.ElemTypes](summonAllowed = true, deriveAllowed = false)
-            .toArrayOf[GenCodec[?]](using containsOnly.refl),
+          finalCodecs,
           effectiveDefaults,
           compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl),
           made.fromUnsafeArray,
@@ -159,6 +167,27 @@ trait GenCodecDerivation { this: GenCodec.type =>
           case _ => None
         }
         detectAllOptionalInto[elems](buf)
+    }
+
+  inline private def summonOptionalFieldCodecs[Elems <: Tuple]: Array[Option[GenCodec[?]]] = {
+    val buf = scala.collection.mutable.ArrayBuilder.make[Option[GenCodec[?]]]
+    summonOptionalFieldCodecsInto[Elems](buf)
+    buf.result()
+  }
+
+  inline private def summonOptionalFieldCodecsInto[Elems <: Tuple](
+    buf: scala.collection.mutable.ArrayBuilder[Option[GenCodec[?]]],
+  ): Unit =
+    inline compiletime.erasedValue[Elems] match {
+      case _: EmptyTuple => ()
+      case _: (elem *: elems) =>
+        buf += compiletime.summonFrom {
+          case ol: OptionLike[`elem`] =>
+            val valueCodec = compiletime.summonInline[GenCodec[ol.Value]]
+            Some(new OptionalFieldValueCodec[`elem`, ol.Value](ol, valueCodec))
+          case _ => None
+        }
+        summonOptionalFieldCodecsInto[elems](buf)
     }
 
   inline private def detectAutoOptional[Elems <: Tuple]: Array[Boolean] = {
