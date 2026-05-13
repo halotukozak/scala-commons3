@@ -1,10 +1,10 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package serialization
 
 import com.avsystem.commons.annotation.AnnotationAggregate
 import com.avsystem.commons.meta.{AutoOptionalParams, MacroInstances}
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, TypedKey}
+import made.annotation.{generated, name, optionalParam, transparent, whenAbsent}
 
 import scala.annotation.meta.getter
 
@@ -131,7 +131,7 @@ object CodecTestData {
   object TransparentWrapperWithDependency {
     // order matters
     implicit val codec: GenCodec[TransparentWrapperWithDependency] = GenCodec.materialize
-    implicit val stringCodec: GenCodec[String] = GenCodec.StringCodec
+    implicit val stringCodec: GenCodec[String] = (GenCodec.StringCodec: @scala.annotation.nowarn("cat=deprecation"))
   }
 
   @transparent case class StringId(id: String)
@@ -146,12 +146,12 @@ object CodecTestData {
 
   case class Stuff[T](name: String)
   object Stuff {
-    implicit val codec: GenCodec[Stuff[_]] = GenCodec.create(
+    implicit val codec: GenCodec[Stuff[?]] = GenCodec.create(
       in => new Stuff[Any](in.readSimple().readString()),
       (out, value) => out.writeSimple().writeString(value.name),
     )
   }
-  case class CaseClassWithWildcard(stuff: Stuff[_])
+  case class CaseClassWithWildcard(stuff: Stuff[?])
   object CaseClassWithWildcard extends HasGenCodec[CaseClassWithWildcard]
 
   case class CaseClassWithOptionalFields(
@@ -170,6 +170,11 @@ object CodecTestData {
   object CaseClassWithAutoOptionalFields
     extends HasGenCodecWithDeps[AutoOptionalParams.type, CaseClassWithAutoOptionalFields]
 
+  // @TodoScala3Migration: scala-3 GenCodec.materialize only fires for Mirror.ProductOf, i.e. real
+  // case classes — not for hand-written "case-class-like" classes with custom apply/unapply.
+  // CaseClassLike + HasInheritedApply commented out until upstream's apply/unapply detection is
+  // ported to quotes.
+  /*
   class CaseClassLike(val str: String, val intList: List[Int]) extends Wrapper[CaseClassLike](str, intList)
   object CaseClassLike extends HasGenCodec[CaseClassLike] {
     def apply(@name("some.str") str: String, intList: List[Int]): CaseClassLike = new CaseClassLike(str, intList)
@@ -187,6 +192,7 @@ object CodecTestData {
     protected def doApply(a: String, lb: List[Int]): HasInheritedApply = new HasInheritedApply(a, lb)
     protected def doUnapply(c: HasInheritedApply): Option[(String, List[Int])] = (c.str, c.intList).option
   }
+  */
 
   case class ThirdParty(i: Int, s: String)
   object ThirdParty extends HasGenCodecFromAU[ThirdPartyFakeCompanion.type, ThirdParty]
@@ -202,6 +208,8 @@ object CodecTestData {
   case class OnlyVarargsCaseClass(strings: String*)
   object OnlyVarargsCaseClass extends HasGenCodec[OnlyVarargsCaseClass]
 
+  // @TodoScala3Migration: more case-class-like patterns blocked until apply/unapply detection ports.
+  /*
   class VarargsCaseClassLike(val str: String, val ints: Seq[Int]) extends Wrapper[VarargsCaseClassLike](str, ints)
   object VarargsCaseClassLike extends HasGenCodec[VarargsCaseClassLike] {
     def apply(@name("some.str") str: String, ints: Int*): VarargsCaseClassLike = new VarargsCaseClassLike(str, ints)
@@ -213,6 +221,7 @@ object CodecTestData {
     def apply(strings: String*): OnlyVarargsCaseClassLike = new OnlyVarargsCaseClassLike(strings)
     def unapplySeq(vccl: OnlyVarargsCaseClassLike): Opt[Seq[String]] = vccl.strings.opt
   }
+  */
 
   case class HasDefaults(@transientDefault int: Int = 42, @transientDefault @whenAbsent("dafuq") str: String = "kek")
   object HasDefaults extends HasGenCodec[HasDefaults]
@@ -253,8 +262,10 @@ object CodecTestData {
   case class LazyRecExpr[+T](expr: RecExpr[T]) extends RecExpr[T]
   object RecExpr {
     private def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
-    implicit def codec[T: GenCodec]: GenCodec[RecExpr[T]] =
-      mkCodec[Nothing](GenCodec[T].asInstanceOf[GenCodec[Nothing]]).asInstanceOf[GenCodec[RecExpr[T]]]
+    implicit def codec[T: GenCodec]: GenCodec[RecExpr[T]] = {
+      given GenCodec[Nothing] = GenCodec[T].asInstanceOf[GenCodec[Nothing]]
+      mkCodec[Nothing].asInstanceOf[GenCodec[RecExpr[T]]]
+    }
   }
 
   @flatten sealed trait PureGadtExpr[T]
@@ -290,12 +301,12 @@ object CodecTestData {
   }
 
   sealed abstract class SealedKey[T](implicit val valueCodec: GenCodec[T]) extends TypedKey[T] with AutoNamedEnum
-  object SealedKey extends NamedEnumCompanion[SealedKey[_]] {
+  object SealedKey extends NamedEnumCompanion[SealedKey[?]] {
     case object StringKey extends SealedKey[String]
     case object IntKey extends SealedKey[Int]
     case object BooleanKey extends SealedKey[Boolean]
 
-    val values: List[SealedKey[_]] = caseObjects
+    val values: List[SealedKey[?]] = caseObjects
   }
 
   @flatten("kejs") sealed trait CustomizedSeal
@@ -363,7 +374,7 @@ object CodecTestData {
 
   locally {
     case class LocalStuff()
-    object LocalStuff extends HasGenCodec[LocalStuff]()(MacroInstances.materialize)
+    object LocalStuff extends HasGenCodec[LocalStuff]
   }
 
   trait GeneratorBase {
@@ -381,4 +392,3 @@ object CodecTestData {
   }
   object Generator extends HasGenCodec[Generator]
 }
-*/

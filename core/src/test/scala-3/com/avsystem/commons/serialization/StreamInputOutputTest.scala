@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* @TodoScala3Migration DISABLED: many  literals for String fields fail under -Yexplicit-nulls, plus Scala 3 implicit search reports ambiguity between objCodec and fieldTypesCodec where Scala 2 silently picks the more specific.
 package com.avsystem.commons
 package serialization
 

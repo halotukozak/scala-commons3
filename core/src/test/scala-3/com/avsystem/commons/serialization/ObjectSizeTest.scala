@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* @TodoScala3Migration DISABLED: scala-3 HasApplyUnapplyCodec exposes the codec as a given, not a public .codec val; would need an alternate accessor (summon) and porting @generated / @optionalParam behaviour into the derivation.
 package com.avsystem.commons
 package serialization
 
