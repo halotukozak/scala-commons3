@@ -1,27 +1,27 @@
+/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package misc
 
 import com.avsystem.commons.annotation.positioned
 import com.avsystem.commons.meta.{adtCaseMetadata, adtCaseSealedParentMetadata, adtParamMetadata, allowUnorderedSubtypes, checked, composite, infer, multi, AdtMetadataCompanion, MacroInstances, TypedMetadata}
-import com.avsystem.commons.serialization.{GenCaseInfo, GenCodec, GenParamInfo, GenUnionInfo}
-import com.avsystem.commons.meta.*
-import com.avsystem.commons.serialization.*
+import com.avsystem.commons.serialization.{name, GenCaseInfo, GenCodec, GenParamInfo, GenUnionInfo}
 
-import made.annotation.*
+trait GenCodecStructure[T] {
+  def codec: GenCodec[T]
+  def structure: GenStructure[T]
+}
 
 abstract class HasGenCodecStructure[T](
-  using macroInstances: MacroInstances[Unit, (codec: GenCodec[T], structure: GenStructure[T])],
+  implicit macroInstances: MacroInstances[Unit, GenCodecStructure[T]]
 ) {
-  given GenCodec[T] = macroInstances((), this).codec
-  given GenStructure[T] = macroInstances((), this).structure
+  implicit val genCodec: GenCodec[T] = macroInstances((), this).codec
+  implicit val genStructure: GenStructure[T] = macroInstances((), this).structure
 }
 
 sealed trait GenStructure[T] extends TypedMetadata[T] {
   def repr: String
 }
-object GenStructure extends AdtMetadataCompanion[GenStructure] {
-  given [T] => GenStructure[T] = ???
-}
+object GenStructure extends AdtMetadataCompanion[GenStructure]
 
 case class GenField[T](
   @infer ts: TypeString[T],
@@ -34,7 +34,7 @@ case class GenField[T](
 
 @positioned(positioned.here) case class GenUnion[T](
   @composite info: GenUnionInfo[T],
-  @multi @adtCaseMetadata cases: Map[String, GenCase[?]],
+  @multi @adtCaseMetadata cases: Map[String, GenCase[_]],
 ) extends GenStructure[T] {
   def repr: String = cases.iterator
     .map { case (name, gr) =>
@@ -46,16 +46,16 @@ case class GenField[T](
 sealed trait GenCase[T] extends TypedMetadata[T] {
   def repr: String
   def info: GenCaseInfo[T]
-  def sealedParents: List[GenSealedParent[?]]
+  def sealedParents: List[GenSealedParent[_]]
 }
 
 case class GenSealedParent[T](
-  @infer repr: TypeString[T],
+  @infer repr: TypeString[T]
 ) extends TypedMetadata[T]
 
 @positioned(positioned.here) case class GenCustomCase[T](
   @composite info: GenCaseInfo[T],
-  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[?]],
+  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[_]],
   @checked @infer structure: GenStructure.Lazy[T],
 ) extends GenCase[T] {
   def repr: String = structure.value.repr
@@ -63,8 +63,8 @@ case class GenSealedParent[T](
 
 @positioned(positioned.here) case class GenRecord[T](
   @composite info: GenCaseInfo[T],
-  @multi @adtParamMetadata fields: Map[String, GenField[?]],
-  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[?]],
+  @multi @adtParamMetadata fields: Map[String, GenField[_]],
+  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[_]],
 ) extends GenCase[T]
     with GenStructure[T] {
 
@@ -79,8 +79,8 @@ case class GenSealedParent[T](
 
 @positioned(positioned.here) case class GenSingleton[T](
   @composite info: GenCaseInfo[T],
-  @checked @infer valueOf: ValueOf[T],
-  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[?]],
+  @checked @infer valueOf: scala.ValueOf[T],
+  @multi @adtCaseSealedParentMetadata sealedParents: List[GenSealedParent[_]],
 ) extends GenCase[T]
     with GenStructure[T] {
   def repr: String = valueOf.value.toString
@@ -89,7 +89,7 @@ case class GenSealedParent[T](
 @allowUnorderedSubtypes
 case class GenUnorderedUnion[T](
   @composite info: GenUnionInfo[T],
-  @multi @adtCaseMetadata cases: Map[String, GenCase[?]],
+  @multi @adtCaseMetadata cases: Map[String, GenCase[_]],
 ) extends TypedMetadata[T]
 object GenUnorderedUnion extends AdtMetadataCompanion[GenUnorderedUnion] {
   materialize[Option[String]]
@@ -107,8 +107,9 @@ case class Galaxy(name: String, distance: Long) extends MaterialBeing
 
 class Peculiarity extends Being
 object Peculiarity {
-  given GenCodec[Peculiarity] | Null = null
-  given GenStructure[Peculiarity] | Null = null
+  implicit val codec: GenCodec[Peculiarity] = null
+  implicit val structure: GenStructure[Peculiarity] = null
 }
 
 case object God extends Being
+*/

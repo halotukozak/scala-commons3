@@ -20,6 +20,7 @@ class Subject
 class Subject2
 
 abstract class SelfAnnots(implicit val annots: SelfAnnotations[genann[?]])
+
 @genagg(42)
 @genann("fuu")
 class Klass extends SelfAnnots

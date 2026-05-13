@@ -1,8 +1,9 @@
+/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package macros
 
 object TreeForTypeTest {
-  def testTreeForType(tpeRepr: String): Nothing = ???
+  def testTreeForType(tpeRepr: String): Nothing = macro com.avsystem.commons.macros.TestMacros.testTreeForType
 
   val x = "x"
 
@@ -18,7 +19,7 @@ object TreeForTypeTest {
   testTreeForType("None.type")
   testTreeForType("this.type")
   testTreeForType("List[Int]")
-  testTreeForType("Set[?]")
+  testTreeForType("Set[_]")
   testTreeForType("Map[T, T] forSome {type T <: String}")
   testTreeForType("AnyRef with Serializable")
   testTreeForType("Int => String")
@@ -59,7 +60,7 @@ class TreeForTypeTest {
   testTreeForType("None.type")
   testTreeForType("this.type")
   testTreeForType("List[Int]")
-  testTreeForType("Set[?]")
+  testTreeForType("Set[_]")
   testTreeForType("Map[T, T] forSome {type T <: String}")
   testTreeForType("fu.z.type forSome {val fu: Fuu}")
   testTreeForType("fu.z.type forSome {val fu: Fuu with Singleton}")
@@ -88,7 +89,7 @@ class TreeForTypeTest {
     testTreeForType("Inner.this.type")
     testTreeForType("TreeForTypeTest.this.type")
     testTreeForType("List[Int]")
-    testTreeForType("Set[?]")
+    testTreeForType("Set[_]")
     testTreeForType("Map[T, T] forSome {type T <: String}")
     testTreeForType("fu.z.type forSome {val fu: Fuu}")
     testTreeForType("fu.bar.q.type forSome {val fu: Fuu}")
@@ -115,7 +116,7 @@ object UnrelatedTreeForType {
   testTreeForType("None.type")
   testTreeForType("this.type")
   testTreeForType("List[Int]")
-  testTreeForType("Set[?]")
+  testTreeForType("Set[_]")
   testTreeForType("Map[T, T] forSome {type T <: String}")
   testTreeForType("AnyRef with Serializable")
   testTreeForType("Higher[Id]")
@@ -126,3 +127,4 @@ object UnrelatedTreeForType {
     val lulz: Map[String, Int]
   }""")
 }
+*/

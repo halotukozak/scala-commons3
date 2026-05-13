@@ -2,6 +2,7 @@ package com.avsystem.commons
 package testutil
 
 import java.io.{BufferedReader, File, FileWriter, InputStreamReader}
+
 import scala.annotation.tailrec
 
 object IO {

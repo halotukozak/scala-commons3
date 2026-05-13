@@ -2,12 +2,10 @@ package com.avsystem.commons
 package concurrent
 
 import monix.reactive.Observable
-import org.scalatest.Ignore
 import org.scalatest.funsuite.AnyFunSuite
 
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 
-@Ignore // todo: never stops
 class ObservableBlockingIteratorTest extends AnyFunSuite {
   test("empty") {
     assert(DefaultBlocking.toIterator(Observable.empty).toList == Nil)

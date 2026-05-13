@@ -9,11 +9,11 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import scala.concurrent.TimeoutException
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 
 class JvmTaskExtensionsTest extends AnyFunSuite with Matchers with ScalaCheckDrivenPropertyChecks with ScalaFutures {
 
-  import com.avsystem.commons.concurrent.TaskExtensions.*
+  import com.avsystem.commons.concurrent.TaskExtensions._
 
   private implicit val scheduler: Scheduler = Scheduler.global
 

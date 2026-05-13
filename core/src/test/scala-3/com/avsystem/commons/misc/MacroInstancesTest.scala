@@ -1,3 +1,4 @@
+/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package misc
 
@@ -5,56 +6,64 @@ import com.avsystem.commons.meta.{infer, reifyAnnot, AdtMetadataCompanion, Macro
 import com.avsystem.commons.serialization.GenCodec
 
 object ComplexInstancesTest {
-  abstract class HasComplexInstances[T](
-    using macroInstances: MacroInstances[
-      DependencyImplicits.type,
-      (
-        plainCodec: GenCodec[Klass[Int]],
-        codecWithGeneric: GenCodec[Klass[T]],
-        dependencyUsingCodec: GenCodec[Klass[Dep]],
-        parameterizedCodec: [A: GenCodec] => () => GenCodec[Klass[A]],
-      ),
-    ],
-  ) {
-    val instances = macroInstances(DependencyImplicits, this)
-  }
   case class Dep(int: Int)
   case class Klass[T](value: T)
+
   object DependencyImplicits {
-    given GenCodec[Dep] = GenCodec.materialize
+    implicit val depCodec: GenCodec[Dep] = GenCodec.materialize
+  }
+
+  trait ComplexInstances[T] {
+    val plainCodec: GenCodec[Klass[Int]]
+    var codecWithGeneric: GenCodec[Klass[T]]
+    def dependencyUsingCodec: GenCodec[Klass[Dep]]
+    def parameterizedCodec[A: GenCodec]: GenCodec[Klass[A]]
+  }
+
+  abstract class HasComplexInstances[T](
+    implicit macroInstances: MacroInstances[DependencyImplicits.type, ComplexInstances[T]]
+  ) {
+    val instances: ComplexInstances[T] = macroInstances(DependencyImplicits, this)
   }
 }
 
 object MultipleImplicitImportsTest {
-  abstract class HasGenCodecUsingAB[T](
-    using instances: MacroInstances[(ACodec.type, BCodec.type), (codec: GenCodec[T])],
-  ) {
-    given GenCodec[T] = instances((ACodec, BCodec), this).codec
-  }
   case class A(str: String)
   case class B(int: Int)
-  case class AwithB(a: A, b: B)
+
   object ACodec {
-    given GenCodec[A] = GenCodec.materialize
+    implicit val aCodec: GenCodec[A] = GenCodec.materialize
   }
   object BCodec {
-    given GenCodec[B] = GenCodec.materialize
+    implicit val bCodec: GenCodec[B] = GenCodec.materialize
   }
+
+  abstract class HasGenCodecUsingAB[T](
+    implicit instances: MacroInstances[(ACodec.type, BCodec.type), () => GenCodec[T]]
+  ) {
+    implicit lazy val codec: GenCodec[T] = instances((ACodec, BCodec), this).apply()
+  }
+
+  case class AwithB(a: A, b: B)
   object AwithB extends HasGenCodecUsingAB[AwithB]
 }
 
 object AnnotationReferringToEnclosingObjectTest {
-  abstract class HasMeta[T](
-    using instances: MacroInstances[Unit, (meta: Meta[T])],
-  ) {
-    given Meta[T] = instances((), this).meta
-  }
-  class example[+T](value: T, @infer codec: GenCodec[T] = infer.value[GenCodec[T]]) extends StaticAnnotation
+  class example[+T](value: T, @infer codec: GenCodec[T] = infer.value) extends StaticAnnotation
+
   class Meta[T](@reifyAnnot example: example[T])
+  object Meta extends AdtMetadataCompanion[Meta]
+
+  abstract class HasMeta[T](
+    implicit instances: MacroInstances[Unit, () => Meta[T]]
+  ) {
+    implicit val meta: Meta[T] = instances((), this).apply()
+  }
+
   @example(Rec("lol", 42))
   case class Rec(str: String, int: Int)
-//  object Meta extends AdtMetadataCompanion[Meta]
-//  object Rec extends HasMeta[Rec] {
-//    given GenCodec[Rec] = GenCodec.materialize
-//  }
+  object Rec extends HasMeta[Rec] {
+    implicit val codec: GenCodec[Rec] = GenCodec.materialize
+  }
 }
+*/

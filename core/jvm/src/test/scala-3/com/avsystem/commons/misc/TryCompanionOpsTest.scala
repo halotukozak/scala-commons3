@@ -4,10 +4,9 @@ package misc
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/**
- * @author
- *   Wojciech Milewski
- */
+/** @author
+  *   Wojciech Milewski
+  */
 class TryCompanionOpsTest extends AnyFlatSpec with Matchers {
 
   "Try.sequence" should "convert empty list" in {

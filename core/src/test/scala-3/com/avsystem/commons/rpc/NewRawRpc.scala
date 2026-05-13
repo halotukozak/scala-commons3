@@ -1,11 +1,11 @@
 package com.avsystem.commons
 package rpc
 
-import com.avsystem.commons.annotation.AnnotationAggregate
-import com.avsystem.commons.meta.*
-import com.avsystem.commons.misc.TypeString
-
 import java.util.regex.Matcher
+
+import com.avsystem.commons.annotation.AnnotationAggregate
+import com.avsystem.commons.meta._
+import com.avsystem.commons.misc.TypeString
 
 trait DummyParamTag extends RpcTag with AnnotationAggregate
 
@@ -79,7 +79,7 @@ object Utils {
   }
 }
 
-import com.avsystem.commons.rpc.Utils.*
+import com.avsystem.commons.rpc.Utils._
 
 case class DoSomethings(
   @rpcMethodMetadata doSomething: DoSomethingSignature,
@@ -172,7 +172,7 @@ case class GetterMetadata[T](
   position: MethodPosition,
   @composite params: GetterParams,
   @infer @checked resultMetadata: NewRpcMetadata.Lazy[T],
-)(implicit val typeString: TypeString[T],
+)(implicit val typeString: TypeString[T]
 ) extends TypedMetadata[T]
     with MethodMetadata[T] {
   def repr(open: List[NewRpcMetadata[?]]): String =
@@ -185,7 +185,7 @@ case class PostMetadata[T: TypeString](
   @reifyAnnot post: POST,
   @tagged[header] @multi @verbatim @rpcParamMetadata headers: Vector[ParameterMetadata[String]],
   @multi @rpcParamMetadata body: MLinkedHashMap[String, ParameterMetadata[?]],
-)(implicit val typeString: TypeString[T],
+)(implicit val typeString: TypeString[T]
 ) extends TypedMetadata[T]
     with MethodMetadata[T] {
 
@@ -216,7 +216,7 @@ case class ParameterMetadata[T](
   @reifyAnnot @multi metas: List[suchMeta],
   @isAnnotated[suchMeta] suchMeta: Boolean,
   // TODO: macro has problems when real type param leaks into metadata param type
-//  @optional @forTypeParams @reifyAnnot annotTypeStringOpt: Opt[List[TypeString[_]] => annotTypeString[T]],
+//  @optional @forTypeParams @reifyAnnot annotTypeStringOpt: Opt[List[TypeString[?]] => annotTypeString[T]],
   @forTypeParams @infer typeString: List[TypeString[?]] => TypeString[T],
 ) extends TypedMetadata[T] {
   def repr(tparams: List[TypeParameterMetadata]): String = {
@@ -237,7 +237,7 @@ case class NameInfo(
 
 @allowIncomplete
 case class PartialMetadata[T](
-  @multi @rpcMethodMetadata @annotated[POST] @notAnnotated[negFilter] posts: List[PostMethod[?]],
+  @multi @rpcMethodMetadata @annotated[POST] @notAnnotated[negFilter] posts: List[PostMethod[?]]
 ) {
   def repr: String = posts.map(_.repr).mkString("\n")
 }
@@ -252,7 +252,7 @@ case class PostMethod[T](
 }
 
 case class HeaderParam[T](
-  @reifyAnnot header: header,
+  @reifyAnnot header: header
 ) extends TypedMetadata[T] {
   def repr: String = header.name
 }

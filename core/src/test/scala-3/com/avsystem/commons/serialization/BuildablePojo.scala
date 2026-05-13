@@ -34,9 +34,6 @@ object BuildablePojo {
     def build(): BuildablePojo =
       new BuildablePojo(str, num, flags, cool)
   }
-
-  given GenCodec[BuildablePojo] =
-    GenCodec.fromJavaBuilder(BuildablePojo.builder())(_.build())
 }
 final class BuildablePojo private (
   private val str: String,

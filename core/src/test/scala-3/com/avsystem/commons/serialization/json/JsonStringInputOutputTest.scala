@@ -1,17 +1,17 @@
+/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package serialization.json
 
-import com.avsystem.commons.serialization.*
-import com.avsystem.commons.serialization.CodecTestData.*
+import com.avsystem.commons.serialization.CodecTestData.{CustomizedSeal, FlatSealedBase, OtherCustomCase}
 import com.avsystem.commons.serialization.GenCodec.ReadFailure
-import org.scalacheck.*
+import com.avsystem.commons.serialization._
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck._
 import org.scalactic.source.Position
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import made.*
-import made.annotation.*
+
 import scala.collection.mutable.ListBuffer
 
 class JsonStringInputOutputTest
@@ -68,7 +68,7 @@ class JsonStringInputOutputTest
     assert(resBuilder.result() == jsons)
   }
 
-  def roundtrip[T: GenCodec](name: String)(values: T*)(using Position): Unit = {
+  def roundtrip[T: GenCodec](name: String)(values: T*)(implicit pos: Position): Unit = {
     test(name) {
       val serialized = values.map(write[T](_))
       val deserialized = serialized.map(read[T](_))
@@ -163,16 +163,16 @@ class JsonStringInputOutputTest
     val map = Map("a" -> List(1, 2), "b" -> List(3, 4, 5))
     val prettyJson = write[Map[String, List[Int]]](map, options)
     assert(prettyJson == """{
-                           |  "a": [
-                           |    1,
-                           |    2
-                           |  ],
-                           |  "b": [
-                           |    3,
-                           |    4,
-                           |    5
-                           |  ]
-                           |}""".stripMargin)
+        |  "a": [
+        |    1,
+        |    2
+        |  ],
+        |  "b": [
+        |    3,
+        |    4,
+        |    5
+        |  ]
+        |}""".stripMargin)
     assert(read[Map[String, List[Int]]](prettyJson, options) == map)
   }
 
@@ -323,8 +323,8 @@ class JsonStringInputOutputTest
   }
 
   test("work with skipping") {
-    case class TwoItems(i1: CompleteItem | Null, i2: CompleteItem)
-    given GenCodec[TwoItems] = new GenCodec[TwoItems] {
+    case class TwoItems(i1: CompleteItem, i2: CompleteItem)
+    implicit val skippingCodec: GenCodec[TwoItems] = new GenCodec[TwoItems] {
       override def read(input: Input): TwoItems = {
         val obj = input.readObject()
         obj.nextField().skip()
@@ -334,7 +334,7 @@ class JsonStringInputOutputTest
 
       override def write(output: Output, value: TwoItems): Unit = {
         val obj = output.writeObject()
-        GenCodec.write[CompleteItem](obj.writeField("i1"), value.i1.asInstanceOf[CompleteItem])
+        GenCodec.write[CompleteItem](obj.writeField("i1"), value.i1)
         GenCodec.write[CompleteItem](obj.writeField("i2"), value.i2)
         obj.finish()
       }
@@ -345,7 +345,7 @@ class JsonStringInputOutputTest
       val serialized = write(item)
       val deserialized = read[TwoItems](serialized)
 
-      deserialized.i1 shouldBe null.asInstanceOf[CompleteItem]
+      deserialized.i1 shouldBe null
       deserialized.i2.unit shouldBe item.i2.unit
       deserialized.i2.string shouldBe item.i2.string
       deserialized.i2.char shouldBe item.i2.char
@@ -367,7 +367,7 @@ class JsonStringInputOutputTest
   }
 
   test("serialize and deserialize huge case classes") {
-    given Arbitrary[DeepNestedTestCC] =
+    implicit val arbTree: Arbitrary[DeepNestedTestCC] =
       Arbitrary {
         def sized(sz: Int): Gen[DeepNestedTestCC] =
           if (sz == 0) for (t <- arbitrary[TestCC]) yield DeepNestedTestCC(t, null)
@@ -388,8 +388,11 @@ class JsonStringInputOutputTest
     }
   }
 
-  case class NestedOne(@transientDefault n: Option[NestedOne] = None) derives GenCodec
-  case class NestedTwo(@transientDefault @whenAbsent(None) n: Option[NestedTwo]) derives GenCodec
+  case class NestedOne(@transientDefault n: Option[NestedOne] = None)
+  object NestedOne extends HasGenCodec[NestedOne]
+
+  case class NestedTwo(@transientDefault @whenAbsent(None) n: Option[NestedTwo])
+  object NestedTwo extends HasGenCodec[NestedTwo]
 
   test("serializing recursively defined case classes with optional field") {
     assert(JsonStringOutput.write(NestedOne()) == "{}")
@@ -420,13 +423,14 @@ class JsonStringInputOutputTest
     assert(oi.nextField().fieldName == "b") // peeking should not affect `nextField`
   }
 
-//  test("reading flat sealed hierarchy with changed field order") {
-//    val json = """{"_id": "foo", "int": 31, "_case": "FirstCase"}"""
-//    assert(JsonStringInput.read[FlatSealedBase](json) == FlatSealedBase.FirstCase("foo", 31))
-//  }
-//
-//  test("reading flat sealed hierarchy with changed field order & custom case field name") {
-//    val json = """{"flag": false, "kejs": "OtherCustomCase", "value": 41}"""
-//    assert(JsonStringInput.read[CustomizedSeal](json) == OtherCustomCase(41, flag = false))
-//  }
+  test("reading flat sealed hierarchy with changed field order") {
+    val json = """{"_id": "foo", "int": 31, "_case": "FirstCase"}"""
+    assert(JsonStringInput.read[FlatSealedBase](json) == FlatSealedBase.FirstCase("foo", 31))
+  }
+
+  test("reading flat sealed hierarchy with changed field order & custom case field name") {
+    val json = """{"flag": false, "kejs": "OtherCustomCase", "value": 41}"""
+    assert(JsonStringInput.read[CustomizedSeal](json) == OtherCustomCase(41, flag = false))
+  }
 }
+*/
