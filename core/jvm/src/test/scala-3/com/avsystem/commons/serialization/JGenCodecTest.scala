@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* @TodoScala3Migration DISABLED: depends on SimpleIOCodecTest in SimpleGenCodecTest.scala which is itself disabled while case-class-like derivation is being ported.
 package com.avsystem.commons
 package serialization
 
