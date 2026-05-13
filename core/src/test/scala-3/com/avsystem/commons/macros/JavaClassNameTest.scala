@@ -21,7 +21,7 @@ class JavaClassNameTest extends AnyFunSuite {
   // @TodoScala3Migration: scala-3 TypeString.show collapses `.type`, so JavaClassNameTest vs
   // JavaClassNameTest.type produce the same TypeString. Until materializeImpl distinguishes them,
   // disambiguate test names with JavaClassName.of[T].
-  def testCase[T: ClassTag: JavaClassName: TypeString](implicit pos: Position): Unit =
+  def testCase[T: {ClassTag, JavaClassName, TypeString}](implicit pos: Position): Unit =
     test(s"${TypeString.of[T]} (${JavaClassName.of[T]})")(
       assert(JavaClassName.of[T] == classTag[T].runtimeClass.getName)
     )

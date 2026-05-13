@@ -134,7 +134,43 @@ object MiscMacros {
     '{ SimpleClassName[T]($name) }
   }
   def materializeSourceInfo(using Quotes): Expr[SourceInfo] = '{ ??? }
-  def inferImpl[T: Type](using Quotes): Expr[T] = '{ ??? }.asInstanceOf[Expr[T]]
-  def clueInferImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] = '{ ??? }.asInstanceOf[Expr[T]]
-  def inferNonMacroImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] = '{ ??? }.asInstanceOf[Expr[T]]
+  def inferImpl[T: Type](using Quotes): Expr[T] = inferTpe[T]("")
+  def clueInferImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] =
+    inferTpe[T](clue.valueOrAbort)
+  def inferNonMacroImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] =
+    // The Scala 2 macro disables further macro expansion for this search; Scala 3's Implicits.search
+    // doesn't expose that knob, so we fall back to the same path as `infer`.
+    inferTpe[T](clue.valueOrAbort)
+
+  private def inferTpe[T: Type](clue: String)(using quotes: Quotes): Expr[T] = {
+    import quotes.reflect.*
+    Implicits.search(TypeRepr.of[T]) match {
+      case s: ImplicitSearchSuccess => s.tree.asExprOf[T]
+      case _: ImplicitSearchFailure =>
+        // Mimic upstream `implicitNotFoundMsg`: look up @implicitNotFound message via
+        // ImplicitNotFound[T] sentinel — if the user provided one, use its message; otherwise
+        // fall back to the default failure explanation.
+        val msg = implicitNotFoundMessage[T].getOrElse(s"no implicit value for ${Type.show[T]}")
+        report.errorAndAbort((if (clue.isEmpty) "" else clue + "\n") + msg)
+    }
+  }
+
+  private def implicitNotFoundMessage[T: Type](using quotes: Quotes): Option[String] = {
+    import quotes.reflect.*
+    val implicitNotFoundCls = Symbol.requiredClass("scala.annotation.implicitNotFound")
+    val notFoundType = TypeRepr.of[ImplicitNotFound[T]]
+    Implicits.search(notFoundType) match {
+      case s: ImplicitSearchSuccess =>
+        val annots = s.tree.symbol.annotations ++ s.tree.tpe.typeSymbol.annotations
+        annots.collectFirst {
+          case a if a.tpe.typeSymbol == implicitNotFoundCls =>
+            a match {
+              case Apply(_, args) =>
+                args.collectFirst { case Literal(StringConstant(msg)) => msg }
+              case _ => None
+            }
+        }.flatten
+      case _ => None
+    }
+  }
 }

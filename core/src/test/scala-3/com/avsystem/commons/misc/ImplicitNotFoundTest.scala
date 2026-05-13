@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build: Implicits.infer macro is stub (MiscMacros.inferImpl returns ???). Needs real implicit search impl to surface @implicitNotFound messages.
 package com.avsystem.commons
 package misc
 
@@ -24,8 +23,9 @@ class ImplicitNotFoundTest extends AnyFunSuite with CompilationErrorAssertions {
     assert(typeErrorFor("Implicits.infer[Stuff]") == "no stuff available")
   }
 
-  test("with dependencies") {
+  // @TodoScala3Migration: `#{paramName}` interpolation in @implicitNotFound — recurse into the
+  // ImplicitNotFound of that parameter's type — not yet implemented in scala-3 inferImpl.
+  ignore("with dependencies") {
     assert(typeErrorFor("Implicits.infer[OtherStuff]") == "no other stuff available because: no stuff available")
   }
 }
-*/
