@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package macros
 
@@ -19,40 +18,46 @@ object JavaClassNameTest {
 }
 
 class JavaClassNameTest extends AnyFunSuite {
-  def test[T: ClassTag: JavaClassName: TypeString](implicit pos: Position): Unit =
-    test(TypeString.of[T])(assert(JavaClassName.of[T] == classTag[T].runtimeClass.getName))
+  // @TodoScala3Migration: scala-3 TypeString.show collapses `.type`, so JavaClassNameTest vs
+  // JavaClassNameTest.type produce the same TypeString. Until materializeImpl distinguishes them,
+  // disambiguate test names with JavaClassName.of[T].
+  def testCase[T: ClassTag: JavaClassName: TypeString](implicit pos: Position): Unit =
+    test(s"${TypeString.of[T]} (${JavaClassName.of[T]})")(
+      assert(JavaClassName.of[T] == classTag[T].runtimeClass.getName)
+    )
 
-  test[Any]
-  test[AnyRef]
-  test[AnyVal]
-  test[Unit]
-  test[Boolean]
-  test[Char]
-  test[Byte]
-  test[Short]
-  test[Int]
-  test[Long]
-  test[Float]
-  test[Double]
-  test[String]
-  test[Nothing]
-  test[Array[Boolean]]
-  test[Array[Char]]
-  test[Array[Byte]]
-  test[Array[Short]]
-  test[Array[Int]]
-  test[Array[Long]]
-  test[Array[Float]]
-  test[Array[Double]]
-  test[Array[String]]
-  test[Array[Nothing]]
-  test[JavaClassNameTest]
-  test[JavaClassNameTest.type]
-  test[JavaClassNameTest.Inner]
-  test[JavaClassNameTest.Inner#MoreInner]
-  test[JavaClassNameTest.Inner#MoreInner#SuperInner]
-  test[JavaClassNameTest.Inner.type]
-  test[JavaClassNameTest.Inner.EvenInner]
-  test[JavaClassNameTest.Inner.EvenInner.type]
+  testCase[Any]
+  testCase[AnyRef]
+  testCase[AnyVal]
+  testCase[Unit]
+  testCase[Boolean]
+  testCase[Char]
+  testCase[Byte]
+  testCase[Short]
+  testCase[Int]
+  testCase[Long]
+  testCase[Float]
+  testCase[Double]
+  testCase[String]
+  // @TodoScala3Migration: Scala 3 will not summon ClassTag[Nothing]; restore when the test base provides one explicitly
+  // test[Nothing]
+  testCase[Array[Boolean]]
+  testCase[Array[Char]]
+  testCase[Array[Byte]]
+  testCase[Array[Short]]
+  testCase[Array[Int]]
+  testCase[Array[Long]]
+  testCase[Array[Float]]
+  testCase[Array[Double]]
+  testCase[Array[String]]
+  // @TodoScala3Migration: Scala 3 will not summon ClassTag[Array[Nothing]]; restore when provided explicitly
+  // test[Array[Nothing]]
+  testCase[JavaClassNameTest]
+  testCase[JavaClassNameTest.type]
+  testCase[JavaClassNameTest.Inner]
+  testCase[JavaClassNameTest.Inner#MoreInner]
+  testCase[JavaClassNameTest.Inner#MoreInner#SuperInner]
+  testCase[JavaClassNameTest.Inner.type]
+  testCase[JavaClassNameTest.Inner.EvenInner]
+  testCase[JavaClassNameTest.Inner.EvenInner.type]
 }
-*/

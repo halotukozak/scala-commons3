@@ -97,8 +97,11 @@ trait JavaClassNameLowPriority { this: JavaClassName.type =>
 def derivedImpl[T: Type](using quotes: Quotes) = {
   import quotes.reflect.*
   def javaClassName(sym: Symbol): String = {
+    // Scala 3 already reports module class names with a trailing `$`; normalise before re-adding so
+    // companion objects don't produce a double `$$` suffix.
+    val baseName = sym.name.stripSuffix("$")
     val nameSuffix = if (sym.flags.is(Flags.Module) && !sym.flags.is(Flags.Package)) "$" else ""
-    val selfName = sym.name + nameSuffix
+    val selfName = baseName + nameSuffix
     val owner = sym.owner
     val prefix =
       if (owner == defn.RootClass) ""

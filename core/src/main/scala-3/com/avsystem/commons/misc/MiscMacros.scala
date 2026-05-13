@@ -64,10 +64,6 @@ trait SamMacros {
 trait TypeStringMacros {
   inline implicit def materialize[T]: TypeString[T] = ???
 }
-@TodoScala3Migration("JavaClassName.materialize is a stub — JavaClassNameTest disabled")
-trait JavaClassNameMacros {
-  inline implicit def materialize[T]: JavaClassName[T] = ???
-}
 @TodoScala3Migration("SealedUtils.caseObjectsFor / instancesFor are stubs")
 trait SealedUtilsMacros {
   inline def caseObjectsFor[T]: List[T] = ???
