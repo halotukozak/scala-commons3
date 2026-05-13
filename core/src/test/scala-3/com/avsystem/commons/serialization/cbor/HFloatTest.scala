@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package serialization.cbor
 
@@ -10,7 +9,7 @@ class HFloatTest extends AnyFunSuite {
     val float = java.lang.Float.intBitsToFloat(floatBits)
     test(name) {
       val hfloat = HFloat.fromFloat(float)
-      assert(hfloat.raw.toHexString == hfloatBits.toShort.toHexString)
+      assert((hfloat.raw & 0xFFFF).toHexString == (hfloatBits & 0xFFFF).toHexString)
       assert(java.lang.Float.floatToIntBits(hfloat.toFloat).toHexString == roundedBits.toHexString)
     }
   }
@@ -33,4 +32,3 @@ class HFloatTest extends AnyFunSuite {
   testConv("subnormal with rounding")(mkFloat(-16, 0x7fe000), mkHFloat(-15, 0x200), mkFloat(-15, 0))
   testConv("subnormal with exp rounding")(mkFloat(-15, 0x7fe000), mkHFloat(-14, 0), mkFloat(-14, 0))
 }
-*/
