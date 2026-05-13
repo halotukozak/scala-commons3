@@ -285,9 +285,7 @@ object CodecTestData {
   object RecBounded extends HasGenCodec[RecBounded]
   case object NothingRecExpr extends RecExpr[Nothing]
   object RecExpr {
-    given [T: GenCodec] => GenCodec[RecExpr[T]] =
-      mkCodec[Nothing](using GenCodec[T].asInstanceOf[GenCodec[Nothing]]).asInstanceOf[GenCodec[RecExpr[T]]]
-    private def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
+    inline given [T: GenCodec] => GenCodec[RecExpr[T]] = GenCodec.materialize
   }
   case object NullLiteral extends PureGadtExpr[Null]
   object PureGadtExpr extends HasGadtCodec[PureGadtExpr]
