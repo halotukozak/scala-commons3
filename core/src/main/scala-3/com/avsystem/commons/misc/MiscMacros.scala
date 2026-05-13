@@ -43,10 +43,6 @@ trait ImplicitsMacros {
 trait SelfInstanceMacros {
   inline implicit def materialize[C[_]]: SelfInstance[C] = ???
 }
-@TodoScala3Migration("SamCompanion.apply is a stub")
-trait SamCompanionMacros[T, F] {
-  inline def apply(fun: F): T = ???
-}
 
 @TodoScala3Migration("Delegation.materializeDelegation is a stub — DelegationTest is `ignore`d")
 trait DelegationMacros {
@@ -56,27 +52,6 @@ trait DelegationMacros {
 trait DelegationApplyMacros[B] {
   inline def apply[A](inline source: A): B = ???
 }
-@TodoScala3Migration("Sam.apply is a stub — SamTest disabled")
-trait SamMacros {
-  inline def apply[T](inline fun: => Any): T = ???
-}
-@TodoScala3Migration("TypeString.materialize is a stub — TypeStringTest disabled")
-trait TypeStringMacros {
-  inline implicit def materialize[T]: TypeString[T] = ???
-}
-@TodoScala3Migration("SealedUtils.caseObjectsFor / instancesFor are stubs")
-trait SealedUtilsMacros {
-  inline def caseObjectsFor[T]: List[T] = ???
-  inline def instancesFor[TC[_], T]: List[TC[T]] = ???
-}
-@TodoScala3Migration("Unapplier.materialize is a stub")
-trait UnapplierMacros {
-  inline implicit def materialize[T]: Unapplier[T] = ???
-}
-@TodoScala3Migration("ApplierUnapplier.materialize is a stub — ApplierUnapplierTest disabled")
-trait ApplierUnapplierMacros {
-  inline implicit def materialize[T]: ApplierUnapplier[T] = ???
-}
 
 object MiscMacros {
   def materializeAnnotationOf[A: Type, T: Type](using Quotes): Expr[AnnotationOf[A, T]] = '{ ??? }
@@ -85,7 +60,12 @@ object MiscMacros {
   def materializeSelfAnnotation[A: Type](using Quotes): Expr[SelfAnnotation[A]] = '{ ??? }
   def materializeSelfOptAnnotation[A: Type](using Quotes): Expr[SelfOptAnnotation[A]] = '{ ??? }
   def materializeSelfAnnotations[A: Type](using Quotes): Expr[SelfAnnotations[A]] = '{ ??? }
-  def materializeSimpleClassName[T: Type](using Quotes): Expr[SimpleClassName[T]] = '{ ??? }
+  def materializeSimpleClassName[T: Type](using quotes: Quotes): Expr[SimpleClassName[T]] = {
+    import quotes.reflect.*
+    val sym = TypeRepr.of[T].dealias.typeSymbol
+    val name = Expr(sym.name.stripSuffix("$"))
+    '{ SimpleClassName[T]($name) }
+  }
   def materializeSourceInfo(using Quotes): Expr[SourceInfo] = '{ ??? }
   def inferImpl[T: Type](using Quotes): Expr[T] = '{ ??? }.asInstanceOf[Expr[T]]
   def clueInferImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] = '{ ??? }.asInstanceOf[Expr[T]]

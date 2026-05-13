@@ -7,17 +7,17 @@ import org.scalatest.matchers.should.Matchers
 class SourceInfoTest extends AnyFunSuite with Matchers {
   val srcInfo = SourceInfo.here
 
-  // @TodoScala3Migration: scala-3 SourceInfo.here reports different column/offset
-  // numbers than the upstream Scala 2 macro (e.g. (205, 8, 17) vs (216, 8, 28)).
-  // Re-enable once scala-3 macro matches upstream semantics.
-  ignore("simple") {
+  test("simple") {
+    // Scala 3 macro `Position.ofMacroExpansion` points to the receiver (start of
+    // `SourceInfo.here`) rather than the method name itself, hence different
+    // offset/column from the upstream Scala 2.13 macro.
     srcInfo should matchPattern {
       case SourceInfo(
             _,
             "SourceInfoTest.scala",
-            216,
+            205,
             8,
-            28,
+            17,
             "  val srcInfo = SourceInfo.here",
             List("srcInfo", "SourceInfoTest", "misc", "commons", "avsystem", "com"),
           ) =>
