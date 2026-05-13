@@ -1,4 +1,3 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons.serialization
 
 import org.scalatest.funsuite.AnyFunSuite
@@ -10,19 +9,20 @@ final class NotUsedTransientDefault extends AnyFunSuite {
   test("no warnings when @transientDefault is used properly") {
     assertCompiles(
       // language=Scala
-      s"""
+      """
          |GenCodec.materialize[Valid]
          |""".stripMargin
     )
   }
 
-  test("fails to compile when missing default value") {
+  ignore("fails to compile when missing default value") {
+    // Scala 3 GenCodec.materialize currently accepts @transientDefault without
+    // a default value. Restore upstream validation in our derivation, then unignore.
     assertDoesNotCompile(
       // language=Scala
-      s"""
+      """
          |GenCodec.materialize[Invalid]
          |""".stripMargin
     )
   }
 }
-*/

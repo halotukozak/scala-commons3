@@ -1,4 +1,4 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* DISABLED for Scala 3 build: Implicits.infer macro is stub (MiscMacros.inferImpl returns ???). Needs real implicit search impl to surface @implicitNotFound messages.
 package com.avsystem.commons
 package misc
 

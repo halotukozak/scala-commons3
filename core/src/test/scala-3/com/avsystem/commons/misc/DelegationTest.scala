@@ -1,4 +1,5 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* DISABLED for Scala 3 build: meth[C[+X] >: Null <: Iterable[X]] rejected under -Yexplicit-nulls
+   (`List does not conform to lower bound [X] =>> Null`). Either drop Null lower bound or relax strict-nulls.
 package com.avsystem.commons
 package misc
 

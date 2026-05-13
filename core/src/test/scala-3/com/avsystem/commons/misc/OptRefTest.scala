@@ -1,4 +1,3 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons.misc
 
 import com.avsystem.commons.JInteger
@@ -13,7 +12,7 @@ class OptRefTest extends AnyFunSuite {
   }
 
   test("empty test") {
-    val str: String = null
+    val str: String = null.asInstanceOf[String]
     val opt = OptRef(str)
     opt match {
       case OptRef.Empty =>
@@ -37,4 +36,3 @@ class OptRefTest extends AnyFunSuite {
     assert(OptRef[JInteger](3).zip(OptRef.Empty) == OptRef.Empty)
   }
 }
-*/

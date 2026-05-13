@@ -1,4 +1,3 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons.misc
 
 import com.avsystem.commons.SharedExtensions._
@@ -14,7 +13,7 @@ class OptArgTest extends AnyFunSuite with Matchers {
   }
 
   test("empty") {
-    val str: String = null
+    val str: String = null.asInstanceOf[String]
     val opt = OptArg(str)
     opt match {
       case OptArg.Empty =>
@@ -22,7 +21,7 @@ class OptArgTest extends AnyFunSuite with Matchers {
   }
 
   test("null some") {
-    intercept[NullPointerException](OptArg.some[String](null))
+    intercept[NullPointerException](OptArg.some[String](null.asInstanceOf[String]))
   }
 
   def takeMaybeString(str: OptArg[String] = OptArg.Empty): Opt[String] = str.toOpt
@@ -32,4 +31,3 @@ class OptArgTest extends AnyFunSuite with Matchers {
     takeMaybeString("stringzor") shouldEqual "stringzor".opt
   }
 }
-*/

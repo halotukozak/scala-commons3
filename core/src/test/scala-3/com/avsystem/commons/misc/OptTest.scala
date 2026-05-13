@@ -1,4 +1,3 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons.misc
 
 import com.avsystem.commons.JInteger
@@ -13,7 +12,7 @@ class OptTest extends AnyFunSuite {
   }
 
   test("empty test") {
-    val str: String = null
+    val str: String = null.asInstanceOf[String]
     val opt = Opt(str)
     opt match {
       case Opt.Empty =>
@@ -21,7 +20,7 @@ class OptTest extends AnyFunSuite {
   }
 
   test("null some test") {
-    intercept[NullPointerException](Opt.some[String](null))
+    intercept[NullPointerException](Opt.some[String](null.asInstanceOf[String]))
   }
 
   test("boxing unboxing test") {
@@ -80,4 +79,3 @@ class OptTest extends AnyFunSuite {
     assert(Opt(fail("Parameter should not be evaluated")).unless(true) == Opt.Empty)
   }
 }
-*/

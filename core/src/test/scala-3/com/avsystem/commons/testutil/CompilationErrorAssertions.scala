@@ -1,11 +1,14 @@
-/* DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package testutil
 
-import com.avsystem.commons.macros.TestMacros
 import org.scalatest.Assertions
 
+import scala.compiletime.testing.{Error, typeCheckErrors}
+
 trait CompilationErrorAssertions extends Assertions {
-  def typeErrorFor(code: String): String = macro TestMacros.typeErrorImpl
+  inline def typeErrorFor(inline code: String): String =
+    typeCheckErrors(code) match {
+      case Nil => fail(s"Expected compilation error for: $code")
+      case errs => errs.map(_.message).mkString("\n")
+    }
 }
-*/
