@@ -21,9 +21,9 @@ class DelegationTest extends AnyFunSuite {
     def vararg(values: String*): String = values.mkString("")
   }
 
+  // @TodoScala3Migration: Delegation.apply / materializeDelegation are stubbed `???` in scala-3 MiscMacros.
+  // Re-enable once the macro is ported.
   ignore("simple test") {
-    // Delegation.apply / materializeDelegation are stubbed `???` in scala-3 MiscMacros.
-    // Re-enable once the macro is ported.
     val source = new Source
     val destination = Delegation[Destination[Double]](source)
 

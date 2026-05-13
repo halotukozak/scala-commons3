@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package misc
 
+import com.avsystem.commons.annotation.TodoScala3Migration
+
 import scala.quoted.*
 
 trait AnnotationOfMacros {
@@ -30,41 +32,52 @@ trait SourceInfoMacros {
   inline implicit def here: SourceInfo = ${ MiscMacros.materializeSourceInfo }
 }
 
+@TodoScala3Migration("Implicits.infer family — need real implicit-search quoted impl, otherwise @implicitNotFound never fires")
 trait ImplicitsMacros {
   inline def infer[T]: T = ${ MiscMacros.inferImpl[T] }
   inline def infer[T](inline clue: String): T = ${ MiscMacros.clueInferImpl[T]('clue) }
   inline def inferNonMacro[T](inline clue: String): T = ${ MiscMacros.inferNonMacroImpl[T]('clue) }
 }
 
+@TodoScala3Migration("SelfInstance.materialize is a stub")
 trait SelfInstanceMacros {
   inline implicit def materialize[C[_]]: SelfInstance[C] = ???
 }
+@TodoScala3Migration("SamCompanion.apply is a stub")
 trait SamCompanionMacros[T, F] {
   inline def apply(fun: F): T = ???
 }
 
+@TodoScala3Migration("Delegation.materializeDelegation is a stub — DelegationTest is `ignore`d")
 trait DelegationMacros {
   inline implicit def materializeDelegation[A, B]: Delegation[A, B] = ???
 }
+@TodoScala3Migration("Delegation.apply is a stub — DelegationTest is `ignore`d")
 trait DelegationApplyMacros[B] {
   inline def apply[A](inline source: A): B = ???
 }
+@TodoScala3Migration("Sam.apply is a stub — SamTest disabled")
 trait SamMacros {
   inline def apply[T](inline fun: => Any): T = ???
 }
+@TodoScala3Migration("TypeString.materialize is a stub — TypeStringTest disabled")
 trait TypeStringMacros {
   inline implicit def materialize[T]: TypeString[T] = ???
 }
+@TodoScala3Migration("JavaClassName.materialize is a stub — JavaClassNameTest disabled")
 trait JavaClassNameMacros {
   inline implicit def materialize[T]: JavaClassName[T] = ???
 }
+@TodoScala3Migration("SealedUtils.caseObjectsFor / instancesFor are stubs")
 trait SealedUtilsMacros {
   inline def caseObjectsFor[T]: List[T] = ???
   inline def instancesFor[TC[_], T]: List[TC[T]] = ???
 }
+@TodoScala3Migration("Unapplier.materialize is a stub")
 trait UnapplierMacros {
   inline implicit def materialize[T]: Unapplier[T] = ???
 }
+@TodoScala3Migration("ApplierUnapplier.materialize is a stub — ApplierUnapplierTest disabled")
 trait ApplierUnapplierMacros {
   inline implicit def materialize[T]: ApplierUnapplier[T] = ???
 }

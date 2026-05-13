@@ -1,4 +1,4 @@
-/* DISABLED for Scala 3 build: Implicits.infer macro is stub (MiscMacros.inferImpl returns ???). Needs real implicit search impl to surface @implicitNotFound messages.
+/* @TodoScala3Migration DISABLED for Scala 3 build: Implicits.infer macro is stub (MiscMacros.inferImpl returns ???). Needs real implicit search impl to surface @implicitNotFound messages.
 package com.avsystem.commons
 package misc
 
