@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package concurrent
 
@@ -35,7 +34,7 @@ class ObservableExtensionsTest
   test("findOptL - null handling") {
     Observable.fromIterable(Seq(null, "abc", "xyz")).findOptL(_ => true).runToFuture.futureValue shouldBe Opt.some("abc")
     Observable.fromIterable(Seq(null, null)).findOptL(_ => true).runToFuture.futureValue shouldBe Opt.Empty
-    Observable.fromIterable(Seq(null, "abc", "xyz")).findOptL(_.startsWith("x")).runToFuture.futureValue shouldBe
+    Observable.fromIterable(Seq(null, "abc", "xyz")).findOptL(_.nn.startsWith("x")).runToFuture.futureValue shouldBe
       Opt.some("xyz")
   }
 
@@ -112,4 +111,3 @@ class ObservableExtensionsTest
     }
   }
 }
-*/
