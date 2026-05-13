@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED: scala-3 GenCodec derivation hits a compiler crash 'missing outer accessor in anonymous class Object with made.MadeFieldElem' for some of the case-class / sealed-hierarchy tests in this file. Pending a fix in the made framework or a test split, the whole file is held disabled to keep the test suite green.
+/* @TodoScala3Migration DISABLED: scala-3 compiler crashes 'missing outer accessor in class GenCodecRoundtripTest' on the nested case class Node[T] + object Node extends HasPolyGenCodec[Node] declared inside the test body. Move Node to top level or fix outer-accessor handling for HasPolyGenCodec before re-enabling.
 package com.avsystem.commons
 package serialization
 
