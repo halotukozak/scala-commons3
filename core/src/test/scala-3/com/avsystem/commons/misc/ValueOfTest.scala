@@ -1,36 +1,31 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package misc
 
 import org.scalatest.funsuite.AnyFunSuite
 
-import scala.annotation.nowarn
-
-@nowarn("cat=deprecation")
 object Obj {
   val x: String = "fuu"
 
   class Inner {
     val x: String = "fuu"
 
-    def valueOfX: x.type = ValueOf[x.type]
-    def valueOfThis: this.type = ValueOf[this.type]
+    def valueOfX: x.type = valueOf[x.type]
+    def valueOfThis: this.type = valueOf[this.type]
   }
 }
 
-@nowarn("cat=deprecation")
 class ValueOfTest extends AnyFunSuite {
   test("object") {
-    assert(ValueOf[Obj.type] == Obj)
+    assert(valueOf[Obj.type] == Obj)
   }
 
   test("static val") {
-    assert(ValueOf[Obj.x.type] == Obj.x)
+    assert(valueOf[Obj.x.type] == Obj.x)
   }
 
   test("inner val of local") {
     val i = new Obj.Inner
-    assert(ValueOf[i.x.type] == i.x)
+    assert(valueOf[i.x.type] == i.x)
     assert(i.valueOfX == i.x)
   }
 
@@ -39,4 +34,3 @@ class ValueOfTest extends AnyFunSuite {
     assert(i.valueOfThis == i)
   }
 }
-*/
