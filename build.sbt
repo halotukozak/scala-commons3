@@ -1,5 +1,7 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+import com.typesafe.tools.mima.core.*
+import com.typesafe.tools.mima.core.ProblemFilters.*
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 
 // We need to generate slightly different structure for IntelliJ in order to better support ScalaJS cross projects.
@@ -292,6 +294,18 @@ lazy val macros = project
     mimaPreviousArtifacts := Set.empty,
   )
 
+val coreMimaFilters: Seq[ProblemFilter] = Seq(
+  // Upstream commit ade8d4a8: OrderingOps removed (superseded by stdlib).
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensions.orderingOps"),
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensionsUtils.orderingOps"),
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.package.orderingOps"),
+  // Upstream commit ade8d4a8: IteratorOps.distinct / distinctBy removed.
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensionsUtils#IteratorOps.distinct"),
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensionsUtils#IteratorOps.distinctBy"),
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensionsUtils#IteratorOps.distinct$extension"),
+  exclude[DirectMissingMethodProblem]("com.avsystem.commons.SharedExtensionsUtils#IteratorOps.distinctBy$extension"),
+)
+
 lazy val core = project
   .dependsOn(macros)
   .settings(
@@ -309,6 +323,7 @@ lazy val core = project
         Seq("io.github.halotukozak" %% "made" % madeVersion)
       else Seq.empty
     },
+    mimaBinaryIssueFilters ++= coreMimaFilters,
   )
 
 lazy val `core-js` = project
@@ -330,6 +345,7 @@ lazy val `core-js` = project
         Seq("io.github.halotukozak" %% "made" % madeVersion)
       else Seq.empty
     },
+    mimaBinaryIssueFilters ++= coreMimaFilters,
   )
 
 //todo
