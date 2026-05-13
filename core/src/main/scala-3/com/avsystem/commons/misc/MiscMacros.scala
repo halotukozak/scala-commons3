@@ -83,12 +83,50 @@ object MiscMacros {
     '{ AnnotationsOf[A, T]($list) }
   }
 
-  @TodoScala3Migration("SelfAnnotation family: needs enclosing class lookup like Scala 2 c.internal.enclosingOwner")
-  def materializeSelfAnnotation[A: Type](using Quotes): Expr[SelfAnnotation[A]] = '{ ??? }
-  @TodoScala3Migration("SelfOptAnnotation family: needs enclosing class lookup")
-  def materializeSelfOptAnnotation[A: Type](using Quotes): Expr[SelfOptAnnotation[A]] = '{ ??? }
-  @TodoScala3Migration("SelfAnnotations family: needs enclosing class lookup")
-  def materializeSelfAnnotations[A: Type](using Quotes): Expr[SelfAnnotations[A]] = '{ ??? }
+  private def enclosingClass(using quotes: Quotes): quotes.reflect.Symbol = {
+    import quotes.reflect.*
+    var sym = Symbol.spliceOwner
+    while (sym != Symbol.noSymbol && !sym.isClassDef) sym = sym.owner
+    sym
+  }
+
+  private def annotsOfSym[A: Type](using quotes: Quotes)(sym: quotes.reflect.Symbol): List[quotes.reflect.Term] = {
+    import quotes.reflect.*
+    val aSym = TypeRepr.of[A].typeSymbol
+    sym.annotations.filter(_.tpe.typeSymbol == aSym)
+  }
+
+  def materializeSelfAnnotation[A: Type](using quotes: Quotes): Expr[SelfAnnotation[A]] = {
+    import quotes.reflect.*
+    val sym = enclosingClass
+    if (sym == Symbol.noSymbol)
+      report.errorAndAbort("SelfAnnotation must be used inside an enclosing class")
+    annotsOfSym[A](sym).headOption match {
+      case Some(annot) => '{ SelfAnnotation[A](${ annot.asExprOf[A] }) }
+      case None => report.errorAndAbort(s"No annotation of type ${Type.show[A]} on enclosing class ${sym.name}")
+    }
+  }
+
+  def materializeSelfOptAnnotation[A: Type](using quotes: Quotes): Expr[SelfOptAnnotation[A]] = {
+    import quotes.reflect.*
+    val sym = enclosingClass
+    if (sym == Symbol.noSymbol)
+      report.errorAndAbort("SelfOptAnnotation must be used inside an enclosing class")
+    val optExpr = annotsOfSym[A](sym).headOption match {
+      case Some(annot) => '{ Opt(${ annot.asExprOf[A] }) }
+      case None => '{ Opt.Empty }
+    }
+    '{ SelfOptAnnotation[A]($optExpr) }
+  }
+
+  def materializeSelfAnnotations[A: Type](using quotes: Quotes): Expr[SelfAnnotations[A]] = {
+    import quotes.reflect.*
+    val sym = enclosingClass
+    if (sym == Symbol.noSymbol)
+      report.errorAndAbort("SelfAnnotations must be used inside an enclosing class")
+    val list = Expr.ofList(annotsOfSym[A](sym).map(_.asExprOf[A]))
+    '{ SelfAnnotations[A]($list) }
+  }
   def materializeSimpleClassName[T: Type](using quotes: Quotes): Expr[SimpleClassName[T]] = {
     import quotes.reflect.*
     val sym = TypeRepr.of[T].dealias.typeSymbol
