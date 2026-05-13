@@ -257,8 +257,26 @@ trait GenCodecDerivation { this: GenCodec.type =>
     ) {
       override def oooDependencies: Array[GenCodec[?]] = Array.empty
       override def caseDependencies: Array[OOOFieldsObjectCodec[?]] =
-        instances.map(_.asInstanceOf[OOOFieldsObjectCodec[?]])
+        instances.map(unwrapToOOOObjectCodec)
     }
+
+  private def unwrapToOOOObjectCodec(codec: GenCodec[?]): OOOFieldsObjectCodec[?] = codec match {
+    case ooo: OOOFieldsObjectCodec[?] => ooo
+    case tc: TransformedCodec[a, b] @unchecked =>
+      val inner = unwrapToOOOObjectCodec(tc.wrapped).asInstanceOf[OOOFieldsObjectCodec[b]]
+      new OOOFieldsObjectCodec[a] {
+        def readObject(input: ObjectInput, outOfOrderFields: FieldValues): a =
+          tc.onRead(inner.readObject(input, outOfOrderFields))
+        def writeFields(output: ObjectOutput, value: a): Unit =
+          inner.writeFields(output, tc.onWrite(value))
+        def size(value: a, output: Opt[SequentialOutput]): Int =
+          inner.size(tc.onWrite(value), output)
+      }
+    case other =>
+      throw new IllegalArgumentException(
+        s"Case codec ${other.getClass.getName} is not an OOOFieldsObjectCodec and cannot be flattened",
+      )
+  }
   private def deriveNestedSum[T](
     typeRepr: String,
     instances: Array[GenCodec[?]],

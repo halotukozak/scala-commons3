@@ -487,7 +487,7 @@ trait GenCodecImpl { this: GenCodec.type =>
   }
   @deprecated("Use TransformedCodec instead", since = "3.0.0")
   type Transformed[A, B] = TransformedCodec[A, B]
-  final class TransformedCodec[A, B](val wrapped: GenCodec[B], onWrite: A => B, onRead: B => A) extends GenCodec[A] {
+  final class TransformedCodec[A, B](val wrapped: GenCodec[B], val onWrite: A => B, val onRead: B => A) extends GenCodec[A] {
     def read(input: Input): A = {
       val wrappedValue = wrapped.read(input)
       try onRead(wrappedValue)
