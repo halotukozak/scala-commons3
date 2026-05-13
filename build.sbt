@@ -27,8 +27,10 @@ val madeVersion = "0.0.5-local"
 val scala2Version = "2.13.18"
 val scala3Version = "3.8.2"
 
-// for binary compatibility checking
-val previousCompatibleVersions: Set[String] = Set("2.2.4")
+// MiMa baseline: upstream AVSystem releases on Scala 2.13.
+// Scala 3 baseline empty until we cut a 3.x release of this fork.
+val previousCompatibleVersions: Set[String] =
+  Set("2.21.0", "2.22.0", "2.23.0", "2.23.1", "2.24.0", "2.25.0", "2.26.0", "2.27.0", "2.27.1")
 
 Global / cancelable := true
 Global / excludeLintKeys ++= Set(ideExcludedDirectories, ideOutputDirectory, ideBasePackages, ideSkipProject)
@@ -164,8 +166,12 @@ val jvmCommonSettings = Seq(
     "org.apache.commons" % "commons-io" % commonsIoVersion % Test,
     "org.slf4j" % "slf4j-simple" % slf4jVersion % Test,
   ),
-  mimaPreviousArtifacts := previousCompatibleVersions.map { previousVersion =>
-    organization.value % s"commons-${name.value}_2.13" % previousVersion
+  mimaPreviousArtifacts := {
+    if (scalaBinaryVersion.value == "2.13")
+      previousCompatibleVersions.map { v =>
+        organization.value % s"commons-${name.value}_2.13" % v
+      }
+    else Set.empty
   },
   Test / jsEnv :=
     new NodeJSEnv(NodeJSEnv.Config().withEnv(Map("RESOURCES_DIR" -> (Test / resourceDirectory).value.absolutePath))),
@@ -179,6 +185,13 @@ val jsCommonSettings = Seq(
 //  },
   jsEnv := new org.scalajs.jsenv.nodejs.NodeJSEnv(),
   Test / fork := false,
+  mimaPreviousArtifacts := {
+    if (scalaBinaryVersion.value == "2.13")
+      previousCompatibleVersions.map { v =>
+        organization.value %%% s"commons-${name.value}" % v
+      }
+    else Set.empty
+  },
 ) ++ commonSettings
 
 val noPublishSettings = Seq(
@@ -218,6 +231,7 @@ lazy val jvm = project
   .in(file(".jvm"))
   .aggregate(
 //    analyzer,
+    macros,
     core,
     jetty,
 //    mongo,
@@ -260,27 +274,62 @@ def sameNameAs(proj: Project) =
   if (forIdeaImport) Seq.empty
   else Seq(name := (proj / name).value)
 
-lazy val core = project
+// Scala 2.13 whitebox macros project. Cross-built so `core` can depend on it
+// regardless of active Scala version. For Scala 3 builds it produces an empty
+// jar (no sources under scala-3/), since macros are inlined in core's
+// scala-3 sources.
+lazy val macros = project
   .settings(
     jvmCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
+    libraryDependencies ++= {
+      if (scalaBinaryVersion.value == "2.13")
+        Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+      else Seq.empty
+    },
+    // No published baseline for either Scala 2 (separate project) or Scala 3 (empty).
+    mimaPreviousArtifacts := Set.empty,
+  )
+
+lazy val core = project
+  .dependsOn(macros)
+  .settings(
+    jvmCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
     sourceDirsSettings(_ / "jvm"),
     libraryDependencies ++= Seq(
-      "io.github.halotukozak" %% "made" % madeVersion,
       "com.google.guava" % "guava" % guavaVersion % Optional,
       "io.monix" %% "monix" % monixVersion % Optional,
-    ))
+    ),
+    libraryDependencies ++= {
+      // `made` is Scala 3 only.
+      if (scalaBinaryVersion.value == "3")
+        Seq("io.github.halotukozak" %% "made" % madeVersion)
+      else Seq.empty
+    },
+  )
 
 lazy val `core-js` = project
   .in(core.base / "js")
   .enablePlugins(ScalaJSPlugin)
   .configure(p => if (forIdeaImport) p.dependsOn(core) else p)
+  .dependsOn(macros)
   .settings(
     jsCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
     sameNameAs(core),
     sourceDirsSettings(_.getParentFile),
     libraryDependencies ++= Seq(
       "io.monix" %%% "monix" % monixVersion % Optional,
     ),
+    libraryDependencies ++= {
+      if (scalaBinaryVersion.value == "3")
+        Seq("io.github.halotukozak" %% "made" % madeVersion)
+      else Seq.empty
+    },
   )
 
 //todo
@@ -317,6 +366,8 @@ lazy val hocon = project
   .dependsOn(core % CompileAndTest)
   .settings(
     jvmCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % typesafeConfigVersion,
     ),
@@ -326,6 +377,8 @@ lazy val jetty = project
   .dependsOn(core % CompileAndTest)
   .settings(
     jvmCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
       "org.eclipse.jetty" % "jetty-client" % jettyVersion,
       "org.eclipse.jetty.ee10" % "jetty-ee10-servlet" % jettyVersion,
