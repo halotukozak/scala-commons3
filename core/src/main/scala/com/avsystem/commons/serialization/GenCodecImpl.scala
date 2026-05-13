@@ -92,7 +92,14 @@ object ApplyUnapplyCodec {
     val c: GenCodec[T] = GenCodec.derived[T]
     c.asInstanceOf[ApplyUnapplyCodec[T]]
   }
-  given materialize[T](using AllowDerivation[ApplyUnapplyCodec[T]]): ApplyUnapplyCodec[T] = ???
+  inline given materialize[T](using AllowDerivation[ApplyUnapplyCodec[T]]): ApplyUnapplyCodec[T] =
+    compiletime.summonFrom {
+      case _: made.Made.Of[T] =>
+        val codec: GenCodec[T] = GenCodec.derived[T]
+        codec.asInstanceOf[ApplyUnapplyCodec[T]]
+      case _ =>
+        sys.error("ApplyUnapplyCodec.materialize: no Made mirror available")
+    }
 }
 
 abstract class ProductCodec[T <: Product](
