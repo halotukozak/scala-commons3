@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* @TodoScala3Migration DISABLED: HasGenCodecStructure needs MacroInstances[Unit, GenCodecStructure[T]] but scala-3 MacroInstances requires the Instances type to be a NamedTuple (AnyNamedTuple). Need a rewrite of GenCodecStructure or the MacroInstances API to support plain traits.
 package com.avsystem.commons
 package misc
 
