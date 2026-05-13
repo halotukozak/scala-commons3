@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
+/* @TodoScala3Migration DISABLED: explicit-nulls breaks primitive stream extension lookup (asScala on IntStream/LongStream/DoubleStream returns T | Null), plus several Java collection roundtrips need .nn / explicit factories.
 package com.avsystem.commons
 package jiop
 
