@@ -83,7 +83,8 @@ object GenCodec
     case _ => codec
   }
   given GenCodec[Nothing] =
-    create[Nothing](_ => throw new ReadFailure("read Nothing"), (_, _) => throw new WriteFailure("write Nothing"))
+    create[Any](_ => throw new ReadFailure("read Nothing"), (_, _) => throw new WriteFailure("write Nothing"))
+      .asInstanceOf[GenCodec[Nothing]]
   given GenCodec[Null] =
     create[Null](i => if (i.readNull()) null else notNull, (o, _) => o.writeNull())
   given GenCodec[Unit] =

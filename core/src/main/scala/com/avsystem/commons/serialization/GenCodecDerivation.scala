@@ -141,7 +141,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
   ): Tuple.Map[Elems, GenCodec] =
     inline compiletime.erasedValue[Elems] match {
       case _: (elem *: elems) =>
-        val elemCodec = compiletime.summonFrom {
+        val elemCodec: GenCodec[elem] = compiletime.summonFrom {
           case codec: GenCodec[`elem`] if summonAllowed => codec
           case _ if deriveAllowed => derived[elem]
           case _: AllowRecursiveDerivation.type => derived[elem]
