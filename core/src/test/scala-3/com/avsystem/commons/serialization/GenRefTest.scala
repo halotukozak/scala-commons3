@@ -1,7 +1,7 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build — see scala-2.13 version. TODO: port to Scala 3.
 package com.avsystem.commons
 package serialization
 
+import made.annotation.{generated, name, transparent}
 import org.scalatest.funsuite.AnyFunSuite
 
 @flatten sealed trait Seal {
@@ -76,4 +76,3 @@ class GenRefTest extends AnyFunSuite {
     assert(ref.rawRef.normalize.toList == List(RawRef.Field("thing")))
   }
 }
-*/

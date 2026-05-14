@@ -1,25 +1,35 @@
 package com.avsystem.commons.serialization
 
+import com.avsystem.commons.annotation.{bincompat, positioned}
 import com.avsystem.commons.derivation.AllowImplicitMacro
+import com.avsystem.commons.misc.{Opt, OptArg, OptRef}
 import com.avsystem.commons.serialization
 
+import scala.language.implicitConversions
 import scala.quoted.*
 
 trait RawRefCreatorMacros[S] {
-  inline def ref[T](fun: S => T): RawRef = ${ SerializationMacros.refImpl[S, T]('fun) }
+  inline def ref[T](inline fun: S => T): RawRef = ${ SerializationMacros.rawRefImpl[S, T]('fun) }
 }
 
 trait GenRefCreatorMacros[S] {
-  inline def ref[T](fun: S => T): GenRef[S, T] = ${ SerializationMacros.refImpl[S, T]('fun) }
+  inline def ref[T](inline fun: S => T): GenRef[S, T] = ${ SerializationMacros.genRefImpl[S, T]('fun) }
 }
 
 trait GenRefImplicitsMacros {
-  given [S, T] => Conversion[S => T, GenRef[S, T]] = ???
+  inline implicit def fun2GenRef[S, T](inline fun: S => T): GenRef[S, T] =
+    ${ SerializationMacros.genRefImpl[S, T]('fun) }
 }
 
 object SerializationMacros {
 
-  def refImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[Nothing] = ???
+  def rawRefImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[RawRef] =
+    GenRefBuilder.buildRawRef[S, T](fun)
+
+  def genRefImpl[S: Type, T: Type](fun: Expr[S => T])(using Quotes): Expr[GenRef[S, T]] = {
+    val raw = GenRefBuilder.buildRawRef[S, T](fun)
+    '{ GenRef[S, T]($fun, $raw) }
+  }
 
   inline def validateTransientDefaults[T]: Unit = ${ validateTransientDefaultsImpl[T] }
 
