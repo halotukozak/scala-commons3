@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: scala-3 compiler crashes 'missing outer accessor in class GenCodecRoundtripTest' on the nested case class Node[T] + object Node extends HasPolyGenCodec[Node] declared inside the test body. Move Node to top level or fix outer-accessor handling for HasPolyGenCodec before re-enabling.
 package com.avsystem.commons
 package serialization
 
@@ -6,6 +5,9 @@ import com.avsystem.commons.misc.TypedMap
 import com.avsystem.commons.serialization.CodecTestData.{TransparentFlatSealedBase, _}
 import com.avsystem.commons.serialization.JavaCodecs._
 
+import scala.annotation.nowarn
+
+@nowarn
 abstract class GenCodecRoundtripTest extends AbstractCodecTest {
   test("java collections") {
     testRoundtrip[JCollection[Int]](jArrayList)
@@ -130,10 +132,8 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip(HasDefaults(str = "dafuq"))
   }
 
-  case class Node[T](value: T, children: List[Node[T]] = Nil)
-  object Node extends HasPolyGenCodec[Node]
-
   test("recursive generic case class") {
+    import GenCodecRoundtripTest.Node
     testRoundtrip(Node(123, List(Node(42, List(Node(52), Node(53))), Node(43))))
   }
 
@@ -274,4 +274,8 @@ abstract class GenCodecRoundtripTest extends AbstractCodecTest {
     testRoundtrip[BuildablePojo](BuildablePojo.builder().setStr("foo").setFlags(JList(true, false)).setCool(false).build())
   }
 }
-*/
+
+object GenCodecRoundtripTest {
+  case class Node[T](value: T, children: List[Node[T]] = Nil)
+  object Node extends HasPolyGenCodec[Node]
+}

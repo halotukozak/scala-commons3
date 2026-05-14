@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: depends on GenCodecRoundtripTest which is disabled (compiler crash on nested Node + HasPolyGenCodec).
 package com.avsystem.commons
 package serialization.cbor
 
@@ -281,4 +280,3 @@ class CborGenCodecRoundtripTest extends GenCodecRoundtripTest {
   def createInput(raw: RawCbor): Input =
     new CborInput(new CborReader(raw), CborKeyCodec.Default)
 }
-*/

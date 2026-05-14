@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: scala-3 compiler crashes 'failure to construct path' / 'missing outer accessor' on nested case classes + HasGenCodec derivation inside trait/class bodies.
 package com.avsystem.commons
 package serialization.json
 
@@ -8,66 +7,69 @@ import com.avsystem.commons.serialization.HasGenCodec
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 
-trait SerializationTestUtils {
+// Lifted out of `trait SerializationTestUtils` so HasGenCodec materialization
+// doesn't hit the scala-3 outer-accessor compiler crash on nested case classes.
+case class TestCC(i: Int, l: Long, intAsDouble: Double, b: Boolean, s: String, list: List[Char])
+object TestCC extends HasGenCodec[TestCC] {
+  implicit val arb: Arbitrary[TestCC] = Arbitrary(for {
+    i <- arbitrary[Int]
+    l <- arbitrary[Long]
+    b <- arbitrary[Boolean]
+    s <- arbitrary[String]
+    list <- arbitrary[List[Char]]
+  } yield TestCC(i, l, i.toDouble, b, s, list))
+}
+
+case class NestedTestCC(i: Int, t: TestCC, t2: TestCC)
+object NestedTestCC extends HasGenCodec[NestedTestCC]
+
+case class DeepNestedTestCC(n: TestCC, l: DeepNestedTestCC)
+object DeepNestedTestCC extends HasGenCodec[DeepNestedTestCC]
+
+case class CompleteItem(
+  unit: Unit,
+  string: String,
+  char: Char,
+  boolean: Boolean,
+  byte: Byte,
+  short: Short,
+  int: Int,
+  long: Long,
+  float: Float,
+  double: Double,
+  bigInt: BigInt,
+  bigDecimal: BigDecimal,
+  binary: Array[Byte],
+  list: List[String],
+  set: Set[String],
+  obj: TestCC,
+  map: Map[String, Int],
+)
+object CompleteItem extends HasGenCodec[CompleteItem] {
   private def limitMathContext(bd: BigDecimal) =
     if (bd.mc == MathContext.UNLIMITED) bd(BigDecimal.defaultMathContext) else bd
 
-  case class TestCC(i: Int, l: Long, intAsDouble: Double, b: Boolean, s: String, list: List[Char])
-  object TestCC extends HasGenCodec[TestCC] {
-    implicit val arb: Arbitrary[TestCC] = Arbitrary(for {
-      i <- arbitrary[Int]
-      l <- arbitrary[Long]
-      b <- arbitrary[Boolean]
-      s <- arbitrary[String]
-      list <- arbitrary[List[Char]]
-    } yield TestCC(i, l, i.toDouble, b, s, list))
-  }
-
-  case class NestedTestCC(i: Int, t: TestCC, t2: TestCC)
-  object NestedTestCC extends HasGenCodec[NestedTestCC]
-
-  case class DeepNestedTestCC(n: TestCC, l: DeepNestedTestCC)
-  object DeepNestedTestCC extends HasGenCodec[DeepNestedTestCC]
-
-  case class CompleteItem(
-    unit: Unit,
-    string: String,
-    char: Char,
-    boolean: Boolean,
-    byte: Byte,
-    short: Short,
-    int: Int,
-    long: Long,
-    float: Float,
-    double: Double,
-    bigInt: BigInt,
-    bigDecimal: BigDecimal,
-    binary: Array[Byte],
-    list: List[String],
-    set: Set[String],
-    obj: TestCC,
-    map: Map[String, Int],
-  )
-  object CompleteItem extends HasGenCodec[CompleteItem] {
-    implicit val arb: Arbitrary[CompleteItem] = Arbitrary(for {
-      u <- arbitrary[Unit]
-      str <- arbitrary[String]
-      c <- arbitrary[Char]
-      bool <- arbitrary[Boolean]
-      b <- arbitrary[Byte]
-      s <- arbitrary[Short]
-      i <- arbitrary[Int]
-      l <- arbitrary[Long]
-      f <- arbitrary[Float]
-      d <- arbitrary[Double]
-      bi <- arbitrary[BigInt]
-      bd <- arbitrary[BigDecimal].map(limitMathContext)
-      binary <- arbitrary[Array[Byte]]
-      list <- arbitrary[List[String]]
-      set <- arbitrary[Set[String]]
-      obj <- arbitrary[TestCC]
-      map <- arbitrary[Map[String, Int]]
-    } yield CompleteItem(u, str, c, bool, b, s, i, l, f, d, bi, bd, binary, list, set, obj, map))
-  }
+  implicit val arb: Arbitrary[CompleteItem] = Arbitrary(for {
+    u <- arbitrary[Unit]
+    str <- arbitrary[String]
+    c <- arbitrary[Char]
+    bool <- arbitrary[Boolean]
+    b <- arbitrary[Byte]
+    s <- arbitrary[Short]
+    i <- arbitrary[Int]
+    l <- arbitrary[Long]
+    f <- arbitrary[Float]
+    d <- arbitrary[Double]
+    bi <- arbitrary[BigInt]
+    bd <- arbitrary[BigDecimal].map(limitMathContext)
+    binary <- arbitrary[Array[Byte]]
+    list <- arbitrary[List[String]]
+    set <- arbitrary[Set[String]]
+    obj <- arbitrary[TestCC]
+    map <- arbitrary[Map[String, Int]]
+  } yield CompleteItem(u, str, c, bool, b, s, i, l, f, d, bi, bd, binary, list, set, obj, map))
 }
-*/
+
+// Kept as empty trait for source compatibility with upstream test classes
+// that extend it; types now live at the package level above.
+trait SerializationTestUtils

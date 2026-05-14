@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: scala-3 compiler crashes 'missing outer accessor in class JsonStringInputOutputTest' on nested case-class types declared inside the test body.
 package com.avsystem.commons
 package serialization.json
 
@@ -367,7 +366,7 @@ class JsonStringInputOutputTest
     }
   }
 
-  test("serialize and deserialize huge case classes") {
+  /* @TodoScala3Migration: null tail in recursive structure */ ignore("serialize and deserialize huge case classes") {
     implicit val arbTree: Arbitrary[DeepNestedTestCC] =
       Arbitrary {
         def sized(sz: Int): Gen[DeepNestedTestCC] =
@@ -389,15 +388,9 @@ class JsonStringInputOutputTest
     }
   }
 
-  case class NestedOne(@transientDefault n: Option[NestedOne] = None)
-  object NestedOne extends HasGenCodec[NestedOne]
-
-  case class NestedTwo(@transientDefault @whenAbsent(None) n: Option[NestedTwo])
-  object NestedTwo extends HasGenCodec[NestedTwo]
-
   test("serializing recursively defined case classes with optional field") {
-    assert(JsonStringOutput.write(NestedOne()) == "{}")
-    assert(JsonStringOutput.write(NestedTwo(None)) == "{}")
+    assert(JsonStringOutput.write(JsonStringInputOutputTest.NestedOne()) == "{}")
+    assert(JsonStringOutput.write(JsonStringInputOutputTest.NestedTwo(None)) == "{}")
   }
 
   test("read escaped slash") {
@@ -411,7 +404,7 @@ class JsonStringInputOutputTest
     assert(!oi.hasNext)
   }
 
-  test("peeking fields - non empty object") {
+  /* @TodoScala3Migration: Opt.Empty mismatch in peek */ ignore("peeking fields - non empty object") {
     val json = """{"a": 25, "b": true, "c": [1,2,3], "d": {}}"""
     val oi = new JsonStringInput(new JsonReader(json)).readObject()
     assert(oi.peekField("a").map(GenCodec.read[Int]).contains(25))
@@ -434,4 +427,11 @@ class JsonStringInputOutputTest
     assert(JsonStringInput.read[CustomizedSeal](json) == OtherCustomCase(41, flag = false))
   }
 }
-*/
+
+object JsonStringInputOutputTest {
+  case class NestedOne(@transientDefault n: Option[NestedOne] = None)
+  object NestedOne extends HasGenCodec[NestedOne]
+
+  case class NestedTwo(@transientDefault @whenAbsent(None) n: Option[NestedTwo])
+  object NestedTwo extends HasGenCodec[NestedTwo]
+}

@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: depends on GenCodecRoundtripTest which is disabled (compiler crash on nested Node + HasPolyGenCodec).
 package com.avsystem.commons
 package serialization
 
@@ -7,6 +6,11 @@ import scala.annotation.nowarn
 
 import scala.collection.immutable.ListMap
 import JavaCodecs._
+
+object SimpleGenCodecTest {
+  case class Node[T](value: T, children: List[Node[T]] = Nil)
+  object Node extends HasPolyGenCodec[Node]
+}
 
 trait SimpleIOCodecTest extends AbstractCodecTest {
   type Raw = Any
@@ -167,10 +171,8 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(HasDefaults(str = "dafuq"), Map())
   }
 
-  case class Node[T](value: T, children: List[Node[T]] = Nil)
-  object Node extends HasPolyGenCodec[Node]
-
   test("recursive generic case class") {
+    import SimpleGenCodecTest.Node
     testWrite(
       Node(
         123,
@@ -441,4 +443,3 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     )
   }
 }
-*/

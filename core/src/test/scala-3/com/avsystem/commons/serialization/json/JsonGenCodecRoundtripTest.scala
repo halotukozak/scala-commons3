@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: depends on GenCodecRoundtripTest which is disabled (compiler crash on nested Node + HasPolyGenCodec).
 package com.avsystem.commons
 package serialization.json
 
@@ -16,4 +15,3 @@ class JsonGenCodecRoundtripTest extends GenCodecRoundtripTest {
   def createInput(raw: String): Input =
     new JsonStringInput(new JsonReader(raw))
 }
-*/

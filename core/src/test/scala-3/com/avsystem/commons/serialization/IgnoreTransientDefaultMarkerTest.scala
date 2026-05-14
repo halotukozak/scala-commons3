@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: scala-3 compiler crashes 'failure to construct path' / 'missing outer accessor' on nested case classes + HasGenCodec derivation inside trait/class bodies.
 package com.avsystem.commons
 package serialization
 
@@ -78,4 +77,3 @@ class IgnoreTransientDefaultMarkerTest extends AbstractCodecTest {
     )
   }
 }
-*/

@@ -1,4 +1,3 @@
-/* @TodoScala3Migration DISABLED: depends on GenCodecRoundtripTest which is disabled (compiler crash on nested Node + HasPolyGenCodec).
 package com.avsystem.commons
 package serialization
 
@@ -16,4 +15,3 @@ class StreamGenCodecTest extends GenCodecRoundtripTest {
   def createInput(raw: Array[Byte]): Input =
     new StreamInput(new DataInputStream(new ByteArrayInputStream(raw)))
 }
-*/
