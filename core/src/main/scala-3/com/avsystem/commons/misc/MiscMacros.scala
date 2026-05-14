@@ -32,7 +32,9 @@ trait SourceInfoMacros {
   inline implicit def here: SourceInfo = ${ MiscMacros.materializeSourceInfo }
 }
 
-@TodoScala3Migration("Implicits.infer family — need real implicit-search quoted impl, otherwise @implicitNotFound never fires")
+@TodoScala3Migration(
+  "Implicits.infer family — need real implicit-search quoted impl, otherwise @implicitNotFound never fires",
+)
 trait ImplicitsMacros {
   inline def infer[T]: T = ${ MiscMacros.inferImpl[T] }
   inline def infer[T](inline clue: String): T = ${ MiscMacros.clueInferImpl[T]('clue) }
@@ -57,7 +59,95 @@ object MiscMacros {
   private def annotsOfT[A: Type, T: Type](using quotes: Quotes): List[quotes.reflect.Term] = {
     import quotes.reflect.*
     val aSym = TypeRepr.of[A].typeSymbol
-    TypeRepr.of[T].dealias.typeSymbol.annotations.filter(_.tpe.typeSymbol == aSym)
+    expandAggregates(TypeRepr.of[T].dealias.typeSymbol.annotations).filter(_.tpe.typeSymbol == aSym)
+  }
+
+  /**
+   * Recursively replace any `AnnotationAggregate` annotations with the annotations declared on the aggregate's
+   * `aggregated` method, substituting references to the aggregate's constructor parameters with the actual arguments.
+   */
+  private def expandAggregates(using quotes: Quotes)(annots: List[quotes.reflect.Term]): List[quotes.reflect.Term] = {
+    import quotes.reflect.*
+    val aggregateTpe = TypeRepr.of[com.avsystem.commons.annotation.AnnotationAggregate]
+
+    def expand(annot: Term): List[Term] =
+      if (!(annot.tpe <:< aggregateTpe)) List(annot)
+      else {
+        val cls = annot.tpe.typeSymbol
+        cls.declaredMethods.find(_.name == "aggregated") match {
+          case None => List(annot)
+          case Some(aggMethod) =>
+            val classTypeParams: List[Symbol] = cls.declaredTypes.filter(_.isTypeParam)
+            val valueParams = cls.primaryConstructor.paramSymss.flatten.filterNot(_.isType)
+            val (outerTypeArgs, outerValueArgs) = collectArgs(annot)
+            val typeMap: List[(Symbol, TypeRepr)] = classTypeParams.zip(outerTypeArgs)
+            val valueMap: Map[Symbol, Term] = valueParams.zip(outerValueArgs).toMap
+            val rawInner = aggMethod.annotations.filter(_.tpe <:< TypeRepr.of[scala.annotation.StaticAnnotation])
+            rawInner.flatMap(inner => expand(rebuildAnnot(inner, typeMap, valueMap)))
+        }
+      }
+
+    annots.reverse.flatMap(expand)
+  }
+
+  private def collectArgs(using quotes: Quotes)(annot: quotes.reflect.Term)
+    : (List[quotes.reflect.TypeRepr], List[quotes.reflect.Term]) = {
+    import quotes.reflect.*
+    def loop(t: Term, vAcc: List[Term]): (List[TypeRepr], List[Term]) = t match {
+      case Apply(fun, args) => loop(fun, args ++ vAcc)
+      case TypeApply(fun, tArgs) =>
+        val (_, vs) = loop(fun, vAcc)
+        (tArgs.map(_.tpe), vs)
+      case Select(New(tpt), _) => (tpt.tpe.typeArgs, vAcc)
+      case _ => (Nil, vAcc)
+    }
+    loop(annot, Nil)
+  }
+
+  private def rebuildAnnot(
+    using quotes: Quotes,
+  )(
+    inner: quotes.reflect.Term,
+    typeMap: List[(quotes.reflect.Symbol, quotes.reflect.TypeRepr)],
+    valueMap: Map[quotes.reflect.Symbol, quotes.reflect.Term],
+  ): quotes.reflect.Term = {
+    import quotes.reflect.*
+    val (typeKeys, typeVals) = typeMap.unzip
+    val annotCls = inner.tpe.typeSymbol
+    val concreteAnnotTpe = inner.tpe.substituteTypes(typeKeys, typeVals)
+    val ctor = annotCls.primaryConstructor
+
+    val rawArgs = collectArgs(inner)._2
+    val concreteArgs = rawArgs.map(substituteRefs(_, valueMap, typeKeys, typeVals))
+
+    val classTpe = annotCls.typeRef
+    val newTree: Term = New(Inferred(classTpe))
+    val selectedCtor: Term = Select(newTree, ctor)
+    val typeArgs = concreteAnnotTpe.typeArgs
+    val withTypeArgs: Term =
+      if (typeArgs.isEmpty) selectedCtor
+      else TypeApply(selectedCtor, typeArgs.map(t => Inferred(t)))
+    Apply(withTypeArgs, concreteArgs)
+  }
+
+  private def substituteRefs(
+    using quotes: Quotes,
+  )(
+    term: quotes.reflect.Term,
+    valueMap: Map[quotes.reflect.Symbol, quotes.reflect.Term],
+    typeKeys: List[quotes.reflect.Symbol],
+    typeVals: List[quotes.reflect.TypeRepr],
+  ): quotes.reflect.Term = {
+    import quotes.reflect.*
+    val byName: Map[String, Term] = valueMap.map { case (sym, t) => sym.name -> t }
+    val mapper = new TreeMap {
+      override def transformTerm(tree: Term)(owner: Symbol): Term = tree match {
+        case id: Ident if byName.contains(id.name) => byName(id.name)
+        case Select(This(_), name) if byName.contains(name) => byName(name)
+        case _ => super.transformTerm(tree)(owner)
+      }
+    }
+    mapper.transformTerm(term)(Symbol.spliceOwner)
   }
 
   def materializeAnnotationOf[A: Type, T: Type](using quotes: Quotes): Expr[AnnotationOf[A, T]] = {
@@ -93,7 +183,7 @@ object MiscMacros {
   private def annotsOfSym[A: Type](using quotes: Quotes)(sym: quotes.reflect.Symbol): List[quotes.reflect.Term] = {
     import quotes.reflect.*
     val aSym = TypeRepr.of[A].typeSymbol
-    sym.annotations.filter(_.tpe.typeSymbol == aSym)
+    expandAggregates(sym.annotations).filter(_.tpe.typeSymbol == aSym)
   }
 
   def materializeSelfAnnotation[A: Type](using quotes: Quotes): Expr[SelfAnnotation[A]] = {

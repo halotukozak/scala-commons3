@@ -31,17 +31,13 @@ object Objekt extends SelfAnnots
 
 class AnnotationOfTest extends AnyFunSuite {
 
-  // @TodoScala3Migration: AnnotationOf does not yet expand AnnotationAggregate (`@genagg(...)` ->
-  // `@genann(...)`). Aggregate-based assertions stay ignored; the direct varargs case below works.
-  ignore("aggregate with generic") {
-    // assert(AnnotationOf.materialize[genann[Int], Subject].annot.value == 42)
+  test("aggregate with generic") {
+    assert(AnnotationOf.materialize[genann[Int], Subject].annot.value == 42)
   }
 
   test("self annotations") {
-    // @TodoScala3Migration: aggregate-derived annotation (@genagg(42) -> @genann(42)) is not yet
-    // applied; only the directly written @genann("fuu") is visible to SelfAnnotations.
-    assert(new Klass().annots.annots == List(genann("fuu")))
-    assert(Objekt.annots.annots == List(genann("fuu")))
+    assert(new Klass().annots.annots == List(genann(42), genann("fuu")))
+    assert(Objekt.annots.annots == List(genann(42), genann("fuu")))
   }
 
   test("annotation with varargs") {
