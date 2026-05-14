@@ -8,9 +8,9 @@ import java.util.concurrent.Callable
 import java.{lang as jl, math as jm, util as ju}
 
 trait JBasicUtils {
-  def jRunnable(code: => Any): Runnable = () => code
-  def jCallable[T](expr: => T): Callable[T] = () => expr
-  def jComparator[T](cmp: (T, T) => Int): Comparator[T] = cmp(_, _)
+  inline def jRunnable(inline code: => Any): Runnable = () => code
+  inline def jCallable[T](inline expr: => T): Callable[T] = () => expr
+  inline def jComparator[T](inline cmp: (T, T) => Int): Comparator[T] = cmp(_, _)
 
   given Conversion[JDate, TimestampConversions] = date => TimestampConversions(date.getTime)
 
