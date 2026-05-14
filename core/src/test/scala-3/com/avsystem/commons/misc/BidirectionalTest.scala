@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED for Scala 3 build: Bidirectional macro is a stub (??? in MiscMacros).
+/* @TodoScala3Migration DROPPED: Bidirectional macro deliberately not ported to Scala 3 (deprecated stub).
 package com.avsystem.commons
 package misc
 
