@@ -1,5 +1,7 @@
 package com.avsystem.commons.misc
 
+import made.Default
+
 import scala.annotation.publicInBinary
 
 object Opt extends OptCompat {
@@ -43,6 +45,8 @@ object Opt extends OptCompat {
      */
     inline def unless(inline cond: Boolean): Opt[A] = when(!cond)
   }
+  
+  given [A] => Default[Opt[A]] = () => Opt.Empty
 }
 
 /**

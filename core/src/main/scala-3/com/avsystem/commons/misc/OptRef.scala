@@ -1,5 +1,7 @@
 package com.avsystem.commons.misc
 
+import made.Default
+
 import scala.annotation.publicInBinary
 
 object OptRef extends OptRefCompat {
@@ -28,6 +30,8 @@ object OptRef extends OptRefCompat {
     def foreach[U](f: A => U): Unit = self.filter(p).foreach(f)
     def withFilter(q: A => Boolean): WithFilter[A] = new WithFilter[A](self, x => p(x) && q(x))
   }
+  
+  given [A] => Default[OptRef[A]] = () => OptRef.Empty
 }
 
 /**

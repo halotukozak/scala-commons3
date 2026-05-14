@@ -1,5 +1,7 @@
 package com.avsystem.commons.misc
 
+import made.Default
+
 import scala.annotation.{publicInBinary, targetName}
 import scala.language.implicitConversions
 
@@ -28,6 +30,8 @@ object OptArg {
 
   val Empty: OptArg[Nothing] = new OptArg(EmptyMarker)
   def empty[A]: OptArg[A] = Empty
+  
+  given [A] => Default[OptArg[A]] = () => OptArg.Empty
 }
 
 /**
