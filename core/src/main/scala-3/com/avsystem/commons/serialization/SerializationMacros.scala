@@ -30,16 +30,11 @@ object SerializationMacros {
       val transientDefaultSym = TypeRepr.of[transientDefault].typeSymbol
       val whenAbsentSym = TypeRepr.of[made.annotation.whenAbsent[Any]].typeSymbol
       val optionalParamSym = TypeRepr.of[made.annotation.optionalParam].typeSymbol
-      val companion = tSym.companionModule
-      val ctor = tSym.primaryConstructor
-      val defaultMethodNames =
-        if (companion.exists) companion.methodMembers.iterator.map(_.name).toSet
-        else Set.empty[String]
-      ctor.paramSymss.flatten.zipWithIndex.foreach { case (param, i) =>
+      tSym.primaryConstructor.paramSymss.flatten.foreach { param =>
         if (param.hasAnnotation(transientDefaultSym)) {
           val hasWhenAbsent = param.hasAnnotation(whenAbsentSym)
           val hasOptionalParam = param.hasAnnotation(optionalParamSym)
-          val hasScalaDefault = defaultMethodNames.contains(s"$$lessinit$$greater$$default$$${i + 1}")
+          val hasScalaDefault = param.flags.is(Flags.HasDefault)
           if (!hasWhenAbsent && !hasOptionalParam && !hasScalaDefault) {
             report.error(
               s"@transientDefault has no effect on parameter ${param.name} because it has no default value",
