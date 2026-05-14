@@ -15,9 +15,7 @@ final class NotUsedTransientDefault extends AnyFunSuite {
     )
   }
 
-  // @TodoScala3Migration: Scala 3 GenCodec.materialize currently accepts @transientDefault without
-  // a default value. Restore upstream validation in our derivation, then unignore.
-  ignore("fails to compile when missing default value") {
+  test("fails to compile when missing default value") {
     assertDoesNotCompile(
       // language=Scala
       """

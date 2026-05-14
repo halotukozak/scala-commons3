@@ -5,6 +5,7 @@ import com.avsystem.commons.meta.*
 import made.*
 trait GenCodecDerivation { this: GenCodec.type =>
   inline def derived[T]: GenCodec[T] = {
+    SerializationMacros.validateTransientDefaults[T]
     given deferred: DeferredCodec[T] = new DeferredCodec[T]
     val underlying = unsafeDerived[T](using compiletime.summonInline[Made.Of[T]])
     deferred.underlying = underlying
