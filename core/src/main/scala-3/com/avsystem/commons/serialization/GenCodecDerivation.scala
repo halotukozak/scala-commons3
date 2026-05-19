@@ -3,6 +3,7 @@ package serialization
 
 import com.avsystem.commons.meta.*
 import made.*
+import made.annotation.optionalParam
 trait GenCodecDerivation { this: GenCodec.type =>
   inline def derived[T]: GenCodec[T] = {
     SerializationMacros.validateTransientDefaults[T]
@@ -45,8 +46,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
 
       case made: Made.ProductOf[T] =>
         val fieldElems = made.elems.toArrayOf[MadeFieldElem](using containsOnly.refl)
-        val transientDefaults = made.elems.hasAnnotations[transientDefault]
-        val optionalParams = made.elems.hasAnnotations[_root_.made.annotation.optionalParam]
+        val transientDefaults = made.elems.hasAnnotations[transientDefault].toArrayOf[Boolean](using containsOnly.refl)
+        val optionalParams = made.elems.hasAnnotations[optionalParam].toArrayOf[Boolean](using containsOnly.refl)
         val optionalNones = detectAllOptional[made.ElemTypes]
         val autoOptionals = detectAutoOptional[made.ElemTypes]
         val madeDefaults: Array[Option[Any]] = fieldElems.map(_.default)
@@ -91,7 +92,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
         val instances = codecsBuf.result()
         val classTags = classTagsBuf.result()
 
-        typeAnnotation[T, flatten] match {
+        made.getAnnotation[flatten] match {
           case Some(f) =>
             deriveFlattenSum(
               label,
@@ -101,6 +102,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
               classTags,
               made.elems
                 .getAnnotations[defaultCase]
+                .toArrayOf[Option[defaultCase]](using containsOnly.refl)
                 .iterator
                 .zipWithIndex
                 .collectFirst { case (Some(default), i) => (i, default.transient) },

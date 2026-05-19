@@ -14,7 +14,8 @@ object MacroInstances {
       import implicits.given
       materializeInstances[DropNames[Instances]].asInstanceOf[Instances]
     }
-  inline def materializeInstances[T <: Tuple]: T = inline compiletime.erasedValue[T] match {
+
+  transparent inline def materializeInstances[T <: Tuple]: T = inline compiletime.erasedValue[T] match {
     case _: EmptyTuple => EmptyTuple.asInstanceOf[T]
     case _: (h *: t) =>
       given AllowDerivation[h] = AllowDerivation.create

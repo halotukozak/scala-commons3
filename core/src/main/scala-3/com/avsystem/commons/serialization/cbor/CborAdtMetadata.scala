@@ -245,7 +245,7 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
 opaque type PolyGenObjectCodec[C[_]] <: [T] => GenCodec[T] => GenObjectCodec[C[T]] =
   [T] => GenCodec[T] => GenObjectCodec[C[T]]
 object PolyGenObjectCodec {
-  given [C[_]] => PolyGenObjectCodec[C] = [T] =>
+  inline given [C[_]] => PolyGenObjectCodec[C] = [T] =>
     (codec: GenCodec[T]) => {
       given GenCodec[T] = codec
       GenObjectCodec.derived[C[T]]
