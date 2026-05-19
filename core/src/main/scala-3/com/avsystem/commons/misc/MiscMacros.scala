@@ -223,7 +223,7 @@ object MiscMacros {
     val name = Expr(sym.name.stripSuffix("$"))
     '{ SimpleClassName[T]($name) }
   }
-  def materializeSourceInfo(using Quotes): Expr[SourceInfo] = '{ ??? }
+  def materializeSourceInfo(using Quotes): Expr[SourceInfo] = SourceInfo.hereImpl
   def inferImpl[T: Type](using Quotes): Expr[T] = inferTpe[T]("")
   def clueInferImpl[T: Type](clue: Expr[String])(using Quotes): Expr[T] =
     inferTpe[T](clue.valueOrAbort)

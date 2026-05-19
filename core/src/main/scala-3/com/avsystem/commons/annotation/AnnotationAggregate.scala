@@ -51,5 +51,31 @@ trait AnnotationAggregate extends StaticAnnotation {
    */
   def aggregated: List[StaticAnnotation]
 
-  def reifyAggregated: List[StaticAnnotation] = ???
+  protected inline def reifyAggregated: List[StaticAnnotation] =
+    ${ AnnotationAggregateMacros.reifyAggregatedImpl }
+}
+
+object AnnotationAggregateMacros {
+  import scala.quoted.*
+
+  def reifyAggregatedImpl(using quotes: Quotes): Expr[List[StaticAnnotation]] = {
+    import quotes.reflect.*
+    val ownerMethod = Symbol.spliceOwner.owner
+    val aggregatedSym = TypeRepr.of[AnnotationAggregate].typeSymbol.declaredMethod("aggregated").head
+    if (!ownerMethod.allOverriddenSymbols.contains(aggregatedSym))
+      report.errorAndAbort(
+        "reifyAggregated macro must only be used to implement AnnotationAggregate.aggregated method",
+      )
+    if (!ownerMethod.flags.is(Flags.Final) || ownerMethod.flags.is(Flags.FieldAccessor))
+      report.errorAndAbort(
+        "AnnotationAggregate.aggregated method implemented with reifyAggregated macro must be a final def",
+      )
+    val staticAnnotTpe = TypeRepr.of[StaticAnnotation]
+    val annotExprs: List[Expr[StaticAnnotation]] = ownerMethod.annotations
+      .filter(_.tpe <:< staticAnnotTpe)
+      .map(_.asExprOf[StaticAnnotation])
+    if (annotExprs.isEmpty)
+      report.warning("no aggregated annotations found on enclosing method")
+    Expr.ofList(annotExprs)
+  }
 }

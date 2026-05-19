@@ -7,5 +7,8 @@ trait PositionedMacros {
 }
 
 object PositionedMacros {
-  def hereImpl(using Quotes): Expr[Int] = '{ ??? }
+  def hereImpl(using quotes: Quotes): Expr[Int] = {
+    import quotes.reflect.*
+    Expr(Position.ofMacroExpansion.start)
+  }
 }

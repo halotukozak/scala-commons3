@@ -29,7 +29,7 @@ object SourceInfo {
   def here()(using si: SourceInfo): SourceInfo = si
 
   inline given here: SourceInfo = ${ hereImpl }
-  private def hereImpl(using quotes: Quotes): Expr[SourceInfo] = {
+  private[misc] def hereImpl(using quotes: Quotes): Expr[SourceInfo] = {
     import quotes.reflect.*
     val pos = Position.ofMacroExpansion
 
