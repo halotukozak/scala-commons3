@@ -51,7 +51,7 @@ object GenCodec
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
-  inline def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = ???
+  inline def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = ApplyUnapplyCodec.derived[T]
 
   @deprecated("Use GenCodec.transform with named tuple instead", since = "3.0.0")
   def fromApplyUnapplyProvider[T]: Any => GenCodec[T] = _ => ???

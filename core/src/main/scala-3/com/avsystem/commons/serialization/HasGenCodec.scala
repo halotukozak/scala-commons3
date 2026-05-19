@@ -30,7 +30,8 @@ abstract class HasGenCodec[T](using macroCodec: MacroInstances[Unit, (codec: Gen
  * Like [[HasGenCodec]] but materializes an [[ApplyUnapplyCodec]] instead of just [[GenCodec]].
  */
 abstract class HasApplyUnapplyCodec[T](using macroCodec: MacroInstances[Unit, (codec: ApplyUnapplyCodec[T])]) {
-  given NotGiven[AllowDerivation[ApplyUnapplyCodec[T]]] => ApplyUnapplyCodec[T] = macroCodec((), this).codec
+  lazy val codec: ApplyUnapplyCodec[T] = macroCodec((), this).codec
+  given NotGiven[AllowDerivation[ApplyUnapplyCodec[T]]] => ApplyUnapplyCodec[T] = codec
 }
 
 /**

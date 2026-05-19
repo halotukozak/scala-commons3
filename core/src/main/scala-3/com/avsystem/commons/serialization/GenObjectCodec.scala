@@ -31,8 +31,15 @@ trait GenObjectCodec[T] extends GenCodec[T] {
 }
 object GenObjectCodec {
   inline given materialize[T](using AllowDerivation[GenObjectCodec[T]]): GenObjectCodec[T] = derived[T]
-  
-  def derived[T] :GenObjectCodec[T] = ???
+
+  inline def derived[T]: GenObjectCodec[T] = GenCodec.derived[T] match {
+    case oc: GenObjectCodec[T @unchecked] => oc
+    case other =>
+      throw new IllegalArgumentException(
+        s"Derived GenCodec is not a GenObjectCodec: ${other.getClass.getName}. " +
+          s"GenObjectCodec can only be derived for case classes, case objects and sealed hierarchies.",
+      )
+  }
 
   // Warning! Changing the order of implicit params of this method causes divergent implicit expansion (WTF?)
   given [R, T] => (tw: TransparentWrapping[R, T]) => (wrappedCodec: GenObjectCodec[R]) => GenObjectCodec[T] =
