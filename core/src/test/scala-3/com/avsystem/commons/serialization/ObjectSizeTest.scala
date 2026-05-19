@@ -1,4 +1,4 @@
-/* @TodoScala3Migration DISABLED: scala-3 HasApplyUnapplyCodec exposes the codec as a given, not a public .codec val; would need an alternate accessor (summon) and porting @generated / @optionalParam behaviour into the derivation.
+/* @TodoScala3Migration DISABLED: needs (1) apply/unapply detection on regular classes (CustomRecordWithDefaults, CustomWrapper) and (2) IgnoreTransientDefaultMarker support in derived codec's size/writeFields. Re-enable after Made-derive supports apply/unapply or after switching to a separate macro path.
 package com.avsystem.commons
 package serialization
 
