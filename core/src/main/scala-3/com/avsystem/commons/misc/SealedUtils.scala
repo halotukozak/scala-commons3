@@ -13,7 +13,7 @@ object SealedUtils {
   inline private def collectCaseObjects[T, Tup <: Tuple]: List[T] = inline compiletime.erasedValue[Tup] match {
     case _: (h *: t) =>
       compiletime.summonFrom {
-        case vo: ValueOf[`h`] =>
+        case vo: scala.ValueOf[`h`] =>
           vo.value.asInstanceOf[T] :: Nil
         case m: Mirror.SumOf[`h`] =>
           collectCaseObjects[T, m.MirroredElemTypes] // todo: check if required to recurse into nested sum type
