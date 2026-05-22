@@ -348,35 +348,37 @@ lazy val `core-js` = project
     mimaBinaryIssueFilters ++= coreMimaFilters,
   )
 
-//todo
-//lazy val mongo = project
-//  .dependsOn(core % CompileAndTest)
-//  .settings(
-//    jvmCommonSettings,
-//    sourceDirsSettings(_ / "jvm"),
-//    libraryDependencies ++= Seq(
-//      "com.google.guava" % "guava" % guavaVersion,
-//      "com.google.code.findbugs" % "jsr305" % jsr305Version % Optional,
-//      "io.monix" %% "monix" % monixVersion,
-//      "org.mongodb" % "mongodb-driver-core" % mongoVersion,
-//      "org.mongodb" % "mongodb-driver-sync" % mongoVersion % Optional,
-//      "org.mongodb" % "mongodb-driver-reactivestreams" % mongoVersion % Optional,
-//      ("org.mongodb.scala" %% "mongo-scala-driver" % mongoVersion % Optional).cross(CrossVersion.for3Use2_13),
-//    ),
-//  )
-//
-//// only to allow @mongoId & MongoEntity to be usedJS/JVM cross-compiled code
-//lazy val `mongo-js` = project
-//  .in(mongo.base / "js")
-//  .enablePlugins(ScalaJSPlugin)
-//  .configure(p => if (forIdeaImport) p.dependsOn(mongo) else p)
-//  .dependsOn(`core-js`)
-//  .settings(
-//    jsCommonSettings,
-//    sameNameAs(mongo),
-//    sourceDirsSettings(_.getParentFile),
-//  )
-//
+lazy val mongo = project
+  .dependsOn(core % CompileAndTest)
+  .settings(
+    jvmCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
+    sourceDirsSettings(_ / "jvm"),
+    libraryDependencies ++= Seq(
+      "com.google.guava" % "guava" % guavaVersion,
+      "com.google.code.findbugs" % "jsr305" % jsr305Version % Optional,
+      "io.monix" %% "monix" % monixVersion,
+      "org.mongodb" % "mongodb-driver-core" % mongoVersion,
+      "org.mongodb" % "mongodb-driver-sync" % mongoVersion % Optional,
+      "org.mongodb" % "mongodb-driver-reactivestreams" % mongoVersion % Optional,
+      ("org.mongodb.scala" %% "mongo-scala-driver" % mongoVersion % Optional).cross(CrossVersion.for3Use2_13),
+    ),
+  )
+
+// only to allow @mongoId & MongoEntity to be used in JS/JVM cross-compiled code
+lazy val `mongo-js` = project
+  .in(mongo.base / "js")
+  .enablePlugins(ScalaJSPlugin)
+  .configure(p => if (forIdeaImport) p.dependsOn(mongo) else p)
+  .dependsOn(`core-js`)
+  .settings(
+    jsCommonSettings,
+    crossScalaVersions := Seq(scala3Version, scala2Version),
+    scalaVersion := scala3Version,
+    sameNameAs(mongo),
+    sourceDirsSettings(_.getParentFile),
+  )
 
 lazy val hocon = project
   .dependsOn(core % CompileAndTest)

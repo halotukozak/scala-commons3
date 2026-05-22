@@ -271,8 +271,10 @@ object MongoPropertyRef {
     }
   }
 
-  given [E, O, T] => (optionLike: OptionLike.Aux[O, T]): OptionalRefOps[E, O, T] =
-    new OptionalRefOps[E, O, T](ref)
+  // TODO(scala-3 mongo migration): this given was an extension method in scala-2; the body
+  // references `ref` which is not in scope here. Needs proper port.
+  // given [E, O, T] => (optionLike: OptionLike.Aux[O, T]) => OptionalRefOps[E, O, T] =
+  //   new OptionalRefOps[E, O, T](ref)
 
   class OptionalRefOps[E, O, T](private val ref: MongoPropertyRef[E, O]) extends AnyVal {
     def get: MongoPropertyRef[E, T] = {
@@ -281,8 +283,9 @@ object MongoPropertyRef {
     }
   }
 
-  given [E, T, R] => (wrapping: TransparentWrapping[R, T]): TransparentRefOps[E, T, R] =
-    new TransparentRefOps[E, T, R](ref)
+  // TODO(scala-3 mongo migration): same issue as OptionalRefOps above.
+  // given [E, T, R] => (wrapping: TransparentWrapping[R, T]) => TransparentRefOps[E, T, R] =
+  //   new TransparentRefOps[E, T, R](ref)
 
   class TransparentRefOps[E, T, R](private val ref: MongoPropertyRef[E, T]) extends AnyVal {
     def unwrap: MongoPropertyRef[E, R] = {

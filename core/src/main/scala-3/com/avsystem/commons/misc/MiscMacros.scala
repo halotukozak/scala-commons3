@@ -56,6 +56,35 @@ trait DelegationApplyMacros[B] {
 }
 
 object MiscMacros {
+  /**
+   * Scala-3 port of the scala-2 `optionalizeFirstArg` macro. Rewrites `f.call(arg, more*)` into
+   * `if (arg ne null) f.call(arg, more*) else f.call(more*)` — used by mongo driver wrappers to
+   * skip an optional first session argument when it's null.
+   */
+  inline def optionalizeFirstArg[T](inline expr: T): T = ${ optionalizeFirstArgImpl[T]('expr) }
+
+  def optionalizeFirstArgImpl[T: Type](expr: Expr[T])(using Quotes): Expr[T] = {
+    import quotes.reflect.*
+    def go(t: Term): Term = t match {
+      case Apply(fun, head :: tail) =>
+        val condExpr = Select.unique(head, "ne").appliedTo('{ null }.asTerm)
+        val fallback = Apply(fun, tail)
+        If(condExpr, t, fallback).asExprOf[T].asTerm
+      case TypeApply(inner, targs) =>
+        // strip type-args, recurse, re-apply
+        go(inner) match
+          case ifExpr: If => ifExpr // already complete
+          case other => TypeApply(other, targs)
+      case Block(stats, expr) => Block(stats, go(expr))
+      case _ =>
+        report.errorAndAbort(
+          s"optionalizeFirstArg: function application expected, got ${t.show}",
+          t.pos,
+        )
+    }
+    go(expr.asTerm).asExprOf[T]
+  }
+
   private def annotsOfT[A: Type, T: Type](using quotes: Quotes): List[quotes.reflect.Term] = {
     import quotes.reflect.*
     val aSym = TypeRepr.of[A].typeSymbol

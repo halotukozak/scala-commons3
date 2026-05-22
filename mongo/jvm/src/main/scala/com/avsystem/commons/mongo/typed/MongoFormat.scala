@@ -92,33 +92,15 @@ object MongoFormat extends MetadataCompanion[MongoFormat] with MongoFormatLowPri
     wrappedFormat: MongoFormat[R],
   ) extends MongoFormat[T]
 
-  given [C[X] <: Iterable[X], T] => 
-    GenCodec[C[T]] =>
-    MongoFormat[T] =>
-    CollectionFormat[C, T] = CollectionFormat(collectionCodec, elementFormat)
+  given [C[X] <: Iterable[X], T] => (collectionCodec: GenCodec[C[T]]) => (elementFormat: MongoFormat[T]) => CollectionFormat[C, T] = CollectionFormat(collectionCodec, elementFormat)
 
-  given [M[X, Y] <: BMap[X, Y], K, V] => 
-    GenCodec[M[K, V]] =>
-    GenKeyCodec[K] =>
-    MongoFormat[V] =>
-    DictionaryFormat[M, K, V] = DictionaryFormat(mapCodec, keyCodec, valueFormat)
+  given [M[X, Y] <: BMap[X, Y], K, V] => (mapCodec: GenCodec[M[K, V]]) => (keyCodec: GenKeyCodec[K]) => (valueFormat: MongoFormat[V]) => DictionaryFormat[M, K, V] = DictionaryFormat(mapCodec, keyCodec, valueFormat)
 
-  given [K[_]] => 
-    GenKeyCodec[K[_]] =>
-    MongoFormatMapping[K] =>
-    TypedMapFormat[K] = TypedMapFormat[K](TypedMap.typedMapCodec, keyCodec, valueFormats)
+  given [K[_]] => (keyCodec: GenKeyCodec[K[?]]) => (valueFormats: MongoFormatMapping[K]) => TypedMapFormat[K] = TypedMapFormat[K](TypedMap.typedMapCodec, keyCodec, valueFormats)
 
-  given [O, T] => 
-    OptionLike.Aux[O, T] =>
-    GenCodec[O] =>
-    MongoFormat[T] =>
-    OptionalFormat[O, T] = OptionalFormat(optionCodec, optionLike, wrappedFormat)
+  given [O, T] => (optionLike: OptionLike.Aux[O, T]) => (optionCodec: GenCodec[O]) => (wrappedFormat: MongoFormat[T]) => OptionalFormat[O, T] = OptionalFormat(optionCodec, optionLike, wrappedFormat)
 
-  given [R, T] => 
-    GenCodec[T] =>
-    TransparentWrapping[R, T] =>
-    MongoFormat[R] =>
-    TransparentFormat[T, R] = TransparentFormat(codec, wrapping, wrappedFormat)
+  given [R, T] => (codec: GenCodec[T]) => (wrapping: TransparentWrapping[R, T]) => (wrappedFormat: MongoFormat[R]) => TransparentFormat[T, R] = TransparentFormat(codec, wrapping, wrappedFormat)
 
   extension [C[X] <: Iterable[X], T](format: MongoFormat[C[T]]) {
     def assumeCollection: CollectionFormat[C, T] = format match {

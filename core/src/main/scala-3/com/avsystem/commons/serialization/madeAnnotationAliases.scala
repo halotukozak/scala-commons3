@@ -12,3 +12,4 @@ export made.annotation.name
 export made.annotation.optionalParam
 export made.annotation.transparent
 export made.annotation.whenAbsent
+export made.TransparentWrapping
