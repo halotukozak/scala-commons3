@@ -104,6 +104,7 @@ abstract class ApplyUnapplyCodec[T](
   }
 }
 object ApplyUnapplyCodec {
+  @deprecated("Use GenCodec.materialize instead; ApplyUnapplyCodec is being removed.", since = "3.0.0")
   def materialize[T]: ApplyUnapplyCodec[T] = macro macros.serialization.GenCodecMacros.applyUnapplyCodec[T]
 }
 

@@ -1,8 +1,6 @@
 package com.avsystem.commons
 package meta
 
-import com.avsystem.commons.annotation.bincompat
-
 sealed trait OptionLike[O] {
   type Value
   def none: O
@@ -26,7 +24,6 @@ sealed trait OptionLike[O] {
     if (ignoreNulls && (value.asInstanceOf[AnyRef] eq null)) none else some(value)
 }
 
-@bincompat
 sealed trait BaseOptionLike[O, A] extends OptionLike[O] {
   type Value = A
 }
@@ -42,13 +39,6 @@ final class OptionLikeImpl[O, A](
   def some(value: A): O = someFun(value)
   def isDefined(opt: O): Boolean = isDefinedFun(opt)
   def get(opt: O): A = getFun(opt)
-
-  @bincompat private[meta] def this(
-    empty: O,
-    someFun: A => O,
-    isDefinedFun: O => Boolean,
-    getFun: O => A,
-  ) = this(empty, someFun, isDefinedFun, getFun, ignoreNulls = true)
 }
 object OptionLike {
   type Aux[O, V] = OptionLike[O] { type Value = V }

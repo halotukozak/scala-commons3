@@ -1,7 +1,6 @@
 package com.avsystem.commons
 package mongo.typed
 
-import com.avsystem.commons.annotation.bincompat
 import com.avsystem.commons.mongo.core.GenCodecRegistry
 import com.mongodb.bulk.BulkWriteResult
 import com.mongodb.client.model._
@@ -383,11 +382,6 @@ class TypedMongoCollection[E <: BaseMongoEntity] private (
     )
   }
 
-  @bincompat private[typed] def this(rawCollection: MongoCollection[_], format: MongoAdtFormat[E]) =
-    this(rawCollection)(MongoEntityMeta.bincompatMeta(format))
-
-  @bincompat private[typed] def this(rawCollection: MongoCollection[_], meta: MongoEntityMeta[E]) =
-    this(rawCollection)(meta)
 }
 
 object TypedMongoCollection {

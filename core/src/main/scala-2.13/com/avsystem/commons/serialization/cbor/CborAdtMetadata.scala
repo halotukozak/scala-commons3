@@ -1,13 +1,10 @@
 package com.avsystem.commons
 package serialization.cbor
 
-import com.avsystem.commons.annotation.{bincompat, positioned, AnnotationAggregate}
+import com.avsystem.commons.annotation.{positioned, AnnotationAggregate}
 import com.avsystem.commons.meta.*
-import com.avsystem.commons.misc.ValueOf
 import com.avsystem.commons.serialization.GenCodec.OOOFieldsObjectCodec
 import com.avsystem.commons.serialization.*
-
-import scala.annotation.nowarn
 
 /**
  * Like [[HasGenCodec]] but generates a codec optimized for writing and reading CBOR via [[CborOutput]] and
@@ -28,13 +25,6 @@ abstract class HasCborCodecWithDeps[D, T](
   implicit instances: MacroInstances[(CborOptimizedCodecs, D), CborAdtInstances[T]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(
-    applyUnapplyProvider: ValueOf[D],
-    instances: MacroInstances[(CborOptimizedCodecs, D), CborAdtInstances[T]],
-  ) = this()(using instances, applyUnapplyProvider.toScala)
-
   implicit lazy val codec: GenObjectCodec[T] = instances((CborOptimizedCodecs, deps.value), this).cborCodec
 }
 

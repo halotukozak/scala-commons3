@@ -74,6 +74,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs {
   def fromApplyUnapplyProvider[T](applyUnapplyProvider: Any): GenCodec[T] =
     macro macros.serialization.GenCodecMacros.fromApplyUnapplyProvider[T]
 
+  @deprecated("Use GenCodec.materialize instead; ApplyUnapplyCodec is being removed.", since = "3.0.0")
   def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] =
     macro macros.serialization.GenCodecMacros.applyUnapplyCodec[T]
 

@@ -1,12 +1,8 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.annotation.bincompat
 import com.avsystem.commons.meta.MacroInstances
 import com.avsystem.commons.meta.MacroInstances.materializeWith
-import com.avsystem.commons.misc.ValueOf
-
-import scala.annotation.nowarn
 
 /** Convenience abstract class for companion objects of types that have a [[GenCodec]]. There are many other flavors of
   * this base companion class. For example, if you want to inject additional implicits into [[GenCodec]]
@@ -19,6 +15,7 @@ abstract class HasGenCodec[T](implicit macroCodec: MacroInstances[Unit, () => Ge
 
 /** Like [[HasGenCodec]] but materializes an [[ApplyUnapplyCodec]] instead of just [[GenCodec]].
   */
+@deprecated("Use HasGenCodec instead; ApplyUnapplyCodec is being removed.", since = "3.0.0")
 abstract class HasApplyUnapplyCodec[T](implicit macroCodec: MacroInstances[Unit, () => ApplyUnapplyCodec[T]]) {
   implicit val codec: ApplyUnapplyCodec[T] = macroCodec((), this).apply()
 }
@@ -36,11 +33,6 @@ abstract class HasGenCodecWithDeps[D, T](
   implicit macroCodec: MacroInstances[D, () => GenCodec[T]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(applyUnapplyProvider: ValueOf[D], instances: MacroInstances[D, () => GenCodec[T]]) =
-    this()(instances, applyUnapplyProvider.toScala)
-
   implicit val codec: GenCodec[T] = macroCodec(deps.value, this).apply()
 }
 
@@ -48,17 +40,11 @@ abstract class HasGenCodecWithDeps[D, T](
   * Implicits are imported from an object specified with type parameter `D`. It must be a singleton object type, i.e.
   * `SomeObject.type`.
   */
+@deprecated("Use HasGenCodecWithDeps instead; ApplyUnapplyCodec is being removed.", since = "3.0.0")
 abstract class HasApplyUnapplyCodecWithDeps[D, T](
   implicit macroCodec: MacroInstances[D, () => ApplyUnapplyCodec[T]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(
-    applyUnapplyProvider: ValueOf[D],
-    instances: MacroInstances[D, () => ApplyUnapplyCodec[T]],
-  ) = this()(instances, applyUnapplyProvider.toScala)
-
   implicit val codec: ApplyUnapplyCodec[T] = macroCodec(deps.value, this).apply()
 }
 
@@ -70,13 +56,6 @@ abstract class HasGenObjectCodecWithDeps[D, T](
   implicit macroCodec: MacroInstances[D, () => GenObjectCodec[T]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(
-    applyUnapplyProvider: ValueOf[D],
-    instances: MacroInstances[D, () => GenObjectCodec[T]],
-  ) = this()(instances, applyUnapplyProvider.toScala)
-
   implicit val codec: GenObjectCodec[T] = macroCodec(deps.value, this).apply()
 }
 
@@ -98,11 +77,6 @@ abstract class HasPolyGenCodecWithDeps[D, C[_]](
   implicit macroCodec: MacroInstances[D, PolyCodec[C]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(applyUnapplyProvider: ValueOf[D], instances: MacroInstances[D, PolyCodec[C]]) =
-    this()(instances, applyUnapplyProvider.toScala)
-
   implicit def codec[T: GenCodec]: GenCodec[C[T]] = macroCodec(deps.value, this).codec
 }
 
@@ -124,11 +98,6 @@ abstract class HasPolyGenObjectCodecWithDeps[D, C[_]](
   implicit macroCodec: MacroInstances[D, PolyObjectCodec[C]],
   deps: scala.ValueOf[D],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(applyUnapplyProvider: ValueOf[D], instances: MacroInstances[D, PolyObjectCodec[C]]) =
-    this()(instances, applyUnapplyProvider.toScala)
-
   implicit def codec[T: GenCodec]: GenObjectCodec[C[T]] = macroCodec(deps.value, this).codec
 }
 
@@ -183,11 +152,6 @@ abstract class HasGenCodecFromAU[AU, T](
   implicit instances: MacroInstances[Unit, AUCodec[AU, T]],
   applyUnapplyProvider: scala.ValueOf[AU],
 ) {
-  @bincompat
-  @nowarn("msg=deprecated")
-  private[serialization] def this(applyUnapplyProvider: ValueOf[AU], instances: MacroInstances[Unit, AUCodec[AU, T]]) =
-    this()(instances, applyUnapplyProvider.toScala)
-
   implicit final lazy val codec: GenCodec[T] =
     instances((), this).codec(applyUnapplyProvider.value)
 }

@@ -363,7 +363,4 @@ final class MongoEntityMeta[E <: BaseMongoEntity](
 ) {
   def idRef: MongoPropertyRef[E, E#IDType] = idMode.idRef(format)
 }
-object MongoEntityMeta extends BoundedAdtMetadataCompanion[BaseMongoEntity, Nothing, MongoEntityMeta] {
-  private[typed] def bincompatMeta[E <: BaseMongoEntity](format: MongoAdtFormat[E]): MongoEntityMeta[E] =
-    new MongoEntityMeta(format, EntityIdMode.Explicit())
-}
+object MongoEntityMeta extends BoundedAdtMetadataCompanion[BaseMongoEntity, Nothing, MongoEntityMeta]
