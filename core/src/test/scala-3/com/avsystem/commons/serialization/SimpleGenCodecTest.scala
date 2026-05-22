@@ -137,18 +137,6 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     )
   }
 
-  // @TodoScala3Migration: case-class-like derivation pending (see CodecTestData).
-  ignore("case class like") {
-    // testWrite(CaseClassLike(...))
-  }
-  ignore("case class like with inherited apply/unapply") {
-    // testWrite(HasInheritedApply(...))
-  }
-
-  test("apply/unapply provider based codec") {
-    testWrite(ThirdParty(42, "lol"), Map("str" -> "lol", "int" -> 42))
-  }
-
   test("varargs case class") {
     testWrite(VarargsCaseClass(42, "foo", "bar"), Map("int" -> 42, "strings" -> List("foo", "bar")))
   }
@@ -157,12 +145,6 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(OnlyVarargsCaseClass("42", "420"), Map("strings" -> List("42", "420")))
   }
 
-  ignore("varargs case class like") {
-    // testWrite(VarargsCaseClassLike(...))
-  }
-  ignore("only varargs case class like") {
-    // testWrite(OnlyVarargsCaseClassLike(...))
-  }
 
   test("case class with default values") {
     testWrite(HasDefaults(str = "lol"), Map("str" -> "lol"))

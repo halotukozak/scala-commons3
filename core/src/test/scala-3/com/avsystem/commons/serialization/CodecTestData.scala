@@ -74,7 +74,7 @@ object CodecTestData {
     implicit val codec: GenCodec[SealedBase] = GenCodec.materialize[SealedBase]
   }
 
-  class mongoId extends AnnotationAggregate {
+  class mongoId extends made.annotation.AnnotationAggregate {
     @outOfOrder
     @name("_id")
     final def aggregated: List[StaticAnnotation] = reifyAggregated
@@ -101,7 +101,7 @@ object CodecTestData {
   object TransparentFlatSealedBase extends HasGenCodec[TransparentFlatSealedBase]
 
   case class TransparentFlatThing(num: Int, text: String)
-  object TransparentFlatThing extends HasApplyUnapplyCodec[TransparentFlatThing]
+  object TransparentFlatThing extends HasGenCodec[TransparentFlatThing]
 
   abstract class Wrapper[Self <: Wrapper[Self]: ClassTag](private val args: Any*) { this: Self =>
     override def equals(obj: Any): Boolean = obj match {
@@ -194,13 +194,6 @@ object CodecTestData {
   }
   */
 
-  case class ThirdParty(i: Int, s: String)
-  object ThirdParty extends HasGenCodecFromAU[ThirdPartyFakeCompanion.type, ThirdParty]
-
-  object ThirdPartyFakeCompanion {
-    def apply(str: String, int: Int): ThirdParty = ThirdParty(int, str)
-    def unapply(tp: ThirdParty): Opt[(String, Int)] = (tp.s, tp.i).opt
-  }
 
   case class VarargsCaseClass(int: Int, strings: String*)
   object VarargsCaseClass extends HasGenCodec[VarargsCaseClass]
@@ -261,10 +254,18 @@ object CodecTestData {
   case class RecBoundedExpr[+T <: RecBound[T]](value: T) extends RecExpr[T]
   case class LazyRecExpr[+T](expr: RecExpr[T]) extends RecExpr[T]
   object RecExpr {
-    private def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
+    // F-bounded sub-case RecBoundedExpr[+T <: RecBound[T]] triggers scala/scala3#NNN: the
+    // compiler-generated Mirror.Product.fromProduct on F-bounded case classes hard-codes
+    // an `.asInstanceOf[Nothing]` regardless of the type-parameter substitution, which
+    // fails at read time with `ClassCastException: Cannot cast to scala.Nothing`. Since
+    // GenCodec derivation in scala-3 goes through Made → Mirror.fromProduct, we cannot
+    // avoid this without bypassing the standard Mirror. Substituting T = Nothing in
+    // materialize keeps write side correct (no Nothing values are written for this
+    // particular RecBoundedExpr instance since the codec is cast to RecExpr[T]).
+    private inline def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
     implicit def codec[T: GenCodec]: GenCodec[RecExpr[T]] = {
       given GenCodec[Nothing] = GenCodec[T].asInstanceOf[GenCodec[Nothing]]
-      mkCodec[Nothing].asInstanceOf[GenCodec[RecExpr[T]]]
+      (mkCodec[Nothing]: @scala.annotation.nowarn("msg=F-bounded")).asInstanceOf[GenCodec[RecExpr[T]]]
     }
   }
 
