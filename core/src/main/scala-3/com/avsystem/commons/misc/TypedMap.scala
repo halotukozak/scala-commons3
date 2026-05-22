@@ -78,7 +78,7 @@ object TypedMap {
     entries.foreach(e => raw += e.pair.asInstanceOf[(K[Any], Any)])
     new TypedMap[K](raw.result())
   }
-  given [K[_]] => (keyCodec: GenKeyCodec[K[Any]], codecMapping: GenCodecMapping[K])
+  given typedMapCodec: [K[_]] => (keyCodec: GenKeyCodec[K[Any]], codecMapping: GenCodecMapping[K])
     => GenObjectCodec[TypedMap[K]] =
     new GenCodec.ObjectCodec[TypedMap[K]] {
       override def nullable = false

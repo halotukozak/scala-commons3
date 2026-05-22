@@ -101,14 +101,9 @@ object QueryOperatorsDsl {
     def containsAll(values: Iterable[T]): R = dsl.all(values)
   }
 
-  given [O, T, R] => (optionLike: OptionLike.Aux[O, T]): ForOptional[O, T, R] =
-    new ForOptional(dsl)
-
-  class ForOptional[O, T, R](private val dsl: QueryOperatorsDsl[O, R]) extends AnyVal {
-    private def optionLike: OptionLike.Aux[O, T] = dsl.format.assumeOptional[T].optionLike
-
-    def isEmpty: R = dsl.is(optionLike.none)
-    def isDefined: R = dsl.isNot(optionLike.none)
+  extension [O, T, R](dsl: QueryOperatorsDsl[O, R])(using optionLike: OptionLike.Aux[O, T]) {
+    def isEmpty: R = dsl.is(dsl.format.assumeOptional[T].optionLike.none)
+    def isDefined: R = dsl.isNot(dsl.format.assumeOptional[T].optionLike.none)
   }
 }
 

@@ -14,7 +14,7 @@ import scala.annotation.tailrec
   * indirectly as an embedded value).
   */
 sealed trait MongoFormat[T] {
-  given GenCodec[T] = compiletime.deferred
+  given codec: GenCodec[T] = compiletime.deferred
 
   def writeBson(value: T): BsonValue =
     BsonValueOutput.write(value)

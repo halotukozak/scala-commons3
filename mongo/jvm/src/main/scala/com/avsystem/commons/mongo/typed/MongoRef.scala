@@ -67,7 +67,7 @@ sealed trait MongoToplevelRef[E, T <: E] extends MongoRef[E, T] {
   @macroPrivate def subtypeRefFor[C <: T: ClassTag]: MongoToplevelRef[E, C] =
     format.assumeUnion.subtypeRefFor(this, classTag[C].runtimeClass.asInstanceOf[Class[C]])
 
-  def decodeFrom(doc: BsonDocument): T = BsonValueInput.read(doc)(format.codec)
+  def decodeFrom(doc: BsonDocument): T = BsonValueInput.read(doc)(using format.codec)
 }
 
 /** Represents a path inside a MongoDB document.

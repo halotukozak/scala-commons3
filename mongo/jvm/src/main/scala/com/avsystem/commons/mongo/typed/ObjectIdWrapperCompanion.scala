@@ -23,5 +23,8 @@ abstract class ObjectIdWrapperCompanion[ID] extends TransparentWrapperCompanion[
     */
   def get(): ID = wrap(ObjectId.get())
 
-  implicit val codec: GenCodec[ID] = GenCodec.fromTransparentWrapping(this, BsonGenCodecs.objectIdCodec)
+  implicit val codec: GenCodec[ID] = {
+    given GenCodec[ObjectId] = BsonGenCodecs.objectIdCodec
+    summon[GenCodec[ID]]
+  }
 }
