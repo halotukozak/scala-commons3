@@ -6,7 +6,7 @@ import com.avsystem.commons.serialization.GenCodec
 import org.bson.BsonValue
 
 trait BsonRefKeyElementHandling[E, C[T] <: Iterable[T]] extends KeyElementHandling[E] with BsonRefKeyHandling[C[E]] {
-  protected given GenCodec[E] = compiletime.defered
+  protected given GenCodec[E] = compiletime.deferred
 
   override protected def encodeElement(e: E): BsonValue = BsonValueOutput.write(e)
 }

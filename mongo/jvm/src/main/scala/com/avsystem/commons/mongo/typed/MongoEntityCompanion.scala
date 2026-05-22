@@ -24,8 +24,8 @@ trait MongoEntityInstances[E <: BaseMongoEntity] extends MongoAdtInstances[E] {
 sealed trait IsMongoAdtOrSubtype[T]
 
 sealed abstract class BaseMongoCompanion[T] extends DataTypeDsl[T] {
-  given GenObjectCodec[T] = compiletime.defered
-  given MongoAdtFormat[T] = compiletime.defered
+  given GenObjectCodec[T] = compiletime.deferred
+  given MongoAdtFormat[T] = compiletime.deferred
 
   given [C <: T]=> IsMongoAdtOrSubtype[C] = null
 

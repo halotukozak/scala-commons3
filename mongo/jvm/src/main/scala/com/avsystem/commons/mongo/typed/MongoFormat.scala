@@ -14,7 +14,7 @@ import scala.annotation.tailrec
   * indirectly as an embedded value).
   */
 sealed trait MongoFormat[T] {
-  given GenCodec[T] = compiletime.defered
+  given GenCodec[T] = compiletime.deferred
 
   def writeBson(value: T): BsonValue =
     BsonValueOutput.write(value)
@@ -140,9 +140,9 @@ trait MongoFormatLowPriority { this: MongoFormat.type =>
 }
 
 sealed trait MongoAdtFormat[T] extends MongoFormat[T] with TypedMetadata[T] {
-  given codec: GenObjectCodec[T] = compiletime.defered
+  given codec: GenObjectCodec[T] = compiletime.deferred
   // this is not named `classTag` in order to avoid naming conflict with `com.avsystem.commons.classTag`
-  given dataClassTag: ClassTag[T] = compiletime.defered
+  given dataClassTag: ClassTag[T] = compiletime.deferred
 
   def fieldRefFor[E, T0](prefix: MongoRef[E, T], scalaFieldName: String): MongoPropertyRef[E, T0]
 }
