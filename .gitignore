@@ -31,3 +31,6 @@ masterSlave/
 .vscode/
 metals.sbt
 /.planning/
+.cellar/
+.claude/
+.scala-build/
