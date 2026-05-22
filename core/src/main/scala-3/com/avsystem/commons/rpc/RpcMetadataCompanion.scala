@@ -13,10 +13,14 @@ import com.avsystem.commons.meta.MetadataCompanion
  * @tparam M
  *   metadata class type constructor
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait RpcMetadataCompanion[M[_]] extends MetadataCompanion[M] with RpcMetadataCompanionMacros[M]
 
 /**
  * Like [[RpcMetadataCompanion]] but reflects over the entire public API of a particular Scala type (unlike RPC traits
  * which only have their abstract methods captured).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait ApiMetadataCompanion[M[_]] extends MetadataCompanion[M] with ApiMetadataCompanionMacros[M]

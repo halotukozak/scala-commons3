@@ -7,6 +7,8 @@ import com.avsystem.commons.meta.*
  * Mix in this trait into your RPC framework to support remote procedures, i.e. fire-and-forget methods with `Unit`
  * return type.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait ProcedureRPCFramework extends RPCFramework {
   type RawRPC <: ProcedureRawRPC
 
@@ -27,6 +29,8 @@ trait ProcedureRPCFramework extends RPCFramework {
  * Mix in this trait into your RPC framework to support remote functions, i.e. methods which asynchronously return some
  * result (`Future[A]` where `A` has a `Reader` and `Writer`).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait FunctionRPCFramework extends RPCFramework {
   type RawRPC <: FunctionRawRPC
 
@@ -49,6 +53,8 @@ trait FunctionRPCFramework extends RPCFramework {
 /**
  * Mix in this trait into your RPC framework to support getters, i.e. methods that return RPC subinterfaces
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait GetterRPCFramework extends RPCFramework {
   type RawRPC <: GetterRawRPC
 
@@ -68,6 +74,8 @@ trait GetterRPCFramework extends RPCFramework {
       with TypedMetadata[T]
 }
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait StandardRPCFramework extends GetterRPCFramework with FunctionRPCFramework with ProcedureRPCFramework {
   trait RawRPC extends GetterRawRPC with FunctionRawRPC with ProcedureRawRPC
   object RawRPC extends BaseRawRpcCompanion
@@ -84,6 +92,8 @@ trait StandardRPCFramework extends GetterRPCFramework with FunctionRPCFramework 
   object RPCMetadata extends RpcMetadataCompanion[RPCMetadata]
 }
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait OneWayRPCFramework extends GetterRPCFramework with ProcedureRPCFramework {
   trait RawRPC extends GetterRawRPC with ProcedureRawRPC
   object RawRPC extends BaseRawRpcCompanion

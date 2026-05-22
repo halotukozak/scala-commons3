@@ -4,6 +4,8 @@ package rpc
 import com.avsystem.commons.meta.*
 import com.avsystem.commons.serialization.GenCodec
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait RPCFramework extends RPCFrameworkMacros {
   type RawValue
   type Reader[T]

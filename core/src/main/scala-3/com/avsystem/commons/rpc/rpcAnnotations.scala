@@ -8,6 +8,8 @@ import com.avsystem.commons.meta.*
  * also subclass this annotation provided that you always override the `name` parameter with another constructor
  * parameter.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class rpcName(val name: String) extends RealSymAnnotation
 
 /**
@@ -22,6 +24,8 @@ class rpcName(val name: String) extends RealSymAnnotation
  *   }
  * }}}
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class rpcNamePrefix(val prefix: String, val overloadedOnly: Boolean = false) extends RealSymAnnotation
 
 /**
@@ -34,6 +38,8 @@ class rpcNamePrefix(val prefix: String, val overloadedOnly: Boolean = false) ext
  *
  * This annotation must be applied on a raw method or method metadata param.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class mangleOverloads extends RawMethodAnnotation
 
 /**
@@ -41,6 +47,8 @@ class mangleOverloads extends RawMethodAnnotation
  * matched against raw methods and their parameters. For more information about method tagging, see documentation of
  * [[methodTag]]. For more information about parameter tagging, see documentation of [[paramTag]].
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait RpcTag extends RealSymAnnotation
 
 /**
@@ -53,6 +61,8 @@ trait RpcTag extends RealSymAnnotation
  * also be aggregated into some [[com.avsystem.commons.meta.composite composite]] parameter). This is necessary to
  * properly identify which real method should be called.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class methodName extends RawParamAnnotation
 
 /**
@@ -63,6 +73,8 @@ final class methodName extends RawParamAnnotation
  * an argument and returns actual metadata class as a result. `AnyIterable` is any class that extends `Iterable`, e.g.
  * `List`. `TypeClass` is any type constructor of kind (* -> *)
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class forTypeParams extends RawParamAnnotation
 
 /**
@@ -70,6 +82,8 @@ final class forTypeParams extends RawParamAnnotation
  * metadata for RPC method(s) (one, some or all, depending on [[com.avsystem.commons.meta.SymbolArity SymbolArity]],
  * tagging, etc.).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class rpcMethodMetadata extends MetadataParamStrategy
 
 /**
@@ -77,6 +91,8 @@ final class rpcMethodMetadata extends MetadataParamStrategy
  * metadata for RPC parameter(s) (one, some or all, depending on
  * [[com.avsystem.commons.meta.SymbolArity SymbolArity]]], tagging, etc.).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class rpcParamMetadata extends MetadataParamStrategy
 
 /**
@@ -84,6 +100,8 @@ final class rpcParamMetadata extends MetadataParamStrategy
  * holds metadata for RPC type parameter(s) (one, some or all, depending on
  * [[com.avsystem.commons.meta.SymbolArity SymbolArity]]], tagging, etc.).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class rpcTypeParamMetadata extends MetadataParamStrategy
 
 /**
@@ -96,6 +114,8 @@ final class rpcTypeParamMetadata extends MetadataParamStrategy
  * NOTE: `@encodingDependency` parameters are serialized <b>before</b> other parameters, regardless of parameter
  * declaration order.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class encodingDependency extends RealSymAnnotation
 
 /**
@@ -107,6 +127,8 @@ final class encodingDependency extends RealSymAnnotation
  * [[com.avsystem.commons.meta.optional optional]] parameters are [[verbatim]]. See documentation of [[verbatim]] and
  * [[encoded]] for more details.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 sealed trait RpcEncoding extends RawMethodAnnotation with RawParamAnnotation
 
 /**
@@ -169,6 +191,8 @@ sealed trait RpcEncoding extends RawMethodAnnotation with RawParamAnnotation
  * }
  * }}}
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class encoded extends RpcEncoding
 
 /**
@@ -186,6 +210,8 @@ final class encoded extends RpcEncoding
  * }
  * }}}
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class verbatim extends RpcEncoding
 
 /**
@@ -198,6 +224,8 @@ final class verbatim extends RpcEncoding
  * `NewRaw` may also be the same type as `Raw` - this is useful if we only want to modify the raw value after
  * serialization without changing its type.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait EncodingInterceptor[NewRaw, Raw] extends RealSymAnnotation {
   def toOriginalRaw(newRaw: NewRaw): Raw
 }
@@ -212,10 +240,14 @@ trait EncodingInterceptor[NewRaw, Raw] extends RealSymAnnotation {
  * `NewRaw` may also be the same type as `Raw` - this is useful if we only want to modify the raw value before
  * deserialization without changing its type.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 trait DecodingInterceptor[NewRaw, Raw] extends RealSymAnnotation {
   def toNewRaw(raw: Raw): NewRaw
 }
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class rawWhenAbsent[+Raw](val value: Raw) extends RealSymAnnotation
 
 /**
@@ -224,6 +256,8 @@ class rawWhenAbsent[+Raw](val value: Raw) extends RealSymAnnotation
  * of actual `Result`. For example, if raw method is [[encoded]] and its (raw) result is `Raw` then macro engine will
  * search for implicit `AsRaw/Real[Raw,Try[Result]]` instead of just `AsRaw/Real[Raw,Result]`
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class tried extends RawMethodAnnotation
 
 /**
@@ -234,12 +268,16 @@ final class tried extends RawMethodAnnotation
  * parameter matched annotated raw parameter. This implies that the raw parameter must have `single` arity (otherwise
  * it's not required to be matched by any real parameter).
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class unmatched(error: String) extends RawSymAnnotation
 
 /**
  * Can be applied on raw RPC method or method metadata parameter to customize compilation error message for unmatched
  * real parameters tagged as `Tag`.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class unmatchedParam[Tag <: RpcTag](error: String) extends RawMethodAnnotation
 
 /**
@@ -289,6 +327,8 @@ final class unmatchedParam[Tag <: RpcTag](error: String) extends RawMethodAnnota
  * @param defaultTag
  *   default tag value assumed for untagged methods
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class methodTag[BaseTag <: RpcTag](val defaultTag: BaseTag | Null = null) extends RawRpcAnnotation
 
 /**
@@ -333,12 +373,16 @@ final class methodTag[BaseTag <: RpcTag](val defaultTag: BaseTag | Null = null) 
  * @param defaultTag
  *   default tag value assumed for untagged real parameters
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class paramTag[BaseTag <: RpcTag](val defaultTag: BaseTag | Null = null) extends RawSymAnnotation
 
 /**
  * Like [[paramTag]] or [[methodTag]] but used for tagging case classes in sealed hierarchies when materializing ADT
  * metadata for them.
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class caseTag[BaseTag <: RpcTag](val defaultTag: BaseTag | Null = null) extends RawSymAnnotation
 
 /**
@@ -352,5 +396,7 @@ final class caseTag[BaseTag <: RpcTag](val defaultTag: BaseTag | Null = null) ex
  *   default tag value assumed for untagged methods/parameters - if specified, this effectively means that raw
  *   method/parameter will also match untagged real methods/parameters and assume the default tag value for them
  */
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 final class tagged[Tag <: RpcTag](val whenUntagged: Tag | Null = null)
   extends RawMethodAnnotation with RawParamAnnotation

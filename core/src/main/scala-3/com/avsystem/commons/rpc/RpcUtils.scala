@@ -3,20 +3,32 @@ package rpc
 
 import scala.collection.Factory
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class InvalidRpcCall(msg: String, cause: Throwable | Null = null) extends RuntimeException(msg, cause)
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class InvalidRpcArgument(val rpcName: String, val argName: String, cause: Throwable)
   extends InvalidRpcCall(s"Argument $argName of RPC $rpcName is invalid: ${cause.getMessage}", cause)
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class MissingRpcArgument(val rpcName: String, val argName: String)
   extends InvalidRpcCall(s"Argument $argName of RPC $rpcName is missing")
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class UnknownRpc(val rpcName: String, val rawMethodName: String)
   extends InvalidRpcCall(s"Unknown RPC $rpcName for raw method $rawMethodName")
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 class MissingOptionalRpc(val rawMethodName: String)
   extends InvalidRpcCall(s"No matching RPC for optional raw method $rawMethodName")
 
+@deprecated("RPC framework is not maintained for Scala 3; will be removed in a future release.", since = "3.0.0")
+@scala.annotation.nowarn("msg=deprecated")
 object RpcUtils extends RpcUtilsMacros {
   def createEmpty[Coll](fac: Factory[Nothing, Coll]): Coll =
     createBuilder[Nothing, Coll](fac, 0).result()
