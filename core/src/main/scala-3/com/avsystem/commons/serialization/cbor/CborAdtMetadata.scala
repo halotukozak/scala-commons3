@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization.cbor
 
-import com.avsystem.commons.annotation.{bincompat, positioned, AnnotationAggregate}
+import com.avsystem.commons.annotation.{positioned, AnnotationAggregate}
 import com.avsystem.commons.meta.*
 import made.*
 import com.avsystem.commons.serialization.*
@@ -104,13 +104,13 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
       case nestedCodec: NestedSealedHierarchyCodec[T] =>
         val codecWithAdjustedCaseCodecs =
           new NestedSealedHierarchyCodec[T](
-            nestedCodec.typeRepr,
-            nestedCodec.caseNames,
-            nestedCodec.cases,
+            typeRepr = nestedCodec.typeRepr,
+            caseNames = nestedCodec.caseNames,
+            cases = nestedCodec.cases,
           ) {
             def caseDependencies: Array[GenCodec[?]] =
               (nestedCodec.caseDependencies.iterator zip union.cases.iterator).map {
-                case (caseCodec: ApplyUnapplyCodec[Any @unchecked], theCase: CborAdtMetadata.Record[Any @unchecked]) =>
+                case (caseCodec: GenObjectCodec[Any @unchecked], theCase: CborAdtMetadata.Record[Any @unchecked]) =>
                   theCase.adjustCodec(caseCodec)
                 case (codec, _) =>
                   codec
@@ -121,14 +121,14 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
       case flatCodec: FlatSealedHierarchyCodec[T] =>
         val codecWithAdjustedCaseCodecs =
           new FlatSealedHierarchyCodec[T](
-            flatCodec.typeRepr,
-            flatCodec.caseNames,
-            flatCodec.cases,
-            flatCodec.oooFieldNames,
-            flatCodec.caseDependentFieldNames,
-            flatCodec.caseFieldName,
-            flatCodec.defaultCaseIdx,
-            flatCodec.defaultCaseTransient,
+            typeRepr = flatCodec.typeRepr,
+            caseNames = flatCodec.caseNames,
+            cases = flatCodec.cases,
+            oooFieldNames = flatCodec.oooFieldNames,
+            caseDependentFieldNames = flatCodec.caseDependentFieldNames,
+            caseFieldName = flatCodec.caseFieldName,
+            defaultCaseIdx = flatCodec.defaultCaseIdx,
+            defaultCaseTransient = flatCodec.defaultCaseTransient,
           ) {
             override protected def doWriteCaseName(output: Output, caseName: String): Unit =
               if (!output.writeCustom(RawCbor, caseNamesKeyCodec.rawKeys(caseName))) {
@@ -142,7 +142,7 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
 
             def caseDependencies: Array[GenCodec.OOOFieldsObjectCodec[?]] =
               (flatCodec.caseDependencies.iterator zip union.cases.iterator).map {
-                case (caseCodec: ApplyUnapplyCodec[Any @unchecked], theCase: CborAdtMetadata.Record[Any @unchecked]) =>
+                case (caseCodec: OOOFieldsObjectCodec[Any @unchecked], theCase: CborAdtMetadata.Record[Any @unchecked]) =>
                   theCase.adjustFlatCaseCodec(caseCodec)
                 case (codec, _) =>
                   codec

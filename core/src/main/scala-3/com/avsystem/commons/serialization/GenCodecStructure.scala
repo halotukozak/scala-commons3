@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.annotation.{bincompat, positioned}
+import com.avsystem.commons.annotation.positioned
 import com.avsystem.commons.meta.*
 import made.*
 import made.annotation.*

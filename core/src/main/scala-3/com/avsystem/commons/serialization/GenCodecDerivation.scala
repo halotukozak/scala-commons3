@@ -4,6 +4,10 @@ package serialization
 import com.avsystem.commons.meta.*
 import made.*
 import made.annotation.optionalParam
+
+import scala.annotation.{nowarn, tailrec}
+
+@nowarn("msg=deprecated")
 trait GenCodecDerivation { this: GenCodec.type =>
   inline def derived[T]: GenCodec[T] = {
     SerializationMacros.validateTransientDefaults[T]
@@ -70,6 +74,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
             if (optionalParams(i) || autoOptionals(i)) optionalCodecs(i).getOrElse(rawCodecs(i))
             else rawCodecs(i)
           }
+        val isOptionalArr: Array[Boolean] =
+          Array.tabulate(madeDefaults.length)(i => optionalParams(i) || autoOptionals(i))
         deriveProduct(
           label,
           finalCodecs,
@@ -77,7 +83,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
           compiletime.constValueTuple[made.ElemLabels].toArrayOf[String](using containsOnly.refl),
           made.fromUnsafeArray,
           skipWhenDefault,
-          Array.fill(madeDefaults.length)(false),
+          isOptionalArr,
           generatedNames,
           generatedExtractors,
           generatedCodecs,
@@ -91,6 +97,8 @@ trait GenCodecDerivation { this: GenCodec.type =>
         val labels = labelsBuf.result()
         val instances = codecsBuf.result()
         val classTags = classTagsBuf.result()
+        val caseDependentFieldNames =
+          instances.iterator.flatMap(extractCaseFieldNames).toSet
 
         made.getAnnotation[flatten] match {
           case Some(f) =>
@@ -106,11 +114,18 @@ trait GenCodecDerivation { this: GenCodec.type =>
                 .iterator
                 .zipWithIndex
                 .collectFirst { case (Some(default), i) => (i, default.transient) },
-              labels.toSet,
+              caseDependentFieldNames,
             )
           case _ => deriveNestedSum(label, instances, labels, classTags)
         }
     }
+  }
+  @tailrec
+  private def extractCaseFieldNames(codec: GenCodec[?]): Array[String] = codec match {
+    case auc: ApplyUnapplyCodec[?] @unchecked => auc.caseFieldNames
+    case d: DeferredCodec[?] @unchecked => extractCaseFieldNames(d.underlying)
+    case tc: TransformedCodec[?, ?] @unchecked => extractCaseFieldNames(tc.wrapped)
+    case _ => Array.empty[String]
   }
 
   inline private def collectFlatCases[Es <: Tuple, Ls <: Tuple](
@@ -249,14 +264,14 @@ trait GenCodecDerivation { this: GenCodec.type =>
     caseDependentFieldNames: Set[String],
   ): GenCodec[T] =
     new FlatSealedHierarchyCodec[T](
-      typeRepr,
-      fieldNames,
-      classes.map(_.runtimeClass),
-      Array.empty[String],
-      caseDependentFieldNames,
-      caseFieldName,
-      defaultCase.map(_.idx).getOrElse(-1),
-      defaultCase.exists(_.transient),
+      typeRepr = typeRepr,
+      caseNames = fieldNames,
+      cases = classes.map(_.runtimeClass),
+      oooFieldNames = Array.empty[String],
+      caseDependentFieldNames = caseDependentFieldNames,
+      caseFieldName = caseFieldName,
+      defaultCaseIdx = defaultCase.map(_.idx).getOrElse(-1),
+      defaultCaseTransient = defaultCase.exists(_.transient),
     ) {
       override def oooDependencies: Array[GenCodec[?]] = Array.empty
       override def caseDependencies: Array[OOOFieldsObjectCodec[?]] =
@@ -265,6 +280,7 @@ trait GenCodecDerivation { this: GenCodec.type =>
 
   private def unwrapToOOOObjectCodec(codec: GenCodec[?]): OOOFieldsObjectCodec[?] = codec match {
     case ooo: OOOFieldsObjectCodec[?] => ooo
+    case d: DeferredCodec[?] => unwrapToOOOObjectCodec(d.underlying)
     case tc: TransformedCodec[a, b] @unchecked =>
       val inner = unwrapToOOOObjectCodec(tc.wrapped).asInstanceOf[OOOFieldsObjectCodec[b]]
       new OOOFieldsObjectCodec[a] {
@@ -286,9 +302,9 @@ trait GenCodecDerivation { this: GenCodec.type =>
     fieldNames: Array[String],
     classes: Array[ClassTag[?]],
   ): GenCodec[T] = new NestedSealedHierarchyCodec[T](
-    typeRepr,
-    fieldNames,
-    classes.map(_.runtimeClass),
+    typeRepr = typeRepr,
+    caseNames = fieldNames,
+    cases = classes.map(_.runtimeClass),
   ) {
     override def caseDependencies: Array[GenCodec[?]] = instances
   }
@@ -299,12 +315,12 @@ trait GenCodecDerivation { this: GenCodec.type =>
     fieldNames: Array[String],
     fromUnsafeArray: Array[Any] => T,
     skipWhenDefault: Array[Boolean],
-    @scala.annotation.unused isOptional: Array[Boolean],
+    isOptional: Array[Boolean],
     generatedNames: Array[String],
     generatedExtractors: Array[GeneratedMadeElem.OuterOf[T]],
     generatedCodecs: Array[GenCodec[?]],
   ): GenCodec[T] =
-    new ApplyUnapplyCodec[T](typeRepr, fieldNames) {
+    new ApplyUnapplyCodec[T](typeRepr = typeRepr, fieldNames = fieldNames) {
 
       override protected val dependencies: Array[GenCodec[?]] = instances
 
@@ -321,26 +337,30 @@ trait GenCodecDerivation { this: GenCodec.type =>
         fromUnsafeArray(values)
       }
 
-      private def isSkipped(idx: Int, value: Any): Boolean =
-        skipWhenDefault(idx) && defaults(idx).contains(value)
+      private def isSkipped(idx: Int, value: Any, ignoreTransient: Boolean): Boolean =
+        if (ignoreTransient) isOptional(idx) && defaults(idx).contains(value)
+        else skipWhenDefault(idx) && defaults(idx).contains(value)
 
       override def size(value: T, output: Opt[SequentialOutput]): Int = {
+        val ignoreTransient =
+          output.fold(false)(_.customEvent(IgnoreTransientDefaultMarker, ()))
         val product = value.asInstanceOf[Product]
         var count = generatedExtractors.length
         var i = 0
         while (i < fieldNames.length) {
-          if (!isSkipped(i, product.productElement(i))) count += 1
+          if (!isSkipped(i, product.productElement(i), ignoreTransient)) count += 1
           i += 1
         }
         count
       }
 
       override def writeFields(output: ObjectOutput, value: T): Unit = {
+        val ignoreTransient = output.customEvent(IgnoreTransientDefaultMarker, ())
         val product = value.asInstanceOf[Product]
         var i = 0
         while (i < fieldNames.length) {
           val v = product.productElement(i)
-          if (!isSkipped(i, v)) {
+          if (!isSkipped(i, v, ignoreTransient)) {
             writeField[Any](output, i, v)
           }
           i += 1

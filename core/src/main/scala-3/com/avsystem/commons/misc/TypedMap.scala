@@ -81,7 +81,7 @@ object TypedMap {
   given [K[_]] => (keyCodec: GenKeyCodec[K[Any]], codecMapping: GenCodecMapping[K])
     => GenObjectCodec[TypedMap[K]] =
     new GenCodec.ObjectCodec[TypedMap[K]] {
-      def nullable = false
+      override def nullable = false
       def readObject(input: ObjectInput): TypedMap[K] = {
         val rawBuilder = Map.newBuilder[K[Any], Any]
         input.knownSize match {

@@ -5,7 +5,7 @@ import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.meta.{AllowDerivation, OptionLike}
 import com.avsystem.commons.serialization.GenCodec.*
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import made.*
 
 class SingletonCodec[T <: Singleton](
@@ -18,13 +18,16 @@ class SingletonCodec[T <: Singleton](
   def writeFields(output: ObjectOutput, value: T): Unit = ()
 }
 
+@deprecated("Use HasGenCodec / GenCodec.derived for case classes.", since = "3.0.0")
 abstract class ApplyUnapplyCodec[T](
   typeRepr: String,
+  override val nullable: Boolean = true,
   fieldNames: Array[String],
 ) extends ErrorReportingCodec[T](typeRepr)
     with OOOFieldsObjectCodec[T] {
 
   private lazy val deps = dependencies
+  def caseFieldNames: Array[String] = fieldNames
   final def readObject(input: ObjectInput, outOfOrderFields: FieldValues): T = {
     val fieldValues = new FieldValues(fieldNames, deps, typeRepr)
     fieldValues.rewriteFrom(outOfOrderFields)
@@ -87,25 +90,26 @@ abstract class ApplyUnapplyCodec[T](
   protected final def getOptField[O, A](fieldValues: FieldValues, idx: Int, optionLike: OptionLike.Aux[O, A]): O =
     fieldValues.getOpt(idx, optionLike)
 }
+@deprecated("Use HasGenCodec / GenCodec.derived for case classes.", since = "3.0.0")
 object ApplyUnapplyCodec {
+  @nowarn("msg=deprecated")
   inline def derived[T]: ApplyUnapplyCodec[T] = {
     val c: GenCodec[T] = GenCodec.derived[T]
     c.asInstanceOf[ApplyUnapplyCodec[T]]
   }
+  @nowarn("msg=deprecated")
   inline given materialize[T](using AllowDerivation[ApplyUnapplyCodec[T]]): ApplyUnapplyCodec[T] =
-    compiletime.summonFrom {
-      case _: made.Made.Of[T] =>
-        val codec: GenCodec[T] = GenCodec.derived[T]
-        codec.asInstanceOf[ApplyUnapplyCodec[T]]
-      case _ =>
-        sys.error("ApplyUnapplyCodec.materialize: no Made mirror available")
-    }
+    derived[T]
 }
 
+@deprecated("Use HasGenCodec / GenCodec.derived for case classes.", since = "3.0.0")
+@nowarn("msg=deprecated")
 abstract class ProductCodec[T <: Product](
   typeRepr: String,
+  nullable: Boolean = true,
   fieldNames: Array[String],
-) extends ApplyUnapplyCodec[T](typeRepr, fieldNames) {
+) extends ApplyUnapplyCodec[T](typeRepr, nullable, fieldNames) {
+
   def size(value: T, output: Opt[SequentialOutput]): Int = value.productArity
 
   final def writeFields(output: ObjectOutput, value: T): Unit = {
@@ -121,10 +125,12 @@ abstract class ProductCodec[T <: Product](
 
 abstract class SealedHierarchyCodec[T](
   val typeRepr: String,
+  override val nullable: Boolean = true,
   val caseNames: Array[String],
   val cases: Array[Class[?]],
 ) extends ErrorReportingCodec[T](typeRepr)
     with ObjectCodec[T] {
+
 
   @tailrec protected final def caseIndexByValue(value: T, idx: Int = 0): Int =
     if (idx >= cases.length) unknownCase(value)
@@ -139,9 +145,10 @@ abstract class SealedHierarchyCodec[T](
 
 abstract class NestedSealedHierarchyCodec[T](
   typeRepr: String,
+  nullable: Boolean = true,
   caseNames: Array[String],
   cases: Array[Class[?]],
-) extends SealedHierarchyCodec[T](typeRepr, caseNames, cases) {
+) extends SealedHierarchyCodec[T](typeRepr, nullable, caseNames, cases) {
 
   private lazy val caseDeps = caseDependencies
   def caseDependencies: Array[GenCodec[?]]
@@ -164,6 +171,7 @@ abstract class NestedSealedHierarchyCodec[T](
 
 abstract class FlatSealedHierarchyCodec[T](
   typeRepr: String,
+  nullable: Boolean = true,
   caseNames: Array[String],
   cases: Array[Class[?]],
   val oooFieldNames: Array[String],
@@ -171,7 +179,7 @@ abstract class FlatSealedHierarchyCodec[T](
   override val caseFieldName: String,
   val defaultCaseIdx: Int,
   val defaultCaseTransient: Boolean,
-) extends SealedHierarchyCodec[T](typeRepr, caseNames, cases) {
+) extends SealedHierarchyCodec[T](typeRepr, nullable, caseNames, cases) {
 
   private lazy val oooDeps = oooDependencies
   private lazy val caseDeps = caseDependencies
@@ -437,33 +445,45 @@ trait GenCodecImpl { this: GenCodec.type =>
     def readNonNull(input: Input): T
     def writeNonNull(output: Output, value: T): Unit
   }
-  trait SimpleCodec[T] extends GenCodec[T] {
+  trait NullSafeCodec[T] extends GenCodec[T] {
+    def nullable: Boolean = true
+    def readNonNull(input: Input): T
+    def writeNonNull(output: Output, value: T): Unit
+
+    override final def write(output: Output, value: T): Unit =
+      if (value == null)
+        if (nullable) output.writeNull() else throw new WriteFailure("null")
+      else writeNonNull(output, value)
+
+    override final def read(input: Input): T =
+      if (input.readNull())
+        if (nullable) null.asInstanceOf[T] else throw new ReadFailure("null")
+      else readNonNull(input)
+  }
+  trait SimpleCodec[T] extends NullSafeCodec[T] {
     def readSimple(input: SimpleInput): T
     def writeSimple(output: SimpleOutput, value: T): Unit
 
-    final def write(output: Output, value: T): Unit =
-      writeSimple(output.writeSimple(), value)
-
-    final def read(input: Input): T =
-      readSimple(input.readSimple())
+    final def readNonNull(input: Input): T = readSimple(input.readSimple())
+    final def writeNonNull(output: Output, value: T): Unit = writeSimple(output.writeSimple(), value)
   }
-  trait ListCodec[T] extends GenCodec[T] {
+  trait ListCodec[T] extends NullSafeCodec[T] {
     def readList(input: ListInput): T
     def writeList(output: ListOutput, value: T): Unit
 
-    final def write(output: Output, value: T): Unit = {
-      val lo = output.writeList()
-      writeList(lo, value)
-      lo.finish()
-    }
-    final def read(input: Input): T = {
+    final def readNonNull(input: Input): T = {
       val li = input.readList()
       val result = readList(li)
       li.skipRemaining()
       result
     }
+    final def writeNonNull(output: Output, value: T): Unit = {
+      val lo = output.writeList()
+      writeList(lo, value)
+      lo.finish()
+    }
   }
-  trait ObjectCodec[T] extends GenObjectCodec[T] {
+  trait ObjectCodec[T] extends GenObjectCodec[T] with NullSafeCodec[T] {
     def readObject(input: ObjectInput): T
     def writeObject(output: ObjectOutput, value: T): Unit
 
@@ -487,7 +507,8 @@ trait GenCodecImpl { this: GenCodec.type =>
   }
   @deprecated("Use TransformedCodec instead", since = "3.0.0")
   type Transformed[A, B] = TransformedCodec[A, B]
-  final class TransformedCodec[A, B](val wrapped: GenCodec[B], val onWrite: A => B, val onRead: B => A) extends GenCodec[A] {
+  final class TransformedCodec[A, B](w: => GenCodec[B], val onWrite: A => B, val onRead: B => A) extends GenCodec[A] {
+    lazy val wrapped: GenCodec[B] = w
     def read(input: Input): A = {
       val wrappedValue = wrapped.read(input)
       try onRead(wrappedValue)
@@ -505,12 +526,12 @@ trait GenCodecImpl { this: GenCodec.type =>
       wrapped.write(output, wrappedValue)
     }
   }
-  class SubclassCodec[T: ClassTag, S >: T : GenCodec] extends GenCodec[T] {
-    override def read(input: Input): T = GenCodec.read[S](input) match {
+  class SubclassCodec[T: ClassTag, S >: T : GenCodec](override val nullable: Boolean = true) extends NullSafeCodec[T] {
+    override def readNonNull(input: Input): T = GenCodec.read[S](input) match {
       case sub: T => sub
       case v => throw new ReadFailure(s"$v is not an instance of ${classTag[T].runtimeClass}")
     }
-    override def write(output: Output, value: T): Unit = GenCodec.write[S](output, value)
+    override def writeNonNull(output: Output, value: T): Unit = GenCodec.write[S](output, value)
   }
   object OOOFieldsObjectCodec {
     given [R, T] =>(tw: TransparentWrapping[R, T]) => (wrapped: OOOFieldsObjectCodec[R]) => OOOFieldsObjectCodec[T] =

@@ -23,12 +23,18 @@ abstract class HasGenCodec[T](using macroCodec: MacroInstances[Unit, (codec: Gen
     }
     deferredCodec
   }
+  final def codec: GenCodec[T] = {
+    cachedCodec()
+    deferredCodec.underlying
+  }
   given NotGiven[AllowDerivation[GenCodec[T]]] => GenCodec[T] = cachedCodec()
 }
 
 /**
  * Like [[HasGenCodec]] but materializes an [[ApplyUnapplyCodec]] instead of just [[GenCodec]].
  */
+@deprecated("Use HasGenCodec instead; ApplyUnapplyCodec is being phased out.", since = "3.0.0")
+@nowarn("msg=deprecated")
 abstract class HasApplyUnapplyCodec[T](using macroCodec: MacroInstances[Unit, (codec: ApplyUnapplyCodec[T])]) {
   lazy val codec: ApplyUnapplyCodec[T] = macroCodec((), this).codec
   given NotGiven[AllowDerivation[ApplyUnapplyCodec[T]]] => ApplyUnapplyCodec[T] = codec
@@ -50,10 +56,12 @@ abstract class HasGenCodecWithDeps[D, T](using deps: ValueOf[D], macroCodec: Mac
 }
 
 /**
- * A version of [[HasApplyUnapplyCodecWithDeps]] which injects additional implicits into macro materialization.
+ * A version of [[HasApplyUnapplyCodec]] which injects additional implicits into macro materialization.
  * Implicits are imported from an object specified with type parameter `D`. It must be a singleton object type, i.e.
  * `SomeObject.type`.
  */
+@deprecated("Use HasGenCodecWithDeps instead; ApplyUnapplyCodec is being phased out.", since = "3.0.0")
+@nowarn("msg=deprecated")
 abstract class HasApplyUnapplyCodecWithDeps[D: ValueOf, T](
   using macroCodec: MacroInstances[D, (codec: ApplyUnapplyCodec[T])],
 ) {
@@ -174,7 +182,8 @@ abstract class HasGenAndKeyCodec[T](
 
 opaque type AUCodec[AU, T] <: AU => GenCodec[T] = AU => GenCodec[T]
 
-@nowarn("msg=fromApplyUnapplyProvider .* is deprecated")
+@deprecated("Use HasGenCodec / GenCodec.transform with a named tuple instead.", since = "3.0.0")
+@nowarn("msg=deprecated")
 object AUCodec {
   def materialize[AU, T]: AUCodec[AU, T] = GenCodec.fromApplyUnapplyProvider[T](_)
   given [AU, T] => (AllowDerivation[AUCodec[AU, T]]) => AUCodec[AU, T] = GenCodec.fromApplyUnapplyProvider[T](_)
@@ -182,10 +191,11 @@ object AUCodec {
 
 /**
  * Like [[HasGenCodec]] but derives the codec from a separately provided custom object which has appropriate `apply`
- * and `unapply` (or `unapplySeq`) methods implemented. Materialization is done by
- * [[GenCodec.fromApplyUnapplyProvider]] macro. The object containing `apply` and `unapply` must be specified with
- * object singleton type passed as type parameter `AU`.
+ * and `unapply` methods. Materialization in scala-3 is no longer supported — kept as a deprecated source-compat shim.
  */
+@deprecated("Use HasGenCodec / GenCodec.transform with a named tuple instead.", since = "3.0.0")
+@nowarn("msg=deprecated")
 abstract class HasGenCodecFromAU[AU: ValueOf, T](using instances: MacroInstances[Unit, (codec: AUCodec[AU, T])]) {
   given GenCodec[T] = instances((), this).codec(valueOf[AU])
 }
+

@@ -51,10 +51,16 @@ object GenCodec
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
+  @deprecated("Use GenCodec.derived[T] instead; ApplyUnapplyCodec is being phased out.", since = "3.0.0")
+  @scala.annotation.nowarn("msg=deprecated")
   inline def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = ApplyUnapplyCodec.derived[T]
 
-  @deprecated("Use GenCodec.transform with named tuple instead", since = "3.0.0")
-  def fromApplyUnapplyProvider[T]: Any => GenCodec[T] = _ => ???
+  @deprecated("Use GenCodec.transform with a named tuple instead", since = "3.0.0")
+  def fromApplyUnapplyProvider[T](applyUnapplyProvider: Any): GenCodec[T] =
+    throw new NotImplementedError(
+      "GenCodec.fromApplyUnapplyProvider is no longer supported in scala-3; " +
+        "use GenCodec.transform with a named tuple representation instead.",
+    )
 
   inline given [Tup <: Tuple] => GenCodec[Tup] = mkTupleCodec(
     compiletime.summonAll[Tuple.Map[Tup, GenCodec]],

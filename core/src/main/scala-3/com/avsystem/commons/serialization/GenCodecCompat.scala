@@ -1,7 +1,9 @@
 package com.avsystem.commons
 package serialization
 
+import com.avsystem.commons.derivation.AllowImplicitMacro
 import com.avsystem.commons.misc.{Bytes, Timestamp}
+import made.Made
 
 import java.util.UUID
 
@@ -71,4 +73,11 @@ trait GenCodecCompat { this: GenCodec.type =>
 
   @deprecated("Use GenCodec.deriveRecursively instead", since = "3.0.0")
   inline def materializeRecursively[T]: GenCodec[T] = deriveRecursively[T]
+
+  @deprecated(
+    "Use GenCodec.derived[T] explicitly or rely on AllowDerivation/AllowRecursiveDerivation givens",
+    since = "3.0.0",
+  )
+  implicit inline def materializeImplicitly[T: Made.Of](using allow: AllowImplicitMacro[GenCodec[T]]): GenCodec[T] =
+    GenCodec.derived[T]
 }

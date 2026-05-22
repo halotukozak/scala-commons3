@@ -1,6 +1,6 @@
 package com.avsystem.commons.serialization
 
-import com.avsystem.commons.annotation.{bincompat, positioned}
+import com.avsystem.commons.annotation.positioned
 import com.avsystem.commons.derivation.AllowImplicitMacro
 import com.avsystem.commons.misc.{Opt, OptArg, OptRef}
 import com.avsystem.commons.serialization
