@@ -30,6 +30,7 @@ abstract class ObjectIdWrapperCompanion[ID](using MacroInstances[Unit, (tw: Tran
 
   given idCodec: GenCodec[ID] = {
     val tw = summon[TransparentWrapping[ObjectId, ID]]
-    new TransformedCodec(BsonGenCodecs.objectIdCodec, tw.unwrap, tw.wrap)
+    import BsonGenCodecs.given
+    new TransformedCodec(summon[GenCodec[ObjectId]], tw.unwrap, tw.wrap)
   }
 }

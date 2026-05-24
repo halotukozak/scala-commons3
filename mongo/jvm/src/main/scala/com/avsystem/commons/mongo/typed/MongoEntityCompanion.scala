@@ -73,13 +73,13 @@ abstract class AbstractMongoEntityCompanion[Implicits, E <: BaseMongoEntity](
   * `HasGenCodec` instead of `MongoDataCompanion`). However, data type which only has codec will be considered opaque
   * and you won't be able to reference its inner fields in filters, updates, indices, etc.
   */
-abstract class MongoDataCompanion[E](
-  implicit instances: MacroInstances[BsonGenCodecs.type, MongoAdtInstances[E]]
+abstract class MongoDataCompanion[E](using
+  instances: MacroInstances[BsonGenCodecs.type, MongoAdtInstances[E]]
 ) extends AbstractMongoDataCompanion[BsonGenCodecs.type, E](BsonGenCodecs)
 
 /** Base class for companion objects of types representing MongoDB entities. Entities may be case classes or sealed
   * hierarchies with `@flatten` annotation. They must extend [[MongoEntity]].
   */
-abstract class MongoEntityCompanion[E <: BaseMongoEntity](
-  implicit instances: MacroInstances[BsonGenCodecs.type, MongoEntityInstances[E]]
+abstract class MongoEntityCompanion[E <: BaseMongoEntity](using
+  instances: MacroInstances[BsonGenCodecs.type, MongoEntityInstances[E]]
 ) extends AbstractMongoEntityCompanion[BsonGenCodecs.type, E](BsonGenCodecs)

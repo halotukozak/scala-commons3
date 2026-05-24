@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package mongo
 
+import scala.language.implicitConversions
+
 import org.bson.types.ObjectId
 import org.bson._
 

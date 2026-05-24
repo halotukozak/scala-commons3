@@ -8,11 +8,11 @@ trait KeyGetter[-T] {
 }
 
 object KeyGetter {
-  implicit object bsonRefKeyGetter extends KeyGetter[BsonRef[_, _]] {
-    override def keyOf(t: BsonRef[_, _]): String = t.path
+  given KeyGetter[BsonRef[?, ?]] with {
+    override def keyOf(t: BsonRef[?, ?]): String = t.path
   }
 
-  implicit object docKeyKeyGetter extends KeyGetter[DocKey[_, _]] {
-    override def keyOf(t: DocKey[_, _]): String = t.key
+  given KeyGetter[DocKey[?, ?]] with {
+    override def keyOf(t: DocKey[?, ?]): String = t.key
   }
 }

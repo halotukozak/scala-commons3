@@ -22,7 +22,7 @@ import scala.annotation.tailrec
   */
 sealed trait MongoRef[E, T] extends MongoProjection[E, T] with DataRefDsl[E, T] { self =>
   def format: MongoFormat[T]
-  def projectionRefs: Set[MongoRef[E, _]] = Set(this)
+  def projectionRefs: Set[MongoRef[E, ?]] = Set(this)
   def showRecordId: Boolean = false
 
   @macroPrivate def subtypeRefFor[C <: T: ClassTag]: MongoRef[E, C]
@@ -313,11 +313,11 @@ object MongoRef {
     format: MongoAdtFormat[T],
   ) extends MongoToplevelRef[E, T] {
     def compose[P](prefix: MongoRef[P, E]): MongoRef[P, T] = prefix match {
-      case _: MongoToplevelRef[P, E] =>
+      case _: MongoToplevelRef[?, ?] =>
         // fullRef is guaranteed to be the same as prefix.fullRef
         // must cast because the compiler cannot infer the fact that E <: P in this case
         RootSubtypeRef(fullRef, caseFieldName, caseNames, format).asInstanceOf[MongoRef[P, T]]
-      case ref: MongoPropertyRef[P, E] => PropertySubtypeRef(ref, caseFieldName, caseNames, format)
+      case ref: MongoPropertyRef[P @unchecked, E @unchecked] => PropertySubtypeRef(ref, caseFieldName, caseNames, format)
     }
   }
 

@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package mongo.typed
 
+import scala.language.implicitConversions
+
 import com.avsystem.commons.mongo.core.GenCodecRegistry
 import com.mongodb.bulk.BulkWriteResult
 import com.mongodb.client.model._
@@ -23,7 +25,7 @@ class TypedMongoCollection[E <: BaseMongoEntity] private (
     with TypedMongoUtils {
 
   def this(
-    rawCollection: MongoCollection[_],
+    rawCollection: MongoCollection[?],
     clientSession: OptArg[TypedClientSession] = OptArg.Empty,
   )(using meta: MongoEntityMeta[E]
   ) = this(
@@ -386,7 +388,7 @@ class TypedMongoCollection[E <: BaseMongoEntity] private (
 
 object TypedMongoCollection {
   private def mkNativeCollection[E <: BaseMongoEntity: MongoEntityMeta](
-    rawCollection: MongoCollection[_]
+    rawCollection: MongoCollection[?]
   )(using meta: MongoEntityMeta[E]
   ): MongoCollection[E] = {
     import meta.format.{given, *}

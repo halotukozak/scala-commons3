@@ -42,7 +42,7 @@ object MongoFilter {
       MongoOperatorsFilter(operators(new MongoQueryOperator.Creator(format)))
   }
 
-  private[this] val reusableEmpty = Empty()
+  private val reusableEmpty = Empty()
 
   def empty[E]: MongoDocumentFilter[E] = reusableEmpty.asInstanceOf[MongoDocumentFilter[E]]
   def and[E](filters: MongoDocumentFilter[E]*): MongoDocumentFilter[E] = And(filters.toVector)
@@ -143,7 +143,7 @@ sealed trait MongoDocumentFilter[E] extends MongoFilter[E] {
 
   def ||(other: MongoDocumentFilter[E]): MongoDocumentFilter[E] = or(other)
 
-  final def toFilterBson(prefixPath: Opt[String], projectionRefs: Set[MongoRef[E, _]]): BsonDocument = {
+  final def toFilterBson(prefixPath: Opt[String], projectionRefs: Set[MongoRef[E, ?]]): BsonDocument = {
     val builder = new FilterDocBuilder(prefixPath, new BsonArray)
     builder.addFilter(this)
     projectionRefs.foreach(builder.addImpliedFilters)

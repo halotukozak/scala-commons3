@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package mongo.core.ops
 
+import scala.language.implicitConversions
+
 import com.mongodb.client.model.Updates
 import org.bson.conversions.Bson
 

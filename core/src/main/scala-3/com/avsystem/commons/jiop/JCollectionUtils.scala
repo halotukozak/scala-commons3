@@ -37,6 +37,12 @@ trait JCollectionUtils extends JFactories {
       res
     }
     def empty[T]: C[T] = instantiate[T]
+    def from[T](iter: IterableOnce[T]): C[T] = {
+      val res = instantiate[T]
+      iter.iterator.foreach(res.add)
+      res
+    }
+    def factory[T]: Factory[T, C[T]] = new JCollectionFactory(empty[T])
     protected def instantiate[T]: C[T]
   }
   abstract class JSortedSetCreator[C[T] <: JSortedSet[T]] {

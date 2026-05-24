@@ -11,7 +11,7 @@ import org.bson.{BsonReader, BsonValue, BsonWriter}
 class MongoCodec[A, BSON <: BsonValue](
   bsonCodec: BsonCodec[A, BSON],
   registry: CodecRegistry,
-)(implicit
+)(using
   cta: ClassTag[A],
   ctbson: ClassTag[BSON],
 ) extends Codec[A] {

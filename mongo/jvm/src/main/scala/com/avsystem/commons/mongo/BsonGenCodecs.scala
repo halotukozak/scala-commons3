@@ -18,7 +18,7 @@ object BsonGenCodecs {
   // (TransparentWrapping is used in EntityIdMode)
   given TransparentWrapping[ObjectId, ObjectId] = TransparentWrapping.identity
 
-  given GenCodec[ObjectId] = GenCodec.nullable(
+  given GenCodec[ObjectId] = GenCodec.create(
     i => i.readCustom(ObjectIdMarker).getOrElse(new ObjectId(i.readSimple().readString())),
     (o, v) => if (!o.writeCustom(ObjectIdMarker, v)) o.writeSimple().writeString(v.toHexString),
   )
@@ -26,7 +26,7 @@ object BsonGenCodecs {
   given GenKeyCodec[ObjectId] =
     GenKeyCodec.create(new ObjectId(_), _.toHexString)
 
-  given GenCodec[Decimal128] = GenCodec.nullable(
+  given GenCodec[Decimal128] = GenCodec.create(
     i => i.readCustom(Decimal128Marker).getOrElse(new Decimal128(i.readSimple().readBigDecimal().bigDecimal)),
     (o, v) => if (!o.writeCustom(Decimal128Marker, v)) o.writeSimple().writeBigDecimal(v.bigDecimalValue()),
   )
@@ -71,7 +71,7 @@ object BsonGenCodecs {
     summon[GenCodec[ObjectId]].transform(_.getValue, new BsonObjectId(_))
 
   given GenCodec[BsonString] =
-    GenCodec.StringCodec.transform(_.getValue, new BsonString(_))
+    summon[GenCodec[String]].transform(_.getValue, new BsonString(_))
 
   // Source-compat aliases for callers that previously referenced these by name.
   @deprecated("Use summon[TransparentWrapping[ObjectId, ObjectId]]", since = "scala-3")

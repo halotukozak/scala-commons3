@@ -7,7 +7,7 @@ import org.bson.{BsonReader, BsonWriter}
 
 class GenCodecBasedBsonCodec[T](
   legacyOptionEncoding: Boolean
-)(implicit
+)(using
   ct: ClassTag[T],
   genCodec: GenCodec[T],
 ) extends Codec[T] {
