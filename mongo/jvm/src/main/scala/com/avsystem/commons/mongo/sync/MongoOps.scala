@@ -13,7 +13,7 @@ import org.bson.conversions.Bson
 trait MongoOps {
 
   extension(db: MongoDatabase) {
-    def getCollection[A](name: String, codec: BsonCodec[A, BsonDocument])(implicit ct: ClassTag[A])
+    def getCollection[A](name: String, codec: BsonCodec[A, BsonDocument])(using ct: ClassTag[A])
       : MongoCollection[A] = {
       val mongoCodec = new MongoCodec[A, BsonDocument](codec, db.getCodecRegistry)
       val registry = CodecRegistries.fromRegistries(

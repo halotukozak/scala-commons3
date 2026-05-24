@@ -19,7 +19,7 @@ case class BsonRef[S, T](path: String, codec: GenCodec[T], getter: S => T) {
 object BsonRef {
   val BsonKeySeparator = "."
 
-  def identity[S](implicit codec: GenCodec[S]): BsonRef[S, S] = BsonRef("", codec, s => s)
+  def identity[S](using codec: GenCodec[S]): BsonRef[S, S] = BsonRef("", codec, s => s)
   def create[S]: Creator[S] = new Creator[S] {}
 
   trait Creator[S] {
@@ -29,7 +29,7 @@ object BsonRef {
       BsonRef(GenRef.create[S].ref[T](fun))
   }
 
-  def apply[S, T](genRef: GenRef[S, T])(implicit codec: GenCodec[T]): BsonRef[S, T] = {
+  def apply[S, T](genRef: GenRef[S, T])(using codec: GenCodec[T]): BsonRef[S, T] = {
     val path = genRef.rawRef.normalize
       .map { case Field(name) =>
         KeyEscaper.escape(name)
@@ -39,14 +39,24 @@ object BsonRef {
     BsonRef(path, codec, genRef.fun)
   }
 
-  implicit def bsonRefIterableUpdating[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]])
-    : BsonRefIterableUpdating[E, C] =
-    new BsonRefIterableUpdating[E, C](bsonRef)
-  implicit def bsonRefUpdating[S, T](bsonRef: BsonRef[S, T]): BsonRefUpdating[T] = new BsonRefUpdating(bsonRef)
-  implicit def bsonRefSorting[S, T](bsonRef: BsonRef[S, T]): BsonRefSorting[T] = new BsonRefSorting(bsonRef)
+  given [S, E, C[T] <: Iterable[T]] => GenCodec[E] => Conversion[BsonRef[S, C[E]], BsonRefIterableUpdating[E, C]] =
+    bsonRef => new BsonRefIterableUpdating[E, C](bsonRef)
+  given [S, T] => Conversion[BsonRef[S, T], BsonRefUpdating[T]] = new BsonRefUpdating(_)
+  given [S, T] => Conversion[BsonRef[S, T], BsonRefSorting[T]] = new BsonRefSorting(_)
+  given [S, E, C[T] <: Iterable[T]] => GenCodec[E] => Conversion[BsonRef[S, C[E]], BsonRefIterableFiltering[E, C]] =
+    bsonRef => new BsonRefIterableFiltering[E, C](bsonRef)
+  given [S, T] => Conversion[BsonRef[S, T], BsonRefFiltering[T]] = new BsonRefFiltering(_)
 
-  implicit def bsonRefIterableFiltering[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]])
-    : BsonRefIterableFiltering[E, C] =
+  @deprecated("Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableUpdating[E, C]]] or rely on implicit conversion", since = "scala-3")
+  def bsonRefIterableUpdating[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]]): BsonRefIterableUpdating[E, C] =
+    new BsonRefIterableUpdating[E, C](bsonRef)
+  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefUpdating[T]]] or rely on implicit conversion", since = "scala-3")
+  def bsonRefUpdating[S, T](bsonRef: BsonRef[S, T]): BsonRefUpdating[T] = new BsonRefUpdating(bsonRef)
+  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefSorting[T]]] or rely on implicit conversion", since = "scala-3")
+  def bsonRefSorting[S, T](bsonRef: BsonRef[S, T]): BsonRefSorting[T] = new BsonRefSorting(bsonRef)
+  @deprecated("Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableFiltering[E, C]]] or rely on implicit conversion", since = "scala-3")
+  def bsonRefIterableFiltering[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]]): BsonRefIterableFiltering[E, C] =
     new BsonRefIterableFiltering[E, C](bsonRef)
-  implicit def bsonRefFiltering[S, T](bsonRef: BsonRef[S, T]): BsonRefFiltering[T] = new BsonRefFiltering(bsonRef)
+  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefFiltering[T]]] or rely on implicit conversion", since = "scala-3")
+  def bsonRefFiltering[S, T](bsonRef: BsonRef[S, T]): BsonRefFiltering[T] = new BsonRefFiltering(bsonRef)
 }

@@ -18,14 +18,14 @@ class TypedMongoCollection[E <: BaseMongoEntity] private (
   val nativeCollection: MongoCollection[E],
   docCollection: MongoCollection[BsonDocument],
   val clientSession: Opt[TypedClientSession],
-)(implicit meta: MongoEntityMeta[E]
+)(using meta: MongoEntityMeta[E]
 ) extends DataTypeDsl[E]
     with TypedMongoUtils {
 
   def this(
     rawCollection: MongoCollection[_],
     clientSession: OptArg[TypedClientSession] = OptArg.Empty,
-  )(implicit meta: MongoEntityMeta[E]
+  )(using meta: MongoEntityMeta[E]
   ) = this(
     TypedMongoCollection.mkNativeCollection[E](rawCollection),
     rawCollection.withDocumentClass(classOf[BsonDocument]),
@@ -387,7 +387,7 @@ class TypedMongoCollection[E <: BaseMongoEntity] private (
 object TypedMongoCollection {
   private def mkNativeCollection[E <: BaseMongoEntity: MongoEntityMeta](
     rawCollection: MongoCollection[_]
-  )(implicit meta: MongoEntityMeta[E]
+  )(using meta: MongoEntityMeta[E]
   ): MongoCollection[E] = {
     import meta.format.{given, *}
     val codecRegistry: CodecRegistry = GenCodecRegistry.create[E](rawCollection.getCodecRegistry)

@@ -2,6 +2,7 @@ package com.avsystem.commons
 package mongo.typed
 
 import com.avsystem.commons.mongo.BsonGenCodecs
+import com.avsystem.commons.serialization.GenCodec.TransformedCodec
 import com.avsystem.commons.serialization.{GenCodec, TransparentWrapperCompanion}
 import org.bson.types.ObjectId
 
@@ -27,8 +28,8 @@ abstract class ObjectIdWrapperCompanion[ID](using MacroInstances[Unit, (tw: Tran
     */
   def get(): ID = wrap(ObjectId.get())
 
-  implicit val codec: GenCodec[ID] = {
-    given GenCodec[ObjectId] = BsonGenCodecs.objectIdCodec
-    summon[GenCodec[ID]]
+  given idCodec: GenCodec[ID] = {
+    val tw = summon[TransparentWrapping[ObjectId, ID]]
+    new TransformedCodec(BsonGenCodecs.objectIdCodec, tw.unwrap, tw.wrap)
   }
 }

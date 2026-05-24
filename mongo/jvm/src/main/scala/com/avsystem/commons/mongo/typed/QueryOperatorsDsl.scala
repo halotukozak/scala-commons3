@@ -59,20 +59,18 @@ trait VanillaQueryOperatorsDsl[T, R] {
     wrapQueryOperators(Raw(rawOperator, bson))
 }
 object VanillaQueryOperatorsDsl {
-  implicit class ForCollection[C[X] <: Iterable[X], T, R](private val dsl: VanillaQueryOperatorsDsl[C[T], R])
-    extends AnyVal {
+  import MongoQueryOperator._
 
-    import MongoQueryOperator._
-
-    private def format: MongoFormat[T] = dsl.format.assumeCollection.elementFormat
+  extension [C[X] <: Iterable[X], T, R](dsl: VanillaQueryOperatorsDsl[C[T], R]) {
+    private def elemFormat: MongoFormat[T] = dsl.format.assumeCollection.elementFormat
 
     def size(size: Int): R = dsl.wrapQueryOperators(Size(size))
 
     def elemMatch(filter: MongoFilter.Creator[T] => MongoFilter[T]): R =
-      dsl.wrapQueryOperators(ElemMatch(filter(new MongoFilter.Creator(format))))
+      dsl.wrapQueryOperators(ElemMatch(filter(new MongoFilter.Creator(elemFormat))))
 
     def all(values: T*): R = all(values)
-    def all(values: Iterable[T]): R = dsl.wrapQueryOperators(All(values, format))
+    def all(values: Iterable[T]): R = dsl.wrapQueryOperators(All(values, elemFormat))
   }
 }
 
@@ -107,7 +105,7 @@ object QueryOperatorsDsl {
   }
 }
 
-final class RegexFlag(val javaFlag: Int, val char: Char)(implicit enumCtx: EnumCtx) extends AbstractValueEnum
+final class RegexFlag(val javaFlag: Int, val char: Char)(using enumCtx: EnumCtx) extends AbstractValueEnum
 object RegexFlag extends AbstractValueEnumCompanion[RegexFlag] {
   // code based on org.bson.codecs.PatternCodec
 

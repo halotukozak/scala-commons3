@@ -36,7 +36,7 @@ sealed trait BaseMongoCompanion[T] extends DataTypeDsl[T] {
 
   given [C <: T] => IsMongoAdtOrSubtype[C] = IsMongoAdtOrSubtype.witness[C]
 
-  implicit class macroDslExtensions(value: T) {
+  extension (value: T) {
     @explicitGenerics
     @compileTimeOnly("the .as[Subtype] construct can only be used inside lambda passed to .ref(...) macro")
     def as[C <: T]: C = sys.error("stub")
