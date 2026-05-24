@@ -96,7 +96,11 @@ object MongoFormat extends MetadataCompanion[MongoFormat] with MongoFormatLowPri
 
   given [M[X, Y] <: BMap[X, Y], K, V] => (mapCodec: GenCodec[M[K, V]]) => (keyCodec: GenKeyCodec[K]) => (valueFormat: MongoFormat[V]) => DictionaryFormat[M, K, V] = DictionaryFormat(mapCodec, keyCodec, valueFormat)
 
-  given [K[_]] => (keyCodec: GenKeyCodec[K[?]]) => (valueFormats: MongoFormatMapping[K]) => TypedMapFormat[K] = TypedMapFormat[K](TypedMap.typedMapCodec, keyCodec, valueFormats)
+  given [K[_]] => (keyCodec: GenKeyCodec[K[?]]) => (valueFormats: MongoFormatMapping[K]) => TypedMapFormat[K] = {
+    given GenKeyCodec[K[Any]] = keyCodec.asInstanceOf[GenKeyCodec[K[Any]]]
+    given TypedMap.GenCodecMapping[K] = valueFormats
+    TypedMapFormat[K](TypedMap.typedMapCodec, keyCodec, valueFormats)
+  }
 
   given [O, T] => (optionLike: OptionLike.Aux[O, T]) => (optionCodec: GenCodec[O]) => (wrappedFormat: MongoFormat[T]) => OptionalFormat[O, T] = OptionalFormat(optionCodec, optionLike, wrappedFormat)
 
@@ -330,7 +334,7 @@ object MongoAdtFormat extends AdtMetadataCompanion[MongoAdtFormat] {
           .map(a => Try(a.value))
           .orElse(defaultValue.map(a => Try(a.value)))
           .flatMap(_.toOpt)
-          .map(v => BsonValueOutput.write(v)(format.value.codec))
+          .map(v => BsonValueOutput.write(v)(using format.value.codec))
   }
 
   final class SealedParent[T](

@@ -2,7 +2,6 @@ package com.avsystem.commons
 package mongo.typed
 
 import com.avsystem.commons.annotation.{explicitGenerics, macroPrivate}
-import com.avsystem.commons.macros.serialization.MongoMacros
 
 trait DataRefDsl[E, T] {
   // convenience type alias
@@ -129,7 +128,8 @@ trait DataRefDsl[E, T] {
     *     UnionEntity.ref(_.as[ThirdCase].data.complexData("key").head.get)
     * }}}
     */
-  def ref[T0](fun: T => T0): MongoPropertyRef[E, T0] = macro MongoMacros.refImpl
+  @deprecated("MongoMacros.refImpl not ported to scala-3 yet", "scala-3 migration")
+  def ref[T0](fun: T => T0): MongoPropertyRef[E, T0] = scala.compiletime.error("ref macro not ported to scala-3")
 
   /** Given a MongoDB union data type (defined with a sealed hierarchy with `@flatten` annotation), you can narrow it to
     * one of its case classes or intermediate sealed traits.
@@ -161,7 +161,8 @@ trait DataRefDsl[E, T] {
     * results of the query only to selected cases.
     */
   @explicitGenerics
-  def as[C <: T]: ThisRef[E, C] = macro MongoMacros.asSubtype[C]
+  @deprecated("MongoMacros.asSubtype not ported to scala-3 yet", "scala-3 migration")
+  def as[C <: T]: ThisRef[E, C] = throw new NotImplementedError("as macro not ported to scala-3")
 
   /** Macro for obtaining a [[MongoDocumentFilter]] (condition) which is satisfied only by some specific subtype of an
     * entity type. The entity must be a sealed trait/class and the subtype must be either one of its case classes or an
@@ -189,12 +190,14 @@ trait DataRefDsl[E, T] {
     * }}}
     */
   @explicitGenerics
-  def is[C <: T]: MongoDocumentFilter[E] = macro MongoMacros.isSubtype[C]
+  @deprecated("MongoMacros.isSubtype not ported to scala-3 yet", "scala-3 migration")
+  def is[C <: T]: MongoDocumentFilter[E] = throw new NotImplementedError("is macro not ported to scala-3")
 
   /** A negated version of [[is]].
     */
   @explicitGenerics
-  def isNot[C <: T]: MongoDocumentFilter[E] = macro MongoMacros.isNotSubtype[C]
+  @deprecated("MongoMacros.isNotSubtype not ported to scala-3 yet", "scala-3 migration")
+  def isNot[C <: T]: MongoDocumentFilter[E] = throw new NotImplementedError("isNot macro not ported to scala-3")
 }
 
 trait DataTypeDsl[T] extends DataRefDsl[T, T] {

@@ -72,8 +72,8 @@ trait BaseFiltering[T] extends Any with KeyValueHandling[T] {
   def geoIntersectsBson(geometryBson: Bson): Bson = Filters.geoIntersects(key, geometryBson)
   def geoIntersects(geometry: Geometry): Bson = Filters.geoIntersects(key, geometry)
 
-  private def jDouble(doubleOpt: Opt[Double]): JDouble = doubleOpt.map(d => d: JDouble).orNull
-  private def useMinMax(min: Opt[Double], max: Opt[Double])(f: (JDouble, JDouble) => Bson): Bson =
+  private def jDouble(doubleOpt: Opt[Double]): JDouble | Null = doubleOpt.map(d => d: JDouble).orNull
+  private def useMinMax(min: Opt[Double], max: Opt[Double])(f: (JDouble | Null, JDouble | Null) => Bson): Bson =
     f(jDouble(min), jDouble(max))
 
   def nearBson(geometryBson: Bson, maxDistance: Opt[Double] = Opt.empty, minDistance: Opt[Double] = Opt.empty): Bson =

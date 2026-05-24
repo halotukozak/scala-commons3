@@ -24,7 +24,7 @@ trait MongoOps {
     }
   }
 
-  extension(find: FindIterable[T]) {
+  extension[T](find: FindIterable[T]) {
     def firstOpt: Option[T] = Option(find.first)
 
     def page(sort: Bson, offset: Int, maxItems: Int): Vector[T] = {

@@ -30,7 +30,7 @@ abstract class AbstractMongoPolyDataCompanion[Implicits, D[_]](
     instances(implicits, this).format[T]
   }
 
-  given [C <: D[_]] => IsMongoAdtOrSubtype[C] = null
+  given [C <: D[?]] => IsMongoAdtOrSubtype[C] = IsMongoAdtOrSubtype.witness[C]
 
   extension [T](value: D[T]) {
     @explicitGenerics
@@ -39,8 +39,11 @@ abstract class AbstractMongoPolyDataCompanion[Implicits, D[_]](
   }
 
   @explicitGenerics
-  def dsl[T: MongoFormat]: DataTypeDsl[D[T]] = new DataTypeDsl[D[T]] {
-    def SelfRef: MongoRef[D[T], D[T]] = MongoRef.RootRef(format[T])
+  def dsl[T: MongoFormat]: DataTypeDsl[D[T]] = {
+    val fmt = summon[MongoAdtFormat[D[T]]]
+    new DataTypeDsl[D[T]] {
+      def SelfRef: MongoRef[D[T], D[T]] = MongoRef.RootRef(fmt)
+    }
   }
 }
 

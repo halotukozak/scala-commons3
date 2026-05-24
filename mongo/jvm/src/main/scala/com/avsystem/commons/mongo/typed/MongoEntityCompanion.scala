@@ -22,12 +22,16 @@ trait MongoEntityInstances[E <: BaseMongoEntity] extends MongoAdtInstances[E] {
   */
 @implicitNotFound("${T} is an opaque data type - does it have a companion that extends MongoDataCompanion?")
 sealed trait IsMongoAdtOrSubtype[T]
+object IsMongoAdtOrSubtype {
+  private object instance extends IsMongoAdtOrSubtype[Any]
+  def witness[T]: IsMongoAdtOrSubtype[T] = instance.asInstanceOf[IsMongoAdtOrSubtype[T]]
+}
 
 sealed abstract class BaseMongoCompanion[T] extends DataTypeDsl[T] {
-  given GenObjectCodec[T] = compiletime.deferred
-  given MongoAdtFormat[T] = compiletime.deferred
+  given codec: GenObjectCodec[T] = compiletime.deferred
+  given format: MongoAdtFormat[T] = compiletime.deferred
 
-  given [C <: T]=> IsMongoAdtOrSubtype[C] = null
+  given [C <: T] => IsMongoAdtOrSubtype[C] = IsMongoAdtOrSubtype.witness[C]
 
   implicit class macroDslExtensions(value: T) {
     @explicitGenerics

@@ -25,7 +25,8 @@ object BsonRef {
   trait Creator[S] {
     type Ref[T] = BsonRef[S, T]
 
-    def ref[T](fun: S => T): BsonRef[S, T] = macro macros.serialization.BsonRefMacros.bsonRef[S, T]
+    inline def ref[T](inline fun: S => T)(using GenCodec[T]): BsonRef[S, T] =
+      BsonRef(GenRef.create[S].ref[T](fun))
   }
 
   def apply[S, T](genRef: GenRef[S, T])(implicit codec: GenCodec[T]): BsonRef[S, T] = {
