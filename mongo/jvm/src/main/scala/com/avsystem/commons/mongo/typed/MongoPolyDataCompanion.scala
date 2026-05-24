@@ -2,62 +2,16 @@ package com.avsystem.commons
 package mongo.typed
 
 import com.avsystem.commons.annotation.explicitGenerics
-import com.avsystem.commons.meta.MacroInstances
-import com.avsystem.commons.mongo.BsonGenCodecs
-import com.avsystem.commons.serialization.{GenCodec, GenObjectCodec}
+// Polymorphic MongoDataCompanion (for generic types) not ported to scala-3.
+// Scala-3 named-tuple based MacroInstances cannot hold polymorphic methods like
+// `def codec[T: GenCodec]: GenObjectCodec[D[T]]`.
+// Use per-instantiation MongoDataCompanion[D[Concrete]] or define codecs manually.
 
-import scala.annotation.compileTimeOnly
+@deprecated("MongoPolyAdtInstances not ported to scala-3 (polymorphic instance methods unsupported)", "scala-3 migration")
+trait MongoPolyAdtInstances[D[_]]
 
-trait MongoPolyAdtInstances[D[_]] {
-  def codec[T: GenCodec]: GenObjectCodec[D[T]]
+@deprecated("AbstractMongoPolyDataCompanion not ported to scala-3", "scala-3 migration")
+abstract class AbstractMongoPolyDataCompanion[Implicits, D[_]]
 
-  /** We need to accept an implicit `GenCodec[T]` because materialization of [[MongoAdtFormat]] requires a
-    * [[GenObjectCodec]] ([[MongoAdtFormat.codec]]). In practice, it can be derived from the `MongoFormat[T]` that is
-    * already accepted by this method but we have to be careful about priority of implicits. Because of that, this
-    * implicit is actually provided by [[AbstractMongoPolyDataCompanion.format]].
-    */
-  def format[T: MongoFormat: GenCodec]: MongoAdtFormat[D[T]]
-}
-
-abstract class AbstractMongoPolyDataCompanion[Implicits, D[_]](
-  implicits: Implicits
-)(implicit instances: MacroInstances[Implicits, MongoPolyAdtInstances[D]]
-) {
-  given [T: GenCodec] => GenObjectCodec[D[T]] = instances(implicits, this).codec[T]
-
-  given [T: MongoFormat] => MongoAdtFormat[D[T]] = {
-    given GenCodec[T] = MongoFormat[T].codec
-    instances(implicits, this).format[T]
-  }
-
-  given [C <: D[?]] => IsMongoAdtOrSubtype[C] = IsMongoAdtOrSubtype.witness[C]
-
-  extension [T](value: D[T]) {
-    @explicitGenerics
-    @compileTimeOnly("the .as[Subtype] construct can only be used inside lambda passed to .ref(...) macro")
-    def as[C <: D[T]]: C = sys.error("stub")
-  }
-
-  @explicitGenerics
-  def dsl[T: MongoFormat]: DataTypeDsl[D[T]] = {
-    val fmt = summon[MongoAdtFormat[D[T]]]
-    new DataTypeDsl[D[T]] {
-      def SelfRef: MongoRef[D[T], D[T]] = MongoRef.RootRef(fmt)
-    }
-  }
-}
-
-/** Like [[MongoDataCompanion]] buf for generic types (with exactly one unbounded type parameter).
-  *
-  * @example
-  *   {{{
-  *   case class Point[+T](x: T, y: T)
-  *   object Point extends MongoPolyDataCompanion[Point] {
-  *     def XRef[T: MongoFormat]: MongoPropertyRef[Point[T], T] =
-  *       Point.dsl[T].ref(_.x)
-  *   }
-  *   }}}
-  */
-abstract class MongoPolyDataCompanion[D[_]](
-  implicit instances: MacroInstances[BsonGenCodecs.type, MongoPolyAdtInstances[D]]
-) extends AbstractMongoPolyDataCompanion[BsonGenCodecs.type, D](BsonGenCodecs)
+@deprecated("MongoPolyDataCompanion not ported to scala-3", "scala-3 migration")
+abstract class MongoPolyDataCompanion[D[_]] extends AbstractMongoPolyDataCompanion[Nothing, D]

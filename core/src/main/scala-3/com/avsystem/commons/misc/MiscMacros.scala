@@ -66,9 +66,18 @@ object MiscMacros {
   def optionalizeFirstArgImpl[T: Type](expr: Expr[T])(using Quotes): Expr[T] = {
     import quotes.reflect.*
     def go(t: Term): Term = t match {
-      case Apply(fun, head :: tail) =>
-        val condExpr = Select.unique(head, "ne").appliedTo('{ null }.asTerm)
-        val fallback = Apply(fun, tail)
+      case t @ Apply(fun, head :: tail) =>
+        val (receiver, methodName, targs) = fun match {
+          case Select(recv, name) => (recv, name, Nil)
+          case TypeApply(Select(recv, name), ts) => (recv, name, ts.map(_.tpe))
+          case other =>
+            report.errorAndAbort(
+              s"optionalizeFirstArg: expected Select for method, got ${other.show}",
+              other.pos,
+            )
+        }
+        val condExpr = Select.unique(Select.unique(head, "asInstanceOf").appliedToType(TypeRepr.of[Object]), "ne").appliedTo('{ null }.asTerm)
+        val fallback = Select.overloaded(receiver, methodName, targs, tail)
         If(condExpr, t, fallback).asExprOf[T].asTerm
       case TypeApply(inner, targs) =>
         // strip type-args, recurse, re-apply
@@ -76,6 +85,8 @@ object MiscMacros {
           case ifExpr: If => ifExpr // already complete
           case other => TypeApply(other, targs)
       case Block(stats, expr) => Block(stats, go(expr))
+      case Inlined(_, Nil, expr) => go(expr)
+      case Typed(expr, _) => go(expr)
       case _ =>
         report.errorAndAbort(
           s"optionalizeFirstArg: function application expected, got ${t.show}",

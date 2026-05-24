@@ -17,7 +17,11 @@ import org.bson.types.ObjectId
   *   object MyEntityId extends ObjectIdWrapperCompanion[MyEntityId]
   * }}}
   */
-abstract class ObjectIdWrapperCompanion[ID] extends TransparentWrapperCompanion[ObjectId, ID] {
+import com.avsystem.commons.meta.MacroInstances
+import com.avsystem.commons.serialization.TransparentWrapping
+
+abstract class ObjectIdWrapperCompanion[ID](using MacroInstances[Unit, (tw: TransparentWrapping[ObjectId, ID])])
+  extends TransparentWrapperCompanion[ObjectId, ID] {
 
   /** Generates new random, unique ID value.
     */

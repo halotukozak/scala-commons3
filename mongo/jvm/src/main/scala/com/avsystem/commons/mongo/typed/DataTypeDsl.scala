@@ -129,7 +129,7 @@ trait DataRefDsl[E, T] {
     * }}}
     */
   @deprecated("MongoMacros.refImpl not ported to scala-3 yet", "scala-3 migration")
-  def ref[T0](fun: T => T0): MongoPropertyRef[E, T0] = scala.compiletime.error("ref macro not ported to scala-3")
+  def ref[T0](fun: T => T0): MongoPropertyRef[E, T0] = throw new NotImplementedError("ref macro not ported to scala-3")
 
   /** Given a MongoDB union data type (defined with a sealed hierarchy with `@flatten` annotation), you can narrow it to
     * one of its case classes or intermediate sealed traits.

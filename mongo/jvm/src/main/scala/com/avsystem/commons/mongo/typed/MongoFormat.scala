@@ -14,7 +14,8 @@ import scala.annotation.tailrec
   * indirectly as an embedded value).
   */
 sealed trait MongoFormat[T] {
-  given codec: GenCodec[T] = compiletime.deferred
+  def codec: GenCodec[T]
+  given GenCodec[T] = codec
 
   def writeBson(value: T): BsonValue =
     BsonValueOutput.write(value)
@@ -76,7 +77,7 @@ object MongoFormat extends MetadataCompanion[MongoFormat] with MongoFormatLowPri
 
   final case class TypedMapFormat[K[_]](
     codec: GenCodec[TypedMap[K]],
-    keyCodec: GenKeyCodec[K[_]],
+    keyCodec: GenKeyCodec[K[Any]],
     valueFormats: MongoFormatMapping[K],
   ) extends MongoFormat[TypedMap[K]]
 
@@ -96,7 +97,7 @@ object MongoFormat extends MetadataCompanion[MongoFormat] with MongoFormatLowPri
 
   given [M[X, Y] <: BMap[X, Y], K, V] => (mapCodec: GenCodec[M[K, V]]) => (keyCodec: GenKeyCodec[K]) => (valueFormat: MongoFormat[V]) => DictionaryFormat[M, K, V] = DictionaryFormat(mapCodec, keyCodec, valueFormat)
 
-  given [K[_]] => (keyCodec: GenKeyCodec[K[?]]) => (valueFormats: MongoFormatMapping[K]) => TypedMapFormat[K] = {
+  given [K[_]] => (keyCodec: GenKeyCodec[K[Any]]) => (valueFormats: MongoFormatMapping[K]) => TypedMapFormat[K] = {
     given GenKeyCodec[K[Any]] = keyCodec.asInstanceOf[GenKeyCodec[K[Any]]]
     given TypedMap.GenCodecMapping[K] = valueFormats
     TypedMapFormat[K](TypedMap.typedMapCodec, keyCodec, valueFormats)
@@ -144,9 +145,11 @@ trait MongoFormatLowPriority { this: MongoFormat.type =>
 }
 
 sealed trait MongoAdtFormat[T] extends MongoFormat[T] with TypedMetadata[T] {
-  given codec: GenObjectCodec[T] = compiletime.deferred
+  override def codec: GenObjectCodec[T]
+  given GenObjectCodec[T] = codec
   // this is not named `classTag` in order to avoid naming conflict with `com.avsystem.commons.classTag`
-  given dataClassTag: ClassTag[T] = compiletime.deferred
+  def dataClassTag: ClassTag[T]
+  given ClassTag[T] = dataClassTag
 
   def fieldRefFor[E, T0](prefix: MongoRef[E, T], scalaFieldName: String): MongoPropertyRef[E, T0]
 }
@@ -244,7 +247,7 @@ object MongoAdtFormat extends AdtMetadataCompanion[MongoAdtFormat] {
     @composite val record: RecordCase[T],
     @infer val codec: GenObjectCodec[T],
   ) extends MongoAdtFormat[T] {
-    def dataClassTag: ClassTag[T] = record.classTag
+    override def dataClassTag: ClassTag[T] =record.classTag
 
     def fieldRefFor[E, T0](prefix: MongoRef[E, T], scalaFieldName: String): MongoPropertyRef[E, T0] =
       record.fieldRefFor(prefix, scalaFieldName)
@@ -255,7 +258,7 @@ object MongoAdtFormat extends AdtMetadataCompanion[MongoAdtFormat] {
     @composite val singleton: SingletonCase[T],
     @infer val codec: GenObjectCodec[T],
   ) extends MongoAdtFormat[T] {
-    def dataClassTag: ClassTag[T] = singleton.classTag
+    override def dataClassTag: ClassTag[T] =singleton.classTag
 
     def fieldRefFor[E, T0](prefix: MongoRef[E, T], scalaFieldName: String): MongoPropertyRef[E, T0] =
       singleton.fieldRefFor(prefix, scalaFieldName)
@@ -345,8 +348,8 @@ object MongoAdtFormat extends AdtMetadataCompanion[MongoAdtFormat] {
 
 final class MongoEntityMeta[E <: BaseMongoEntity](
   @infer val format: MongoAdtFormat[E],
-  @infer val idMode: EntityIdMode[E, E#IDType],
+  @infer val idMode: EntityIdMode[E, IDOf[E]],
 ) {
-  def idRef: MongoPropertyRef[E, E#IDType] = idMode.idRef(format)
+  def idRef: MongoPropertyRef[E, IDOf[E]] = idMode.idRef(format)
 }
 object MongoEntityMeta extends BoundedAdtMetadataCompanion[BaseMongoEntity, Nothing, MongoEntityMeta]

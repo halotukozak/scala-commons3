@@ -265,9 +265,10 @@ object MongoPropertyRef {
   }
 
   extension [E, K[_]](ref: MongoPropertyRef[E, TypedMap[K]]) {
+    @scala.annotation.targetName("applyTypedMap")
     def apply[T](key: K[T]): MongoPropertyRef[E, T] = {
       val tmFormat = ref.format.assumeTypedMap
-      MongoRef.FieldRef(ref, tmFormat.keyCodec.write(key), tmFormat.valueFormats.valueFormat(key), Opt.Empty)
+      MongoRef.FieldRef(ref, tmFormat.keyCodec.write(key.asInstanceOf[K[Any]]), tmFormat.valueFormats.valueFormat(key), Opt.Empty)
     }
   }
 

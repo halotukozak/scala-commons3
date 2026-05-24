@@ -8,28 +8,31 @@ import com.avsystem.commons.serialization.GenObjectCodec
 
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 
-trait MongoAdtInstances[T] {
-  def codec: GenObjectCodec[T]
-  def format: MongoAdtFormat[T]
-}
+type MongoAdtInstances[T] = (codec: GenObjectCodec[T], format: MongoAdtFormat[T])
 
-trait MongoEntityInstances[E <: BaseMongoEntity] extends MongoAdtInstances[E] {
-  def meta: MongoEntityMeta[E]
-}
+type MongoEntityInstances[E <: BaseMongoEntity] =
+  (codec: GenObjectCodec[E], format: MongoAdtFormat[E], meta: MongoEntityMeta[E])
 
 /** Provides additional static validation for `as`, `is` and `ref` macros from [[DataTypeDsl]]. Catches mistakes when
   * someone forgets to use [[MongoDataCompanion]] or [[MongoEntityCompanion]] for its case class or sealed hierarchy.
   */
 @implicitNotFound("${T} is an opaque data type - does it have a companion that extends MongoDataCompanion?")
 sealed trait IsMongoAdtOrSubtype[T]
+
+type IDOf[E <: BaseMongoEntity] = E match {
+  case MongoEntity[id] => id
+  case AutoIdMongoEntity[id] => id
+}
 object IsMongoAdtOrSubtype {
   private object instance extends IsMongoAdtOrSubtype[Any]
   def witness[T]: IsMongoAdtOrSubtype[T] = instance.asInstanceOf[IsMongoAdtOrSubtype[T]]
 }
 
-sealed abstract class BaseMongoCompanion[T] extends DataTypeDsl[T] {
-  given codec: GenObjectCodec[T] = compiletime.deferred
-  given format: MongoAdtFormat[T] = compiletime.deferred
+sealed trait BaseMongoCompanion[T] extends DataTypeDsl[T] {
+  def codec: GenObjectCodec[T]
+  def format: MongoAdtFormat[T]
+  given GenObjectCodec[T] = codec
+  given MongoAdtFormat[T] = format
 
   given [C <: T] => IsMongoAdtOrSubtype[C] = IsMongoAdtOrSubtype.witness[C]
 
@@ -44,21 +47,21 @@ sealed abstract class BaseMongoCompanion[T] extends DataTypeDsl[T] {
 
 abstract class AbstractMongoDataCompanion[Implicits, E](
   implicits: Implicits
-)(implicit instances: MacroInstances[Implicits, MongoAdtInstances[E]]
+)(using instances: MacroInstances[Implicits, MongoAdtInstances[E]]
 ) extends BaseMongoCompanion[E] {
-  implicit val codec: GenObjectCodec[E] = instances(implicits, this).codec
-  implicit val format: MongoAdtFormat[E] = instances(implicits, this).format
+  override lazy val codec: GenObjectCodec[E] = instances(implicits, this).codec
+  override lazy val format: MongoAdtFormat[E] = instances(implicits, this).format
 }
 
 abstract class AbstractMongoEntityCompanion[Implicits, E <: BaseMongoEntity](
   implicits: Implicits
-)(implicit instances: MacroInstances[Implicits, MongoEntityInstances[E]]
+)(using instances: MacroInstances[Implicits, MongoEntityInstances[E]]
 ) extends BaseMongoCompanion[E] {
-  implicit val codec: GenObjectCodec[E] = instances(implicits, this).codec
-  implicit val format: MongoAdtFormat[E] = instances(implicits, this).format
-  implicit val meta: MongoEntityMeta[E] = instances(implicits, this).meta
+  override lazy val codec: GenObjectCodec[E] = instances(implicits, this).codec
+  override lazy val format: MongoAdtFormat[E] = instances(implicits, this).format
+  given meta: MongoEntityMeta[E] = instances(implicits, this).meta
 
-  type ID = E#IDType
+  type ID = IDOf[E]
 
   final val IdRef: Ref[ID] = meta.idRef
 }
