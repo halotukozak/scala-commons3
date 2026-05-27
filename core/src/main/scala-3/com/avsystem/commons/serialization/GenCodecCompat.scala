@@ -78,6 +78,6 @@ trait GenCodecCompat { this: GenCodec.type =>
     "Use GenCodec.derived[T] explicitly or rely on AllowDerivation/AllowRecursiveDerivation givens",
     since = "3.0.0",
   )
-  implicit inline def materializeImplicitly[T: Made.Of](using allow: AllowImplicitMacro[GenCodec[T]]): GenCodec[T] =
+  inline given materializeImplicitly: [T: Made.Of] => (allow: AllowImplicitMacro[GenCodec[T]]) => GenCodec[T] =
     GenCodec.derived[T]
 }

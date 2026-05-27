@@ -5,7 +5,7 @@ import com.avsystem.commons.misc.{AbstractValueEnum, AbstractValueEnumCompanion,
 import com.avsystem.commons.serialization.InputMetadata
 
 /** [[https://tools.ietf.org/html/rfc7049#section-2.1]] */
-final class MajorType(implicit enumCtx: EnumCtx) extends AbstractValueEnum {
+final class MajorType(using enumCtx: EnumCtx) extends AbstractValueEnum {
   def withInfo(info: Int): InitialByte =
     InitialByte(this, info)
 }

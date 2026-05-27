@@ -17,6 +17,8 @@ trait GenRefCreatorMacros[S] {
 }
 
 trait GenRefImplicitsMacros {
+  // Kept as `inline implicit def` (not a `given Conversion`): the body is a macro splice over the
+  // `inline fun` argument, which a `Conversion[S => T, GenRef[S, T]]`'s non-inline `apply` cannot carry.
   inline implicit def fun2GenRef[S, T](inline fun: S => T): GenRef[S, T] =
     ${ SerializationMacros.genRefImpl[S, T]('fun) }
 }
