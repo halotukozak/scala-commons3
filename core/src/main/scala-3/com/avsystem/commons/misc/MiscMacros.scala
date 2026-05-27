@@ -6,30 +6,30 @@ import com.avsystem.commons.annotation.TodoScala3Migration
 import scala.quoted.*
 
 trait AnnotationOfMacros {
-  inline implicit def materialize[A, T]: AnnotationOf[A, T] = ${ MiscMacros.materializeAnnotationOf[A, T] }
+  inline given [A, T] => AnnotationOf[A, T] = ${ MiscMacros.materializeAnnotationOf[A, T] }
 }
 trait OptAnnotationOfMacros {
-  inline implicit def materialize[A, T]: OptAnnotationOf[A, T] = ${ MiscMacros.materializeOptAnnotationOf[A, T] }
+  inline given [A, T] => OptAnnotationOf[A, T] = ${ MiscMacros.materializeOptAnnotationOf[A, T] }
 }
 trait AnnotationsOfMacros {
-  inline implicit def materialize[A, T]: AnnotationsOf[A, T] = ${ MiscMacros.materializeAnnotationsOf[A, T] }
+  inline given [A, T] => AnnotationsOf[A, T] = ${ MiscMacros.materializeAnnotationsOf[A, T] }
 }
 trait SelfAnnotationMacros {
-  inline implicit def materialize[A]: SelfAnnotation[A] = ${ MiscMacros.materializeSelfAnnotation[A] }
+  inline given [A] => SelfAnnotation[A] = ${ MiscMacros.materializeSelfAnnotation[A] }
 }
 trait SelfOptAnnotationMacros {
-  inline implicit def materialize[A]: SelfOptAnnotation[A] = ${ MiscMacros.materializeSelfOptAnnotation[A] }
+  inline given [A] => SelfOptAnnotation[A] = ${ MiscMacros.materializeSelfOptAnnotation[A] }
 }
 trait SelfAnnotationsMacros {
-  inline implicit def materialize[A]: SelfAnnotations[A] = ${ MiscMacros.materializeSelfAnnotations[A] }
+  inline given [A] => SelfAnnotations[A] = ${ MiscMacros.materializeSelfAnnotations[A] }
 }
 
 trait SimpleClassNameMacros {
-  inline implicit def materialize[T]: SimpleClassName[T] = ${ MiscMacros.materializeSimpleClassName[T] }
+  inline given [T] => SimpleClassName[T] = ${ MiscMacros.materializeSimpleClassName[T] }
 }
 
 trait SourceInfoMacros {
-  inline implicit def here: SourceInfo = ${ MiscMacros.materializeSourceInfo }
+  inline given SourceInfo = ${ MiscMacros.materializeSourceInfo }
 }
 
 @TodoScala3Migration(
@@ -43,12 +43,12 @@ trait ImplicitsMacros {
 
 @TodoScala3Migration("SelfInstance.materialize is a stub")
 trait SelfInstanceMacros {
-  inline implicit def materialize[C[_]]: SelfInstance[C] = ???
+  inline given [C[_]] => SelfInstance[C] = ???
 }
 
 @TodoScala3Migration("Delegation.materializeDelegation is a stub — DelegationTest is `ignore`d")
 trait DelegationMacros {
-  inline implicit def materializeDelegation[A, B]: Delegation[A, B] = ???
+  inline given [A, B] => Delegation[A, B] = ???
 }
 @TodoScala3Migration("Delegation.apply is a stub — DelegationTest is `ignore`d")
 trait DelegationApplyMacros[B] {

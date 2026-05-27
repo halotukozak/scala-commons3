@@ -63,7 +63,7 @@ trait ValueEnum extends NamedEnum {
  * compatibility it's better to extend this abstract class rather than [[ValueEnum]] trait directly. See [[ValueEnum]]
  * documentation for more information on value-based enums.
  */
-abstract class AbstractValueEnum(protected implicit val enumCtx: EnumCtx) extends ValueEnum
+abstract class AbstractValueEnum(using protected val enumCtx: EnumCtx) extends ValueEnum
 
 @implicitNotFound(
   "Value based enum must be assigned to a public, final, non-lazy val in its companion object " +

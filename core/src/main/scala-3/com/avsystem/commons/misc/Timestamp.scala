@@ -45,8 +45,8 @@ object Timestamp extends TimestampCompat {
 
   import scala.language.implicitConversions
 
-  implicit def toComparable(timestamp: Timestamp): Comparable[Timestamp] =
-    o => java.lang.Long.compare(timestamp.millis, o.millis)
+  given toComparable: Conversion[Timestamp, Comparable[Timestamp]] =
+    timestamp => o => java.lang.Long.compare(timestamp.millis, o.millis)
 
   final val Zero: Timestamp = Timestamp(0)
   def apply(millis: Long): Timestamp = new Timestamp(millis)

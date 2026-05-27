@@ -8,9 +8,10 @@ import scala.language.implicitConversions
 object OptArg {
 
   /**
-   * This implicit conversion allows you to pass unwrapped values where `OptArg` is required.
+   * This conversion allows you to pass unwrapped values where `OptArg` is required. Kept as `implicit def` (not a
+   * `given Conversion`) because a polymorphic `Conversion[A, OptArg[A]]` generates a clashing bridge: both `A` and the
+   * `OptArg` value class erase to `Object`.
    */
-  // todo: make it conversion
   implicit def argToOptArg[A](value: A): OptArg[A] = OptArg(value)
 
   // additional implicits to cover most common, safe numeric promotions

@@ -7,7 +7,8 @@ trait InferMacros {
 }
 
 trait AdtMetadataCompanionMacros[M[_]] {
-  inline implicit def materialize[T]: M[T] = ${ MetaMacros.dummy }
+  inline def materialize[T]: M[T] = ${ MetaMacros.dummy }
+  inline given [T] => M[T] = materialize[T]
   inline def fromApplyUnapplyProvider[T](inline applyUnapplyProvider: Any): M[T] =
     ${ MetaMacros.dummy }
 }
@@ -31,11 +32,11 @@ trait BoundedMetadataCompanionMacros[Hi, Lo <: Hi, M[_ >: Lo <: Hi]] {
 }
 
 trait MetadataCompanionLazyMacros[M[_], Lazy[_]] {
-  inline implicit def lazyMetadata[Real](implicit metadata: M[Real]): Lazy[Real] = ${ MetaMacros.lazyMetadataImpl }
+  inline given lazyMetadata: [Real] => (metadata: M[Real]) => Lazy[Real] = ${ MetaMacros.lazyMetadataImpl }
 }
 
 trait BoundedMetadataCompanionLazyMacros[Hi, Lo <: Hi, M[_ >: Lo <: Hi], Lazy[_ >: Lo <: Hi]] {
-  inline implicit def lazyMetadata[Real >: Lo <: Hi](implicit metadata: M[Real]): Lazy[Real] = ${
+  inline given lazyMetadata: [Real >: Lo <: Hi] => (metadata: M[Real]) => Lazy[Real] = ${
     MetaMacros.lazyMetadataImpl
   }
 }
