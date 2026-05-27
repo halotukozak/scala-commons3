@@ -395,8 +395,10 @@ lazy val jetty = project
   .dependsOn(core % CompileAndTest)
   .settings(
     jvmCommonSettings,
-    crossScalaVersions := Seq(scala3Version, scala2Version),
-    scalaVersion := scala3Version,
+    // jetty integration is RPC-only (JettyRPCFramework); the RPC framework is not ported to Scala 3,
+    // so this module stays Scala 2.13-only.
+    crossScalaVersions := Seq(scala2Version),
+    scalaVersion := scala2Version,
     libraryDependencies ++= Seq(
       "org.eclipse.jetty" % "jetty-client" % jettyVersion,
       "org.eclipse.jetty.ee10" % "jetty-ee10-servlet" % jettyVersion,
