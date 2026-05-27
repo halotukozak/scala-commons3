@@ -1,7 +1,6 @@
 package com.avsystem.commons
 package mongo.core.ops
 
-import com.avsystem.commons.mongo.core.ops.BsonEquality.bsonEquality
 import com.avsystem.commons.mongo.{BsonCodec, BsonRef, DocKey}
 import com.avsystem.commons.serialization.GenCodec
 import com.mongodb.client.model.Sorts
@@ -31,8 +30,8 @@ class SortingTest extends AnyFunSuite {
   }
 
   test("bsonRef tests") {
-    val someRef = BsonRef[Any, String](someKey, GenCodec.StringCodec, null)
-    val otherRef = BsonRef[Any, Int](otherKey, GenCodec.IntCodec, null)
+    val someRef = BsonRef[Any, String](someKey, GenCodec.StringCodec, _ => "")
+    val otherRef = BsonRef[Any, Int](otherKey, GenCodec.IntCodec, _ => 0)
 
     assert(someRef.ascending === Sorts.ascending(someKey))
     assert(someRef.descending === Sorts.descending(someKey))

@@ -1,6 +1,8 @@
 package com.avsystem.commons
 package mongo.typed
 
+import scala.language.implicitConversions
+
 trait UpdateOperatorsDsl[T, R] {
 
   import MongoUpdateOperator._
@@ -25,11 +27,15 @@ trait UpdateOperatorsDsl[T, R] {
 object UpdateOperatorsDsl {
   import MongoUpdateOperator._
 
-  extension [C[X] <: Iterable[X], T, R](dsl: UpdateOperatorsDsl[C[T], R]) {
+  // A `given Conversion` (not an `extension`) is used here so the higher-kinded `C[T]` is unified once,
+  // at conversion time, against the receiver's `UpdateOperatorsDsl[C[T], R]` base type. Plain extension
+  // methods fail to infer `C`/`T` from the receiver for named-argument calls such as `push(sort = ...)`.
+  given [C[X] <: Iterable[X], T, R] => Conversion[UpdateOperatorsDsl[C[T], R], ForCollection[C, T, R]] =
+    ForCollection(_)
+
+  class ForCollection[C[X] <: Iterable[X], T, R](dsl: UpdateOperatorsDsl[C[T], R]) {
 
     private def elemFormat: MongoFormat[T] = dsl.format.assumeCollection.elementFormat
-
-    def push(values: T*): R = push(values)
 
     def push(
       values: Iterable[T] = Nil,
@@ -39,7 +45,6 @@ object UpdateOperatorsDsl {
     ): R =
       dsl.wrapUpdateOperator(Push(values, position.toOpt, slice.toOpt, sort.toOpt, elemFormat))
 
-    def addToSet(values: T*): R = addToSet(values)
     def addToSet(values: Iterable[T]): R = dsl.wrapUpdateOperator(AddToSet(values, elemFormat))
     def popFirst: R = pop(true)
     def popLast: R = pop(false)
@@ -48,7 +53,6 @@ object UpdateOperatorsDsl {
     def pull(filter: MongoFilter.Creator[T] => MongoFilter[T]): R =
       dsl.wrapUpdateOperator(Pull(filter(new MongoFilter.Creator(elemFormat))))
 
-    def pullAll(values: T*): R = pullAll(values)
     def pullAll(values: Iterable[T]): R = dsl.wrapUpdateOperator(PullAll(values, elemFormat))
 
     /** Uses [[https://docs.mongodb.com/manual/reference/operator/update/positional/ the $$ positional operator]] to

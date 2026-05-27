@@ -34,7 +34,7 @@ class MongoUpdateTest extends AnyFunSuite {
   }
 
   test("collection operators") {
-    assert(toString(Rte.ref(_.intList).push(1, 2, 3)) == """{"$push": {"intList": {"$each": [1, 2, 3]}}}, []""")
+    assert(toString(Rte.ref(_.intList).push(List(1, 2, 3))) == """{"$push": {"intList": {"$each": [1, 2, 3]}}}, []""")
     assert(
       toString(Rte.ref(_.intList).push(sort = MongoOrder.ascending[Int])) ==
         """{"$push": {"intList": {"$each": [], "$sort": 1}}}, []"""
@@ -43,7 +43,7 @@ class MongoUpdateTest extends AnyFunSuite {
       toString(Rte.ref(_.innerList).push(position = 0, slice = 5, sort = Ir.ref(_.int).ascending)) ==
         """{"$push": {"innerList": {"$each": [], "$position": 0, "$slice": 5, "$sort": {"int": 1}}}}, []"""
     )
-    assert(toString(Rte.ref(_.intList).addToSet(1, 2, 3)) == """{"$addToSet": {"intList": {"$each": [1, 2, 3]}}}, []""")
+    assert(toString(Rte.ref(_.intList).addToSet(List(1, 2, 3))) == """{"$addToSet": {"intList": {"$each": [1, 2, 3]}}}, []""")
     assert(
       toString(Rte.ref(_.intList).addToSet(Seq(1, 2, 3))) == """{"$addToSet": {"intList": {"$each": [1, 2, 3]}}}, []"""
     )
@@ -54,7 +54,7 @@ class MongoUpdateTest extends AnyFunSuite {
       toString(Rte.ref(_.innerList).pull(_.ref(_.renamedStr).is("foo"))) ==
         """{"$pull": {"innerList": {"str": {"$eq": "foo"}}}}, []"""
     )
-    assert(toString(Rte.ref(_.intList).pullAll(1, 2, 3)) == """{"$pullAll": {"intList": [1, 2, 3]}}, []""")
+    assert(toString(Rte.ref(_.intList).pullAll(List(1, 2, 3))) == """{"$pullAll": {"intList": [1, 2, 3]}}, []""")
     assert(toString(Rte.ref(_.intList).pullAll(Seq(1, 2, 3))) == """{"$pullAll": {"intList": [1, 2, 3]}}, []""")
     assert(toString(Rte.ref(_.intList).updateFirstMatching(_.set(5))) == """{"$set": {"intList.$": 5}}, []""")
     assert(toString(Rte.ref(_.intList).updateAll(_.set(5))) == """{"$set": {"intList.$[]": 5}}, []""")

@@ -63,9 +63,9 @@ class BsonValueGenCodecRoundtripTest extends GenCodecRoundtripTest {
   def legacyOptionEncoding: Boolean = false
 
   def writeToOutput(write: Output => Unit): BsonValue = {
-    var bsonValue: BsonValue| Null = null
+    var bsonValue: BsonValue | Null = null
     write(new BsonValueOutput(bsonValue = _, legacyOptionEncoding))
-    bsonValue
+    bsonValue.nn
   }
 
   def createInput(raw: BsonValue): Input =

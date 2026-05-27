@@ -4,17 +4,8 @@ package mongo.core.ops
 import org.bson.conversions.Bson
 import org.scalactic.Equality
 
-object BsonEquality extends Equality[Bson] {
-
-  override def areEqual(a: Bson, b: Any): Boolean =
-    (a, b) match {
-      case (null, null) =>
-        true
-      case (aBson, bBson: Bson) =>
-        aBson.toBsonDocument == bBson.toBsonDocument
-      case _ =>
-        false
-    }
-
-  given BsonEquality.type = this
+given bsonEquality: Equality[Bson] = {
+  case (null, null) => true
+  case (aBson, bBson: Bson) => aBson.toBsonDocument == bBson.toBsonDocument
+  case _ => false
 }

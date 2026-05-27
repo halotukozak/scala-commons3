@@ -2,7 +2,8 @@ package com.avsystem.commons
 package mongo.typed
 
 import com.avsystem.commons.misc.{AutoNamedEnum, NamedEnumCompanion, Timestamp, TypedMap}
-import com.avsystem.commons.serialization._
+import com.avsystem.commons.serialization.*
+import com.avsystem.commons.serialization.given
 import org.bson.types.ObjectId
 
 case class RecordId(id: String) extends AnyVal

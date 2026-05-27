@@ -11,3 +11,7 @@ case class DocKey[A, BSON <: BsonValue](key: String, codec: BsonCodec[A, BSON]) 
   def ++[B, BBSON <: BsonValue](other: DocKey[B, BBSON])(using ev: BSON <:< BsonDocument): DocKey[B, BBSON] =
     new DocKey(key + "." + other.key, other.codec)
 }
+object DocKey {
+  given [T] => Conversion[DocKey[T, ? <: BsonValue], DocKeySorting[T]] = new DocKeySorting(_)
+  given [T] => Conversion[DocKey[T, ? <: BsonValue], DocKeyFiltering[T]] = new DocKeyFiltering(_)
+}

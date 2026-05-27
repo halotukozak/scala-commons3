@@ -16,7 +16,6 @@ class FilteringTest extends AnyFunSuite {
   import FilteringTest._
 
   private def testCase(name: String)(filter: (Ref[String]) => Bson)(verify: (String) => Bson): Unit = {
-    import BsonEquality.bsonEquality
 
     test(name) {
       assert(filter(sRef) === verify("s"))
@@ -55,7 +54,6 @@ class FilteringTest extends AnyFunSuite {
   testCase("regexString")(_.regex(regexString))(Filters.regex(_, regexString))
   testCase("regexOptions")(_.regex(regexString, "ops"))(Filters.regex(_, regexString, "ops"))
 
-  import BsonEquality.bsonEquality
 
   test("contains") {
     assert(aRef.contains("elem") === Filters.eq("a", "elem"))

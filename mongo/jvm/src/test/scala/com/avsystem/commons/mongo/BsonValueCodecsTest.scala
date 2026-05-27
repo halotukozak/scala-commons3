@@ -49,7 +49,7 @@ class BsonValueCodecsTest extends AnyFunSuite with BsonGenCodecs {
       doc,
     )
 
-    var value: BsonValue| Null = null
+    var value: BsonValue | Null = null
     val output = new BsonValueOutput(value = _)
     GenCodec.write(output, bag)
 
@@ -68,7 +68,7 @@ class BsonValueCodecsTest extends AnyFunSuite with BsonGenCodecs {
     assert(outDoc.getString("string") === bag.string)
     assert(outDoc.get("value") === bag.value)
 
-    val input = new BsonValueInput(value)
+    val input = new BsonValueInput(value.nn)
     assert(GenCodec.read[AllTypesInABag](input) === bag)
   }
 
