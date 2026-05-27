@@ -9,6 +9,7 @@ import com.mongodb.client.model.Filters
 import org.bson.BsonType
 import org.bson.conversions.Bson
 import org.scalatest.funsuite.AnyFunSuite
+import scala.language.implicitConversions
 
 class FilteringTest extends AnyFunSuite {
 

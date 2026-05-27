@@ -113,6 +113,39 @@ sealed trait MongoPropertyRef[E, T]
   @macroPrivate def subtypeRefFor[C <: T: ClassTag]: MongoPropertyRef[E, C] =
     format.assumeUnion.subtypeRefFor(this, classTag[C].runtimeClass.asInstanceOf[Class[C]])
 
+  // --- @macroPrivate helpers invoked by the `.ref(...)` macro (see MongoRefMacros). Each recovers the needed
+  // format/evidence at runtime from `format`; the macro supplies the result element type `T0`. ---
+
+  @macroPrivate def getOptionalRef[T0]: MongoPropertyRef[E, T0] = {
+    val f = format.asInstanceOf[MongoFormat.OptionalFormat[T, T0]]
+    MongoRef.GetFromOptional(this, f.wrappedFormat, f.optionLike)
+  }
+
+  @macroPrivate def unwrapRef[T0]: MongoPropertyRef[E, T0] = {
+    val f = format.asInstanceOf[MongoFormat.TransparentFormat[T, T0]]
+    MongoRef.TransparentUnwrap(this, f.wrappedFormat, f.wrapping)
+  }
+
+  @macroPrivate def indexRef[T0](index: Int): MongoPropertyRef[E, T0] = {
+    val f = format.asInstanceOf[MongoFormat.CollectionFormat[Iterable, T0]]
+    MongoRef.ArrayIndexRef[E, Iterable, T0](this.asInstanceOf[MongoPropertyRef[E, Iterable[T0]]], index, f.elementFormat)
+  }
+
+  @macroPrivate def dictKeyRef[T0](key: Any): MongoPropertyRef[E, T0] = {
+    val f = format.asInstanceOf[MongoFormat.DictionaryFormat[BMap, Any, T0]]
+    MongoRef.FieldRef(this, f.keyCodec.write(key), f.valueFormat, Opt.Empty)
+  }
+
+  @macroPrivate def typedMapKeyRef[T0](key: Any): MongoPropertyRef[E, T0] = {
+    val f = format.asInstanceOf[MongoFormat.TypedMapFormat[[X] =>> Any]]
+    MongoRef.FieldRef(
+      this,
+      f.keyCodec.write(key),
+      f.valueFormats.valueFormat(key.asInstanceOf).asInstanceOf[MongoFormat[T0]],
+      Opt.Empty,
+    )
+  }
+
   protected def wrapQueryOperators(ops: MongoQueryOperator[T]*): MongoDocumentFilter[E] =
     satisfiesFilter(MongoOperatorsFilter(ops))
 
@@ -272,24 +305,17 @@ object MongoPropertyRef {
     }
   }
 
-  // TODO(scala-3 mongo migration): this given was an extension method in scala-2; the body
-  // references `ref` which is not in scope here. Needs proper port.
-  // given [E, O, T] => (optionLike: OptionLike.Aux[O, T]) => OptionalRefOps[E, O, T] =
-  //   new OptionalRefOps[E, O, T](ref)
-
-  class OptionalRefOps[E, O, T](private val ref: MongoPropertyRef[E, O]) extends AnyVal {
-    def get: MongoPropertyRef[E, T] = {
+  extension [E, O, T](ref: MongoPropertyRef[E, O]) {
+    @scala.annotation.targetName("getOptional")
+    def get(using optionLike: OptionLike.Aux[O, T]): MongoPropertyRef[E, T] = {
       val format = ref.format.assumeOptional[T]
       MongoRef.GetFromOptional(ref, format.wrappedFormat, format.optionLike)
     }
   }
 
-  // TODO(scala-3 mongo migration): same issue as OptionalRefOps above.
-  // given [E, T, R] => (wrapping: TransparentWrapping[R, T]) => TransparentRefOps[E, T, R] =
-  //   new TransparentRefOps[E, T, R](ref)
-
-  class TransparentRefOps[E, T, R](private val ref: MongoPropertyRef[E, T]) extends AnyVal {
-    def unwrap: MongoPropertyRef[E, R] = {
+  extension [E, T, R](ref: MongoPropertyRef[E, T]) {
+    @scala.annotation.targetName("unwrapTransparent")
+    def unwrap(using wrapping: TransparentWrapping[R, T]): MongoPropertyRef[E, R] = {
       val format = ref.format.assumeTransparent[R]
       MongoRef.TransparentUnwrap(ref, format.wrappedFormat, format.wrapping)
     }

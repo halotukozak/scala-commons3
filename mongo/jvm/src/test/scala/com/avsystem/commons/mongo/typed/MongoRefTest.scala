@@ -2,6 +2,7 @@ package com.avsystem.commons
 package mongo.typed
 
 import org.scalatest.funsuite.AnyFunSuite
+import scala.language.implicitConversions
 
 class MongoRefTest extends AnyFunSuite {
   final val Rte = RecordTestEntity

@@ -13,16 +13,16 @@ import org.bson.conversions.Bson
 import scala.util.matching.Regex
 
 trait BaseFiltering[T] extends Any with KeyValueHandling[T] {
-  def equal(t: T): Bson = use(t)(Filters.eq)
-  def notEqual(t: T): Bson = use(t)(Filters.ne)
+  infix def equal(t: T): Bson = use(t)(Filters.eq)
+  infix def notEqual(t: T): Bson = use(t)(Filters.ne)
 
-  def gt(t: T): Bson = use(t)(Filters.gt)
-  def lt(t: T): Bson = use(t)(Filters.lt)
-  def gte(t: T): Bson = use(t)(Filters.gte)
-  def lte(t: T): Bson = use(t)(Filters.lte)
+  infix def gt(t: T): Bson = use(t)(Filters.gt)
+  infix def lt(t: T): Bson = use(t)(Filters.lt)
+  infix def gte(t: T): Bson = use(t)(Filters.gte)
+  infix def lte(t: T): Bson = use(t)(Filters.lte)
 
-  def in(ts: T*): Bson = Filters.in(key, ts.map(encode).asJava)
-  def nin(ts: T*): Bson = Filters.nin(key, ts.map(encode).asJava)
+  infix def in(ts: T*): Bson = Filters.in(key, ts.map(encode).asJava)
+  infix def nin(ts: T*): Bson = Filters.nin(key, ts.map(encode).asJava)
 
   def exists(exists: Boolean = true): Bson = Filters.exists(key, exists)
 

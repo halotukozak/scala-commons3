@@ -2,6 +2,12 @@ package com.avsystem.commons
 package mongo.typed
 
 import com.avsystem.commons.annotation.{explicitGenerics, macroPrivate}
+import com.avsystem.commons.meta.OptionLike
+import com.avsystem.commons.misc.TypedMap
+import com.avsystem.commons.serialization.TransparentWrapping
+
+import scala.annotation.tailrec
+import scala.quoted.*
 
 trait DataRefDsl[E, T] {
   // convenience type alias
@@ -128,8 +134,8 @@ trait DataRefDsl[E, T] {
     *     UnionEntity.ref(_.as[ThirdCase].data.complexData("key").head.get)
     * }}}
     */
-  @deprecated("MongoMacros.refImpl not ported to scala-3 yet", "scala-3 migration")
-  def ref[T0](fun: T => T0): MongoPropertyRef[E, T0] = throw new NotImplementedError("ref macro not ported to scala-3")
+  inline def ref[T0](inline fun: T => T0): MongoPropertyRef[E, T0] =
+    ${ MongoRefMacros.refImpl[E, T, T0, ThisRef[E, T]]('SelfRef, 'fun) }
 
   /** Given a MongoDB union data type (defined with a sealed hierarchy with `@flatten` annotation), you can narrow it to
     * one of its case classes or intermediate sealed traits.
@@ -161,8 +167,8 @@ trait DataRefDsl[E, T] {
     * results of the query only to selected cases.
     */
   @explicitGenerics
-  @deprecated("MongoMacros.asSubtype not ported to scala-3 yet", "scala-3 migration")
-  def as[C <: T]: ThisRef[E, C] = throw new NotImplementedError("as macro not ported to scala-3")
+  inline def as[C <: T]: MongoRef[E, C] =
+    SelfRef.asAdtRef(using scala.compiletime.summonInline).subtypeRefFor[C](using scala.compiletime.summonInline)
 
   /** Macro for obtaining a [[MongoDocumentFilter]] (condition) which is satisfied only by some specific subtype of an
     * entity type. The entity must be a sealed trait/class and the subtype must be either one of its case classes or an
@@ -190,16 +196,162 @@ trait DataRefDsl[E, T] {
     * }}}
     */
   @explicitGenerics
-  @deprecated("MongoMacros.isSubtype not ported to scala-3 yet", "scala-3 migration")
-  def is[C <: T]: MongoDocumentFilter[E] = throw new NotImplementedError("is macro not ported to scala-3")
+  inline def is[C <: T]: MongoDocumentFilter[E] =
+    SelfRef.asAdtRef(using scala.compiletime.summonInline).subtypeFilterFor[C](negated = false)(using scala.compiletime.summonInline)
 
   /** A negated version of [[is]].
     */
   @explicitGenerics
-  @deprecated("MongoMacros.isNotSubtype not ported to scala-3 yet", "scala-3 migration")
-  def isNot[C <: T]: MongoDocumentFilter[E] = throw new NotImplementedError("isNot macro not ported to scala-3")
+  inline def isNot[C <: T]: MongoDocumentFilter[E] =
+    SelfRef.asAdtRef(using scala.compiletime.summonInline).subtypeFilterFor[C](negated = true)(using scala.compiletime.summonInline)
 }
 
 trait DataTypeDsl[T] extends DataRefDsl[T, T] {
   type ThisRef[E0, T0] = MongoRef[E0, T0]
+}
+
+private[typed] object MongoRefMacros {
+
+  /** Implements `DataRefDsl.ref(fun)` by interpreting the anonymous function `fun` as a chain of field selections,
+    * subtype narrowings (`as[Subtype]`), option unwraps (`get`), collection/map/typed-map indexing and transparent
+    * wrapper unwraps, producing the corresponding [[MongoRef]] chain.
+    */
+  def refImpl[E: Type, T: Type, T0: Type, B <: MongoRef[E, T]: Type](
+    baseRef: Expr[B],
+    fun: Expr[T => T0],
+  )(using Quotes): Expr[MongoPropertyRef[E, T0]] = {
+    import quotes.reflect.*
+
+    val transparentGetSyms: Set[Symbol] =
+      Set(TypeRepr.of[Opt[Any]].typeSymbol, TypeRepr.of[OptArg[Any]].typeSymbol, TypeRepr.of[OptRef[Any]].typeSymbol)
+        .flatMap(_.methodMember("get")) ++ TypeRepr.of[Option[Any]].typeSymbol.methodMember("get")
+
+    def invalid(t: Term): Nothing =
+      report.errorAndAbort(s"invalid MongoDB field reference: ${t.show}", t.pos)
+
+    val (paramSym, bodyTerm) = {
+      @tailrec
+      def loop(t: Term): (Symbol, Term) = t match {
+        case Inlined(_, _, inner) => loop(inner)
+        case Block(List(d: DefDef), _: Closure) =>
+          d.termParamss.flatMap(_.params) match {
+            case List(p) =>
+              d.rhs match {
+                case Some(body) => (p.symbol, body)
+                case None => report.errorAndAbort("lambda has no body", t.pos)
+              }
+            case _ => report.errorAndAbort("expected single-argument lambda", t.pos)
+          }
+        case Block(Nil, expr) => loop(expr)
+        case _ => report.errorAndAbort(s"expected a lambda, got: ${t.show}", t.pos)
+      }
+      loop(fun.asTerm)
+    }
+
+    def isTransparentUnwrap(prefixTpe: TypeRepr, fieldSym: Symbol): Boolean = {
+      val sym = prefixTpe.typeSymbol
+      sym.flags.is(Flags.Case) && {
+        sym.primaryConstructor.paramSymss.flatten.filterNot(_.isType) match {
+          case List(only) if only.name == fieldSym.name =>
+            val paramTpe = prefixTpe.memberType(only).widen
+            ((paramTpe.asType, prefixTpe.asType): @unchecked) match {
+              case ('[r], '[t]) => Expr.summon[TransparentWrapping[r, t]].isDefined
+            }
+          case _ => false
+        }
+      }
+    }
+
+    def optionLikeDefined[F: Type, W: Type]: Boolean =
+      Expr.summon[OptionLike.Aux[F, W]].isDefined
+
+    def asAdtRef(refTerm: Term, refValueTpe: TypeRepr): Term = {
+      val evidence = refValueTpe.asType match {
+        case '[rt] => '{ scala.compiletime.summonInline[IsMongoAdtOrSubtype[rt]] }
+      }
+      Apply(Select.unique(refTerm, "asAdtRef"), List(evidence.asTerm))
+    }
+
+    def fieldRef(prefixTerm: Term, prefixTpe: TypeRepr, fieldSym: Symbol, fieldTpe: TypeRepr): Term = {
+      val adt = asAdtRef(prefixTerm, prefixTpe)
+      fieldTpe.asType match {
+        case '[ft] =>
+          Apply(
+            TypeApply(Select.unique(adt, "fieldRefFor"), List(TypeTree.of[ft])),
+            List(Literal(StringConstant(fieldSym.name))),
+          )
+      }
+    }
+
+    def subtypeRef(prefixTerm: Term, prefixTpe: TypeRepr, subTpe: TypeRepr): Term = {
+      val adt = asAdtRef(prefixTerm, prefixTpe)
+      subTpe.asType match {
+        case '[st] =>
+          val ctag = '{ scala.compiletime.summonInline[scala.reflect.ClassTag[st]] }
+          Apply(TypeApply(Select.unique(adt, "subtypeRefFor"), List(TypeTree.of[st])), List(ctag.asTerm))
+      }
+    }
+
+    // get/unwrap/head/apply are exposed on MongoPropertyRef as @macroPrivate member methods (not extensions),
+    // so they resolve via a plain member select with the result type supplied explicitly by the macro.
+    def memberCall(prefixRef: Term, method: String, resultTpe: TypeRepr, args: List[Term]): Term =
+      resultTpe.asType match {
+        case '[r] =>
+          val sel = TypeApply(Select.unique(prefixRef, method), List(TypeTree.of[r]))
+          if (args.isEmpty) sel else Apply(sel, args)
+      }
+
+    def applyCall(prefixRef: Term, prefixTpe: TypeRepr, arg: Term, resultTpe: TypeRepr): Term =
+      // order matters: Map/TypedMap are themselves Iterable, so check them before the plain-collection case
+      if (prefixTpe <:< TypeRepr.of[TypedMap[[X] =>> Any]])
+        memberCall(prefixRef, "typedMapKeyRef", resultTpe, List(arg))
+      else if (prefixTpe <:< TypeRepr.of[scala.collection.Map[Any, Any]])
+        memberCall(prefixRef, "dictKeyRef", resultTpe, List(arg))
+      else if (prefixTpe <:< TypeRepr.of[Iterable[Any]])
+        memberCall(prefixRef, "indexRef", resultTpe, List(arg))
+      else
+        memberCall(prefixRef, "dictKeyRef", resultTpe, List(arg))
+
+    def build(body: Term): Term = body match {
+      case Inlined(_, _, inner) => build(inner)
+      case Block(Nil, expr) => build(expr)
+      case Typed(prefix, _) => build(prefix)
+
+      case id: Ident if id.symbol == paramSym =>
+        baseRef.asTerm
+
+      // `as[Subtype]` extension call (macroDslExtensions / poly companion); the extension desugars with the
+      // type argument either before or after the value argument depending on form
+      case TypeApply(Apply(asSel, List(prefix)), List(subTpt)) if asSel.symbol.name == "as" =>
+        subtypeRef(build(prefix), prefix.tpe.widen, subTpt.tpe)
+      case Apply(TypeApply(asSel, List(subTpt)), List(prefix)) if asSel.symbol.name == "as" =>
+        subtypeRef(build(prefix), prefix.tpe.widen, subTpt.tpe)
+      case TypeApply(Select(prefix, "as"), List(subTpt)) =>
+        subtypeRef(build(prefix), prefix.tpe.widen, subTpt.tpe)
+
+      // option-like `.get`
+      case Select(prefix, "get")
+          if transparentGetSyms.contains(body.symbol) ||
+            (((prefix.tpe.widen.asType, body.tpe.widen.asType): @unchecked) match {
+              case ('[f], '[w]) => optionLikeDefined[f, w]
+            }) =>
+        memberCall(build(prefix), "getOptionalRef", body.tpe.widen, Nil)
+
+      case Select(prefix, name) =>
+        val prefixTpe = prefix.tpe.widen
+        if (isTransparentUnwrap(prefixTpe, body.symbol)) memberCall(build(prefix), "unwrapRef", body.tpe.widen, Nil)
+        else if (name == "head") memberCall(build(prefix), "indexRef", body.tpe.widen, List(Literal(IntConstant(0))))
+        else fieldRef(build(prefix), prefixTpe, body.symbol, body.tpe.widen)
+
+      case Apply(Select(prefix, "apply"), List(arg)) =>
+        applyCall(build(prefix), prefix.tpe.widen, arg, body.tpe.widen)
+      case Apply(TypeApply(Select(prefix, "apply"), _), List(arg)) =>
+        applyCall(build(prefix), prefix.tpe.widen, arg, body.tpe.widen)
+
+      case _ => invalid(body)
+    }
+
+    build(bodyTerm).asExprOf[MongoPropertyRef[E, T0]]
+  }
+
 }

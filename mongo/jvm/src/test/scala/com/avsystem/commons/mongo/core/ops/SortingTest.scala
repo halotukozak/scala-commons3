@@ -5,6 +5,7 @@ import com.avsystem.commons.mongo.{BsonCodec, BsonRef, DocKey}
 import com.avsystem.commons.serialization.GenCodec
 import com.mongodb.client.model.Sorts
 import org.scalatest.funsuite.AnyFunSuite
+import scala.language.implicitConversions
 
 class SortingTest extends AnyFunSuite {
 

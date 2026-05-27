@@ -3,6 +3,7 @@ package mongo.typed
 
 import com.avsystem.commons.mongo.typed.MongoUpdateOperator.CurrentDateType
 import org.scalatest.funsuite.AnyFunSuite
+import scala.language.implicitConversions
 
 class MongoUpdateTest extends AnyFunSuite {
   final val Rte = RecordTestEntity

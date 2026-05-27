@@ -15,6 +15,7 @@ import org.scalatest.time._
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.language.implicitConversions
 
 class TypedMongoCollectionTest extends AnyFunSuite with ScalaFutures with BeforeAndAfterEach {
   implicit val scheduler: Scheduler = Scheduler.fixedPool("test", 2)

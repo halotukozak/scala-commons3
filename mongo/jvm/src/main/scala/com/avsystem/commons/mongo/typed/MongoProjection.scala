@@ -59,7 +59,7 @@ trait MongoProjection[E, T] {
   final def map2[T0, T1](other: MongoProjection[E, T0])(fun: (T, T0) => T1): MongoProjection[E, T1] =
     new MongoProjection.Composed(this, other, fun)
 
-  final def zip[T0](other: MongoProjection[E, T0]): MongoProjection[E, (T, T0)] =
+  infix final def zip[T0](other: MongoProjection[E, T0]): MongoProjection[E, (T, T0)] =
     map2(other)((_, _))
 
   /** Applies a "prefix" to this projection. This effectively adds a prefix path to all the paths referenced by this

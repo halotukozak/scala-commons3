@@ -3,6 +3,7 @@ package mongo.core.ops
 
 import com.avsystem.commons.mongo.BsonRef
 import com.avsystem.commons.serialization.GenCodec
+import scala.language.implicitConversions
 
 class BsonRefIterableUpdatingCompilationTest extends BsonRef.Creator[Something] {
   import Updating._
