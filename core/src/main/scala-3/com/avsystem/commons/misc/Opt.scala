@@ -45,7 +45,7 @@ object Opt extends OptCompat {
      */
     inline def unless(inline cond: Boolean): Opt[A] = when(!cond)
   }
-  
+
   given [A] => Default[Opt[A]] = () => Opt.Empty
 }
 

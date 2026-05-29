@@ -13,12 +13,12 @@ final class NothingAsFunctionArgument(g: Global) extends AnalyzerRule(g, "nothin
         report(
           arg.pos,
           s"""
-               |A value of type `Nothing` was passed where a function is expected.
-               |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
-               |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${show(
-              param.tpe
+             |A value of type `Nothing` was passed where a function is expected.
+             |If you intended to throw an exception, wrap it in a function literal (e.g. `_ => throw ex` instead of `throw ex`).
+             |If you are using a mocking framework, provide a mock function with the correct type (e.g. `any[${show(
+              param.tpe,
             )}]`).
-               |""".stripMargin,
+             |""".stripMargin,
         )
       case (_, _) =>
     }

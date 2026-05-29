@@ -5,9 +5,10 @@ import com.avsystem.commons.derivation.DeferredInstance
 
 import scala.annotation.implicitNotFound
 
-/** Subtype of [[GenCodec]] which captures serialization to an "object", i.e. through [[ObjectOutput]] and
-  * [[ObjectInput]].
-  */
+/**
+ * Subtype of [[GenCodec]] which captures serialization to an "object", i.e. through [[ObjectOutput]] and
+ * [[ObjectInput]].
+ */
 @implicitNotFound("No GenObjectCodec found for ${T}")
 trait GenObjectCodec[T] extends GenCodec[T] {
   def readObject(input: ObjectInput): T

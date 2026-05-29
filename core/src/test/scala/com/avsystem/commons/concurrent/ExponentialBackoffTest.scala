@@ -6,8 +6,9 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-/** Author: ghik Created: 31/08/16.
-  */
+/**
+ * Author: ghik Created: 31/08/16.
+ */
 class ExponentialBackoffTest extends AnyFunSuite with Matchers {
   test("simple") {
     import RetryStrategy._

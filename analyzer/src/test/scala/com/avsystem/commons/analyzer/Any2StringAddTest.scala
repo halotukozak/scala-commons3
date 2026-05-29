@@ -19,14 +19,14 @@ final class Any2StringAddTest extends AnyFunSuite with AnalyzerTest {
       scala"""
              |val any: Any = ???
              |any.toString + "fag"
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
   test("string interpolation should not be rejected") {
     assertNoErrors(scala"""
-             |val any: Any = ???
-             |s"$${any}fag"
-             |""".stripMargin)
+                          |val any: Any = ???
+                          |s"$${any}fag"
+                          |""".stripMargin)
   }
 }

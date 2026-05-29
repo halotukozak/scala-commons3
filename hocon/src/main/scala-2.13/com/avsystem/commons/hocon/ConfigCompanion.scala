@@ -71,20 +71,21 @@ trait ConfigObjectCodec[T] {
 }
 
 abstract class AbstractConfigCompanion[Implicits <: HoconGenCodecs, T](
-  implicits: Implicits
-)(implicit instances: MacroInstances[Implicits, ConfigObjectCodec[T]]
+  implicits: Implicits,
+)(implicit instances: MacroInstances[Implicits, ConfigObjectCodec[T]],
 ) {
   implicit lazy val codec: GenCodec[T] = instances(implicits, this).objectCodec
 
   final def read(config: Config): T = HoconInput.read[T](config)
 }
 
-/** Base class for companion objects of configuration case classes and sealed traits (typically deserialized from HOCON
-  * files).
-  *
-  * [[DefaultConfigCompanion]] is equivalent to [[com.avsystem.commons.serialization.HasGenCodec HasGenCodec]] except
-  * that it automatically imports codecs from [[HoconGenCodecs]] - codecs for third party types often used in
-  * configuration.
-  */
+/**
+ * Base class for companion objects of configuration case classes and sealed traits (typically deserialized from HOCON
+ * files).
+ *
+ * [[DefaultConfigCompanion]] is equivalent to [[com.avsystem.commons.serialization.HasGenCodec HasGenCodec]] except
+ * that it automatically imports codecs from [[HoconGenCodecs]] - codecs for third party types often used in
+ * configuration.
+ */
 abstract class DefaultConfigCompanion[T](implicit macroCodec: MacroInstances[HoconGenCodecs, ConfigObjectCodec[T]])
   extends AbstractConfigCompanion[HoconGenCodecs, T](DefaultHoconGenCodecs)

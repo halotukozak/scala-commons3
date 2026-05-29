@@ -11,7 +11,7 @@ trait GenCodecStructure[T] {
 }
 
 abstract class HasGenCodecStructure[T](
-  implicit macroInstances: MacroInstances[Unit, GenCodecStructure[T]]
+  implicit macroInstances: MacroInstances[Unit, GenCodecStructure[T]],
 ) {
   implicit val genCodec: GenCodec[T] = macroInstances((), this).codec
   implicit val genStructure: GenStructure[T] = macroInstances((), this).structure
@@ -49,7 +49,7 @@ sealed trait GenCase[T] extends TypedMetadata[T] {
 }
 
 case class GenSealedParent[T](
-  @infer repr: TypeString[T]
+  @infer repr: TypeString[T],
 ) extends TypedMetadata[T]
 
 @positioned(positioned.here) case class GenCustomCase[T](

@@ -16,7 +16,7 @@ class ComponentsTest extends AnyFunSuite {
   test("cycle detection test") {
     import ExecutionContext.Implicits.global
     assertThrows[DependencyCycleException](
-      Await.result(cycle.a.init, Duration.Inf)
+      Await.result(cycle.a.init, Duration.Inf),
     )
   }
 }

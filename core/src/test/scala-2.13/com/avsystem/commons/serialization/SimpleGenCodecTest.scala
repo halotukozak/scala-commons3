@@ -333,9 +333,9 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
             "Branch" -> Map(
               "left" -> Map("Leaf" -> Map("value" -> 2)),
               "right" -> Map("Leaf" -> Map("value" -> 3)),
-            )
+            ),
           ),
-        )
+        ),
       ),
     )
   }

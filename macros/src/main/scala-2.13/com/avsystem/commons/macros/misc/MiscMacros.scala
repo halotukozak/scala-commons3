@@ -70,7 +70,7 @@ final class MiscMacros(ctx: blackbox.Context) extends AbstractMacroCommons(ctx) 
     if (!valid) {
       abort(
         "ValueEnum must be assigned to a public, final, non-lazy val in its companion object " +
-          "with explicit `Value` type annotation, e.g. `final val MyEnumValue: Value = new MyEnumClass"
+          "with explicit `Value` type annotation, e.g. `final val MyEnumValue: Value = new MyEnumClass",
       )
     }
 
@@ -397,7 +397,7 @@ final class MiscMacros(ctx: blackbox.Context) extends AbstractMacroCommons(ctx) 
                 }
               case None =>
                 val resultCompanion = typedCompanionOf(resultTpe).getOrElse(
-                  abort(s"$resultTpe has no companion object with `materialize` macro")
+                  abort(s"$resultTpe has no companion object with `materialize` macro"),
                 )
                 q"$resultCompanion.materialize"
             }
@@ -501,7 +501,7 @@ final class MiscMacros(ctx: blackbox.Context) extends AbstractMacroCommons(ctx) 
 
   def applyUnapplyOrFail(tpe: Type): ApplyUnapply =
     applyUnapplyFor(tpe).getOrElse(
-      abort(s"$tpe is not a case class or case-class like type: no matching apply/unapply pair found")
+      abort(s"$tpe is not a case class or case-class like type: no matching apply/unapply pair found"),
     )
 
   def applyBody(rawValuesName: TermName, tpe: Type, au: ApplyUnapply): Tree = {

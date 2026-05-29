@@ -66,4 +66,4 @@ object AnnotationReferringToEnclosingObjectTest {
     implicit val codec: GenCodec[Rec] = GenCodec.materialize
   }
 }
-*/
+ */

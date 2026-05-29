@@ -3,8 +3,9 @@ package jiop
 
 import java.util.function as juf
 
-/** Utils to convert Scala functions and expressions to most common Java functional interfaces.
-  */
+/**
+ * Utils to convert Scala functions and expressions to most common Java functional interfaces.
+ */
 trait JFunctionUtils {
   type JBiConsumer[T, U] = juf.BiConsumer[T, U]
   type JBiFunction[T, U, R] = juf.BiFunction[T, U, R]

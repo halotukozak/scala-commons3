@@ -40,7 +40,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |object test {
              |  TestUtils.invokeMacroPrivateMethod
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -55,7 +55,7 @@ final class CheckMacroPrivateTest extends AnyFunSuite with AnalyzerTest {
              |    final val X = 42
              |  }
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 }

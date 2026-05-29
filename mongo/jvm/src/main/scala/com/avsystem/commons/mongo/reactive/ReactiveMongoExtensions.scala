@@ -6,6 +6,7 @@ import monix.reactive.Observable
 import org.reactivestreams.Publisher
 
 trait ReactiveMongoExtensions {
+
   /** Extensions for converting [[Publisher]] to [[Task]]/[[Observable]] Monix types */
   extension [T](publisher: Publisher[T]) {
     def asMonix: Observable[T] = Observable.fromReactivePublisher(publisher)

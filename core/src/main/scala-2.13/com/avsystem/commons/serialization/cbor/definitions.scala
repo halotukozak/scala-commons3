@@ -67,8 +67,9 @@ object InitialByte extends InputMetadata[InitialByte] {
   final val Break = Simple.withInfo(31)
 }
 
-/** [[https://tools.ietf.org/html/rfc7049#section-2.4]] [[https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml]]
-  */
+/**
+ * [[https://tools.ietf.org/html/rfc7049#section-2.4]] [[https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml]]
+ */
 case class Tag(value: Int) extends AnyVal
 object Tag extends IntWrapperCompanion[Tag] {
   final val StandardDateTime = Tag(0)

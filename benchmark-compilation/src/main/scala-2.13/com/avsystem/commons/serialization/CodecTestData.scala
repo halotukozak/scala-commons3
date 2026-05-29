@@ -20,7 +20,6 @@ object CodecTestData {
     implicit val codec: GenCodec[SealedBase] = GenCodec.materialize[SealedBase]
   }
 
-
   @flatten sealed trait FlatSealedBase {
     def id: String
   }

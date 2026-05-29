@@ -162,16 +162,16 @@ class JsonStringInputOutputTest
     val map = Map("a" -> List(1, 2), "b" -> List(3, 4, 5))
     val prettyJson = write[Map[String, List[Int]]](map, options)
     assert(prettyJson == """{
-        |  "a": [
-        |    1,
-        |    2
-        |  ],
-        |  "b": [
-        |    3,
-        |    4,
-        |    5
-        |  ]
-        |}""".stripMargin)
+                           |  "a": [
+                           |    1,
+                           |    2
+                           |  ],
+                           |  "b": [
+                           |    3,
+                           |    4,
+                           |    5
+                           |  ]
+                           |}""".stripMargin)
     assert(read[Map[String, List[Int]]](prettyJson, options) == map)
   }
 

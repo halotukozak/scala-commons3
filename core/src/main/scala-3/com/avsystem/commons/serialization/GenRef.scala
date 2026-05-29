@@ -3,7 +3,6 @@ package serialization
 
 import made.*
 
-
 sealed trait RawRef {
 
   import RawRef.*

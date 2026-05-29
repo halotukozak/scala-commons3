@@ -308,7 +308,7 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
                 case _ =>
                   abort(
                     s"Expected literal ${classTag[T].runtimeClass.getSimpleName} " +
-                      s"as ${valSym.name} parameter of $clsTpe annotation"
+                      s"as ${valSym.name} parameter of $clsTpe annotation",
                   )
               }
           }
@@ -383,7 +383,7 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
     val nonFallback = maybeWithSuperSymbols(initSym, withInherited).flatMap(ss =>
       rawAnnotations(ss)
         .filter(inherited(_, ss))
-        .map(a => new Annot(correctAnnotTree(a.tree, seenFrom), s, ss, None, paramMaterializer))
+        .map(a => new Annot(correctAnnotTree(a.tree, seenFrom), s, ss, None, paramMaterializer)),
     )
 
     (nonFallback ++ fallback.iterator.map(t => new Annot(t, s, s, None, paramMaterializer)))
@@ -428,7 +428,7 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
             .filter(inherited(_, ss))
             .map(a => new Annot(correctAnnotTree(a.tree, seenFrom), s, ss, None, paramMaterializer)),
           rejectDuplicates = true,
-        )
+        ),
       )
       .collectFirst { case Some(annot) => annot }
       .orElse(find(fallback.map(t => new Annot(t, s, s, None, paramMaterializer)), rejectDuplicates = false))
@@ -781,8 +781,9 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
     }
   }
 
-  /** Wrapper over Type that implements equals/hashCode consistent with type equivalence (=:=)
-    */
+  /**
+   * Wrapper over Type that implements equals/hashCode consistent with type equivalence (=:=)
+   */
   case class TypeKey(tpe: Type) {
     override def equals(obj: Any): Boolean = obj match {
       case TypeKey(otherTpe) => tpe =:= otherTpe
@@ -983,8 +984,9 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
       dvMethodOwner.asType.toType.member(TermName(s"${owner.name.encodedName.toString}$$default$$$idx"))
     } else NoSymbol
 
-  /** Returns a `Tree` that should typecheck to the type passed as argument (without using `TypeTree`).
-    */
+  /**
+   * Returns a `Tree` that should typecheck to the type passed as argument (without using `TypeTree`).
+   */
   def treeForType(tpe: Type): Tree = tpe match {
     case TypeRef(NoPrefix, ExistentialSingleton(_, name, _), Nil) =>
       Ident(name)
@@ -1188,13 +1190,14 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
         }
     }
 
-  /** @param apply
-    *   case class constructor or companion object's apply method
-    * @param unapply
-    *   companion object'a unapply method or `NoSymbol` for case class with more than 22 fields
-    * @param params
-    *   parameters with trees evaluating to default values (or `EmptyTree`s)
-    */
+  /**
+   * @param apply
+   *   case class constructor or companion object's apply method
+   * @param unapply
+   *   companion object'a unapply method or `NoSymbol` for case class with more than 22 fields
+   * @param params
+   *   parameters with trees evaluating to default values (or `EmptyTree`s)
+   */
   case class ApplyUnapply(ownerTpe: Type, typedCompanion: Tree, apply: Symbol, unapply: Symbol, params: List[TermSymbol]) {
     def standardCaseClass: Boolean = apply.isConstructor
 
@@ -1352,7 +1355,7 @@ trait MacroCommons extends CompatMacroCommons { bundle =>
         } getOrElse {
           abort(
             s"Could not determine source position of $sym - " +
-              s"it resides in separate file than macro invocation and has no @positioned annotation"
+              s"it resides in separate file than macro invocation and has no @positioned annotation",
           )
         },
       )

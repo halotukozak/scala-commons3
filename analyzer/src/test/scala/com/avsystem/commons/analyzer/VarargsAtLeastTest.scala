@@ -22,7 +22,7 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
              |
              |TestUtils.need3Params(1, 2, 3)
              |TestUtils.need3Params(1, 2, 3, 4)
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -32,7 +32,7 @@ final class VarargsAtLeastTest extends AnyFunSuite with AnalyzerTest {
              |import com.avsystem.commons.analyzer.TestUtils
              |
              |TestUtils.need3Params(List(1,2): _*)
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 }

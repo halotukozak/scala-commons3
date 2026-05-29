@@ -41,7 +41,7 @@ class JsonStringInput(
 
   private def expectedError(tpe: JsonType) =
     throw new ParseException(
-      s"Expected $tpe but got ${reader.jsonType}: ${reader.currentValue} ${reader.posInfo(startIdx)}"
+      s"Expected $tpe but got ${reader.jsonType}: ${reader.currentValue} ${reader.posInfo(startIdx)}",
     )
 
   private def checkedValue[T](jsonType: JsonType): T =
@@ -468,9 +468,10 @@ final class JsonReader(val json: String) {
     }
   }
 
-  /** @return
-    *   startIndex
-    */
+  /**
+   * @return
+   *   startIndex
+   */
   def parseValue(): Int = {
     @inline def update(newValue: Any, newTpe: JsonType): Unit = {
       value = newValue

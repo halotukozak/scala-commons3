@@ -6,7 +6,7 @@ import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.{BsonReader, BsonWriter}
 
 class GenCodecBasedBsonCodec[T](
-  legacyOptionEncoding: Boolean
+  legacyOptionEncoding: Boolean,
 )(using
   ct: ClassTag[T],
   genCodec: GenCodec[T],

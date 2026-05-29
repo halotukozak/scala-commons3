@@ -131,7 +131,7 @@ object CodecTestData {
   object TransparentWrapperWithDependency {
     // order matters
     implicit val codec: GenCodec[TransparentWrapperWithDependency] = GenCodec.materialize
-    implicit val stringCodec: GenCodec[String] = (GenCodec.StringCodec: @scala.annotation.nowarn("cat=deprecation"))
+    implicit val stringCodec: GenCodec[String] = GenCodec.StringCodec: @scala.annotation.nowarn("cat=deprecation")
   }
 
   @transparent case class StringId(id: String)
@@ -192,8 +192,7 @@ object CodecTestData {
     protected def doApply(a: String, lb: List[Int]): HasInheritedApply = new HasInheritedApply(a, lb)
     protected def doUnapply(c: HasInheritedApply): Option[(String, List[Int])] = (c.str, c.intList).option
   }
-  */
-
+   */
 
   case class VarargsCaseClass(int: Int, strings: String*)
   object VarargsCaseClass extends HasGenCodec[VarargsCaseClass]
@@ -214,7 +213,7 @@ object CodecTestData {
     def apply(strings: String*): OnlyVarargsCaseClassLike = new OnlyVarargsCaseClassLike(strings)
     def unapplySeq(vccl: OnlyVarargsCaseClassLike): Opt[Seq[String]] = vccl.strings.opt
   }
-  */
+   */
 
   case class HasDefaults(@transientDefault int: Int = 42, @transientDefault @whenAbsent("dafuq") str: String = "kek")
   object HasDefaults extends HasGenCodec[HasDefaults]
@@ -262,7 +261,7 @@ object CodecTestData {
     // avoid this without bypassing the standard Mirror. Substituting T = Nothing in
     // materialize keeps write side correct (no Nothing values are written for this
     // particular RecBoundedExpr instance since the codec is cast to RecExpr[T]).
-    private inline def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
+    inline private def mkCodec[T <: RecBound[T]: GenCodec]: GenCodec[RecExpr[T]] = GenCodec.materialize
     implicit def codec[T: GenCodec]: GenCodec[RecExpr[T]] = {
       given GenCodec[Nothing] = GenCodec[T].asInstanceOf[GenCodec[Nothing]]
       (mkCodec[Nothing]: @scala.annotation.nowarn("msg=F-bounded")).asInstanceOf[GenCodec[RecExpr[T]]]

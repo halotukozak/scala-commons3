@@ -17,7 +17,7 @@ class SealedMacros(ctx: blackbox.Context) extends AbstractMacroCommons(ctx) {
       .map { subtypes =>
         val objects = subtypes.map(subTpe =>
           singleValueFor(subTpe)
-            .getOrElse(abort(s"All possible values of a SealedEnum must be objects but $subTpe is not"))
+            .getOrElse(abort(s"All possible values of a SealedEnum must be objects but $subTpe is not")),
         )
         val result = q"$ListObj(..$objects)"
         if (tpe <:< OrderedEnumType) q"$result.sorted" else result

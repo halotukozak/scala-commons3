@@ -112,4 +112,4 @@ object Peculiarity {
 }
 
 case object God extends Being
-*/
+ */

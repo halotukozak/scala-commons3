@@ -204,8 +204,8 @@ class BsonInputOutputTest extends AnyFunSuite with ScalaCheckPropertyChecks {
     forAll(SomethingComplex.gen) { sth =>
       val sthBefore = sth.copy(
         embeddedObject = sth.embeddedObject.copy(
-          map = sth.embeddedObject.map + ("$problematic.key" -> "value")
-        )
+          map = sth.embeddedObject.map + ("$problematic.key" -> "value"),
+        ),
       )
 
       binaryRoundtrip(sthBefore)

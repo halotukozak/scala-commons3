@@ -10,7 +10,7 @@ case class DynamicConfig(
 )
 
 case class BulbulatorConfig(
-  types: List[String]
+  types: List[String],
 )
 
 abstract class MyComponent {
@@ -28,18 +28,18 @@ abstract class MyComponent {
 class DynamicDep(db: Database) extends MyComponent
 
 class Database(
-  databaseUrl: String
+  databaseUrl: String,
 ) extends MyComponent
 
 class BulbulatorDao(
-  config: BulbulatorConfig
-)(implicit db: Database
+  config: BulbulatorConfig,
+)(implicit db: Database,
 ) extends MyComponent
 
 class DeviceDao(implicit db: Database) extends MyComponent
 
 class FullApplication(
-  dynamicDep: DynamicDep
+  dynamicDep: DynamicDep,
 )(implicit
   bulbulatorDao: BulbulatorDao,
   deviceDao: DeviceDao,

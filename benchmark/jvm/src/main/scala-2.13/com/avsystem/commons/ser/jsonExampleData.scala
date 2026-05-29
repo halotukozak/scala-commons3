@@ -18,7 +18,7 @@ object Something extends HasGenCodec[Something] {
     "The Name of Something",
     2017,
     List(
-      Stuff(Map(), 3.15)
+      Stuff(Map(), 3.15),
       //      Stuff(Map("fuu" -> true, "boo" -> false, "fag" -> true), 3.14),
       //      Stuff(Map("fuu" -> true), 3.16),
       //      Stuff(Map("fuu" -> true, "boo \n\r\t" -> false, "fag" -> true, "moar" -> false), 3.17),
@@ -26,7 +26,7 @@ object Something extends HasGenCodec[Something] {
       //      Stuff(Map("fuu" -> true, "boo" -> false, "fag" -> true), 3.19),
     ),
     Set(
-      1 // 5, 62, -23, 454, 123, 75, -234,
+      1, // 5, 62, -23, 454, 123, 75, -234,
     ),
   )
 
@@ -61,12 +61,14 @@ case class Case6(i: Int) extends SealedStuff with FlatSealedStuff
 case class Case7(i: Int) extends SealedStuff with FlatSealedStuff
 @nowarn
 object SealedStuff extends HasGenCodec[SealedStuff] {
-  final val ExampleList: List[SealedStuff] = List[SealedStuff](Case5(5), Case3(3), Case1(1), Case7(7), Case2(2), Case4(4), Case6(6))
+  final val ExampleList: List[SealedStuff] =
+    List[SealedStuff](Case5(5), Case3(3), Case1(1), Case7(7), Case2(2), Case4(4), Case6(6))
   final val ExampleJsonString: String = JsonStringOutput.write(ExampleList)
 }
 object FlatSealedStuff extends HasGenCodec[FlatSealedStuff] {
 
-  final val ExampleList: List[FlatSealedStuff] = List[FlatSealedStuff](Case5(5), Case3(3), Case1(1), Case7(7), Case2(2), Case4(4), Case6(6))
+  final val ExampleList: List[FlatSealedStuff] =
+    List[FlatSealedStuff](Case5(5), Case3(3), Case1(1), Case7(7), Case2(2), Case4(4), Case6(6))
   final val ExampleJsonString: String = JsonStringOutput.write(ExampleList)
 }
 

@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package serialization
 
-import com.avsystem.commons.annotation.{AnnotationAggregate, explicitGenerics}
+import com.avsystem.commons.annotation.{explicitGenerics, AnnotationAggregate}
 import com.avsystem.commons.derivation.DeferredInstance
 import com.avsystem.commons.jiop.JFactory
 import com.avsystem.commons.meta.*
@@ -12,7 +12,7 @@ import made.annotation.*
 import java.util.UUID
 import scala.NamedTuple.*
 import scala.annotation.{implicitNotFound, tailrec, targetName}
-import scala.collection.{Factory, mutable}
+import scala.collection.{mutable, Factory}
 
 /**
  * Type class for types that can be serialized to [[Output]] (format-agnostic "output stream") and deserialized from
@@ -46,7 +46,12 @@ trait GenCodec[T] {
 }
 
 object GenCodec
-  extends GenCodecCompat, GenCodecDerivation, GenCodecImpl, GenCodecCreates, GenCodecFailures, GenCodecJavaBuilder,
+  extends GenCodecCompat,
+    GenCodecDerivation,
+    GenCodecImpl,
+    GenCodecCreates,
+    GenCodecFailures,
+    GenCodecJavaBuilder,
     GenCodecUtils {
   final val DefaultCaseField = "_case"
   def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec

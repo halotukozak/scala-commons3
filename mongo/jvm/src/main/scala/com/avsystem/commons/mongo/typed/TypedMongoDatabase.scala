@@ -10,8 +10,9 @@ import monix.eval.Task
 import monix.reactive.Observable
 import org.bson.Document
 
-/** Better typed wrapper over [[MongoDatabase]].
-  */
+/**
+ * Better typed wrapper over [[MongoDatabase]].
+ */
 class TypedMongoDatabase(
   val nativeDatabase: MongoDatabase,
   val clientSession: OptArg[TypedClientSession] = OptArg.Empty,
@@ -61,8 +62,8 @@ class TypedMongoDatabase(
   ): Task[Unit] =
     empty(
       optionalizeFirstArg(
-        nativeDatabase.createCollection(sessionOrNull, name, setupOptions(new CreateCollectionOptions))
-      )
+        nativeDatabase.createCollection(sessionOrNull, name, setupOptions(new CreateCollectionOptions)),
+      ),
     )
 
   // TODO: `createView`, `watch`, `aggregate`

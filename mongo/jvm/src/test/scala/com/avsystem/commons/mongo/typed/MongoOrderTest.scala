@@ -24,11 +24,11 @@ class MongoOrderTest extends AnyFunSuite {
 
   test("multi field") {
     assert(
-      Rte.ref(_.int).ascending.andThenDescendingBy(Rte.ref(_.renamedStr)).toBson.toString == """{"int": 1, "str": -1}"""
+      Rte.ref(_.int).ascending.andThenDescendingBy(Rte.ref(_.renamedStr)).toBson.toString == """{"int": 1, "str": -1}""",
     )
     assert(
       MongoDocumentOrder(Rte.ref(_.int) -> true, Rte.ref(_.renamedStr) -> false).toBson.toString ==
-        """{"int": 1, "str": -1}"""
+        """{"int": 1, "str": -1}""",
     )
   }
 }

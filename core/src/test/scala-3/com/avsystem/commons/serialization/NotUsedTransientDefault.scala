@@ -10,8 +10,8 @@ final class NotUsedTransientDefault extends AnyFunSuite {
     assertCompiles(
       // language=Scala
       """
-         |GenCodec.materialize[Valid]
-         |""".stripMargin
+        |GenCodec.materialize[Valid]
+        |""".stripMargin,
     )
   }
 
@@ -19,8 +19,8 @@ final class NotUsedTransientDefault extends AnyFunSuite {
     assertDoesNotCompile(
       // language=Scala
       """
-         |GenCodec.materialize[Invalid]
-         |""".stripMargin
+        |GenCodec.materialize[Invalid]
+        |""".stripMargin,
     )
   }
 }

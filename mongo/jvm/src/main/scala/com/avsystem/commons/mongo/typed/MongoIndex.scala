@@ -5,36 +5,37 @@ import com.avsystem.commons.misc.{AbstractValueEnum, AbstractValueEnumCompanion,
 import com.mongodb.client.model.IndexOptions
 import org.bson.{BsonDocument, BsonValue}
 
-/** Represents a MongoDB index, expressed as sequence of fields associated with index type. Note: additional index
-  * options are passed separately into methods like [[TypedMongoCollection.createIndex]].
-  *
-  * Examples:
-  *
-  * {{{
-  *   case class MyEntity(id: String, int: Int, num: Double) extends MongoEntity[String]
-  *   object MyEntity extends MongoEntityCompanion[MyEntity]
-  *
-  *   // {"int": 1}
-  *   MyEntity.ref(_.int).ascendingIndex
-  *
-  *   // {"int": -1}
-  *   MyEntity.ref(_.int).descendingIndex
-  *
-  *   // {"int": 1, "num": 1}
-  *   MongoIndex.ascending(MyEntity.ref(_.int), MyEntity.ref(_.num))
-  *
-  *   // {"int": 1, "num": -1, "_id": "hashed"}
-  *   import MongoIndexType._
-  *   MongoIndex(
-  *     MyEntity.ref(_.int) -> Ascending,
-  *     MyEntity.ref(_.num) -> Descending,
-  *     MyEntity.ref(_.id) -> Hashed
-  *   )
-  * }}}
-  *
-  * @tparam E
-  *   type of the MongoDB entity
-  */
+/**
+ * Represents a MongoDB index, expressed as sequence of fields associated with index type. Note: additional index
+ * options are passed separately into methods like [[TypedMongoCollection.createIndex]].
+ *
+ * Examples:
+ *
+ * {{{
+ *   case class MyEntity(id: String, int: Int, num: Double) extends MongoEntity[String]
+ *   object MyEntity extends MongoEntityCompanion[MyEntity]
+ *
+ *   // {"int": 1}
+ *   MyEntity.ref(_.int).ascendingIndex
+ *
+ *   // {"int": -1}
+ *   MyEntity.ref(_.int).descendingIndex
+ *
+ *   // {"int": 1, "num": 1}
+ *   MongoIndex.ascending(MyEntity.ref(_.int), MyEntity.ref(_.num))
+ *
+ *   // {"int": 1, "num": -1, "_id": "hashed"}
+ *   import MongoIndexType._
+ *   MongoIndex(
+ *     MyEntity.ref(_.int) -> Ascending,
+ *     MyEntity.ref(_.num) -> Descending,
+ *     MyEntity.ref(_.id) -> Hashed
+ *   )
+ * }}}
+ *
+ * @tparam E
+ *   type of the MongoDB entity
+ */
 case class MongoIndex[E](
   fields: Vector[(MongoPropertyRef[E, ?], MongoIndexType)],
   setupOptions: IndexOptions => IndexOptions = identity,

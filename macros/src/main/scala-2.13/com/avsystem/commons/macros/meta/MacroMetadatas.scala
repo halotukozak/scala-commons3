@@ -259,8 +259,8 @@ private[commons] trait MacroMetadatas extends MacroSymbols {
         case ParamArity.Optional(_) =>
           Ok(
             mkOptional(
-              tryInferCachedImplicit(tpe, tparamSymbols, tparamInstanceTypes, expandMacros = true).map(referImplicit)
-            )
+              tryInferCachedImplicit(tpe, tparamSymbols, tparamInstanceTypes, expandMacros = true).map(referImplicit),
+            ),
           )
         case _ =>
           FailMsg(s"${arity.annotStr} not allowed on @infer params")
@@ -301,7 +301,7 @@ private[commons] trait MacroMetadatas extends MacroSymbols {
         if (findAnnotation(param, CompositeAT).nonEmpty)
           Some(
             new CompositeParam(annotConstr, param)
-              .tryMaterialize(matchedSymbol)(p => FailMsg(s"unexpected metadata parameter $p"))
+              .tryMaterialize(matchedSymbol)(p => FailMsg(s"unexpected metadata parameter $p")),
           )
         else
           findAnnotation(param, DirectMetadataParamStrategyType)

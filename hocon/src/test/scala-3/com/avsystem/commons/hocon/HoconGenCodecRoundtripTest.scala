@@ -34,4 +34,4 @@ class HoconGenCodecRoundtripTest extends GenCodecRoundtripTest {
     testRoundtrip(value)
   }
 }
-*/
+ */

@@ -198,4 +198,3 @@ object AUCodec {
 abstract class HasGenCodecFromAU[AU: ValueOf, T](using instances: MacroInstances[Unit, (codec: AUCodec[AU, T])]) {
   given GenCodec[T] = instances((), this).codec(valueOf[AU])
 }
-

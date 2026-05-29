@@ -26,8 +26,7 @@ final case class SingleFieldRecordWithTD(@transientDefault abc: String = "abc")
 object SingleFieldRecordWithTD extends HasGenCodec[SingleFieldRecordWithTD]
 
 class ObjectSizeTest extends AnyFunSuite {
-  extension [T](c: GenCodec[T])
-    private def sized: OOOFieldsObjectCodec[T] = c.asInstanceOf[OOOFieldsObjectCodec[T]]
+  extension [T](c: GenCodec[T]) private def sized: OOOFieldsObjectCodec[T] = c.asInstanceOf[OOOFieldsObjectCodec[T]]
 
   test("computing object size") {
     assert(RecordWithDefaults.codec.sized.size(RecordWithDefaults()) == 2)
@@ -56,11 +55,13 @@ class ObjectSizeTest extends AnyFunSuite {
     assert(RecordWithOpts.codec.sized.size(RecordWithOpts("abc".opt, true.opt), defaultIgnoringOutput.opt) == 3)
     assert(RecordWithOpts.codec.sized.size(RecordWithOpts(), defaultIgnoringOutput.opt) == 2)
     assert(
-      SingleFieldRecordWithOpts.codec.sized.size(SingleFieldRecordWithOpts(), defaultIgnoringOutput.opt) == 0
+      SingleFieldRecordWithOpts.codec.sized.size(SingleFieldRecordWithOpts(), defaultIgnoringOutput.opt) == 0,
     ) // @optionalParam field should NOT be counted
-    assert(SingleFieldRecordWithOpts.codec.sized.size(SingleFieldRecordWithOpts("abc".opt), defaultIgnoringOutput.opt) == 1)
     assert(
-      SingleFieldRecordWithTD.codec.sized.size(SingleFieldRecordWithTD(), defaultIgnoringOutput.opt) == 1
+      SingleFieldRecordWithOpts.codec.sized.size(SingleFieldRecordWithOpts("abc".opt), defaultIgnoringOutput.opt) == 1,
+    )
+    assert(
+      SingleFieldRecordWithTD.codec.sized.size(SingleFieldRecordWithTD(), defaultIgnoringOutput.opt) == 1,
     ) // @transientDefault field should be counted
     assert(SingleFieldRecordWithTD.codec.sized.size(SingleFieldRecordWithTD("haha"), defaultIgnoringOutput.opt) == 1)
   }

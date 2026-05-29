@@ -88,7 +88,7 @@ class HoconInputTest extends GenCodecRoundtripTest {
         |  clazzMap {
         |    "com.avsystem.commons.hocon.HoconInputTest" = "abc"
         |  }
-        |}""".stripMargin
+        |}""".stripMargin,
     )
     val expected = CustomCodecsClass(
       duration = 1.minute,

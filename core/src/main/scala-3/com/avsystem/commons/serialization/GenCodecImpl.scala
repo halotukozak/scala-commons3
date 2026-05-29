@@ -131,7 +131,6 @@ abstract class SealedHierarchyCodec[T](
 ) extends ErrorReportingCodec[T](typeRepr)
     with ObjectCodec[T] {
 
-
   @tailrec protected final def caseIndexByValue(value: T, idx: Int = 0): Int =
     if (idx >= cases.length) unknownCase(value)
     else if (cases(idx).isInstance(value)) idx
@@ -526,7 +525,7 @@ trait GenCodecImpl { this: GenCodec.type =>
       wrapped.write(output, wrappedValue)
     }
   }
-  class SubclassCodec[T: ClassTag, S >: T : GenCodec](override val nullable: Boolean = true) extends NullSafeCodec[T] {
+  class SubclassCodec[T: ClassTag, S >: T: GenCodec](override val nullable: Boolean = true) extends NullSafeCodec[T] {
     override def readNonNull(input: Input): T = GenCodec.read[S](input) match {
       case sub: T => sub
       case v => throw new ReadFailure(s"$v is not an instance of ${classTag[T].runtimeClass}")
@@ -534,7 +533,7 @@ trait GenCodecImpl { this: GenCodec.type =>
     override def writeNonNull(output: Output, value: T): Unit = GenCodec.write[S](output, value)
   }
   object OOOFieldsObjectCodec {
-    given [R, T] =>(tw: TransparentWrapping[R, T]) => (wrapped: OOOFieldsObjectCodec[R]) => OOOFieldsObjectCodec[T] =
+    given [R, T] => (tw: TransparentWrapping[R, T]) => (wrapped: OOOFieldsObjectCodec[R]) => OOOFieldsObjectCodec[T] =
       new Transformed(wrapped, tw.unwrap, tw.wrap)
     // this was introduced so that transparent wrapper cases are possible in flat sealed hierarchies
     final class Transformed[A, B](val wrapped: OOOFieldsObjectCodec[B], onWrite: A => B, onRead: B => A)

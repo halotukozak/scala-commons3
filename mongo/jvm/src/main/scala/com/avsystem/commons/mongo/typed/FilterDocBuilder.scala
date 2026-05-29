@@ -39,8 +39,8 @@ private final class FilterDocBuilder(prefixPath: Opt[String], filterDocs: BsonAr
   private def addOperator(op: MongoQueryOperator[?]): Unit = {
     val path = prefixPath.getOrElse(
       throw new IllegalArgumentException(
-        "cannot add MongoOperatorsFilter to toplevel filter document without prefix path"
-      )
+        "cannot add MongoOperatorsFilter to toplevel filter document without prefix path",
+      ),
     )
 
     @tailrec def loop(idx: Int): Unit =

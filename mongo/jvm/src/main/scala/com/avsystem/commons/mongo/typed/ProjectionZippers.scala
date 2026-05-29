@@ -6,7 +6,7 @@ import org.bson.BsonDocument
 
 trait ProjectionZippers { this: MongoProjection.type =>
   def zip[E, T1](
-    p1: MongoProjection[E, T1]
+    p1: MongoProjection[E, T1],
   ): MongoProjection[E, Tuple1[T1]] =
     new ProductProjection(Seq(p1))
 
@@ -322,7 +322,7 @@ trait ProjectionZippers { this: MongoProjection.type =>
     (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21),
   ] =
     new ProductProjection(
-      Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21)
+      Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21),
     )
 
   def zip[E, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22](
@@ -353,7 +353,7 @@ trait ProjectionZippers { this: MongoProjection.type =>
     (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22),
   ] =
     new ProductProjection(
-      Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22)
+      Seq(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22),
     )
 }
 
@@ -387,7 +387,7 @@ object GenProjectionZippers {
            |$projectionParams
            |): MongoProjection[E, ($tparams)] =
            |  new ProductProjection(Seq($projectionArgs))
-           """.stripMargin
+           """.stripMargin,
       )
     }
   }

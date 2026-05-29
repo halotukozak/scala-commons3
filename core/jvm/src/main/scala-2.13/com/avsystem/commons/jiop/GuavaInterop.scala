@@ -81,7 +81,7 @@ object GuavaInterop extends GuavaInterop {
           try f(r)
           catch {
             case NonFatal(t) => Failure(t)
-          }
+          },
         )
       }
       p.future

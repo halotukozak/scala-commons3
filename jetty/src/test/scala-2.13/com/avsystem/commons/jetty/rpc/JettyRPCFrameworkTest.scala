@@ -9,9 +9,10 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 class JettyRPCFrameworkTest extends AnyFunSuite with ScalaFutures with Matchers with BeforeAndAfterAll {
 
   import JettyRPCFramework._

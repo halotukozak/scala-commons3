@@ -7,9 +7,10 @@ import org.bson._
 
 import _root_.scala.collection.Factory
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 object Filter {
 
   import Limitations._

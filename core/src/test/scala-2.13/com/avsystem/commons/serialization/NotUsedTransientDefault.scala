@@ -11,7 +11,7 @@ final class NotUsedTransientDefault extends AnyFunSuite {
       // language=Scala
       s"""
          |GenCodec.materialize[Valid]
-         |""".stripMargin
+         |""".stripMargin,
     )
   }
 
@@ -20,7 +20,7 @@ final class NotUsedTransientDefault extends AnyFunSuite {
       // language=Scala
       s"""
          |GenCodec.materialize[Invalid]
-         |""".stripMargin
+         |""".stripMargin,
     )
   }
 }

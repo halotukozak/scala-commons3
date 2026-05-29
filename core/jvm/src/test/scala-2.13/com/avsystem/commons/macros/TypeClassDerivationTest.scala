@@ -95,7 +95,7 @@ class TypeClassDerivationTest extends AnyFunSuite {
           ("str", TC.forString, None),
           ("int", TC.forInt, Some(DefVal(42))),
         ),
-      )
+      ),
     )
   }
 
@@ -118,7 +118,7 @@ class TypeClassDerivationTest extends AnyFunSuite {
           ("SealedObj", SingletonTC(typeRepr[SealedObj.type], SealedObj)),
           ("SubSealedCase", ApplyUnapplyTC(typeRepr[SubSealedCase], List(("i", TC.forInt, None), ("w", Whatever.tc, None)))),
         ),
-      )
+      ),
     )
   }
 
@@ -135,7 +135,7 @@ class TypeClassDerivationTest extends AnyFunSuite {
           ("str", TC.forString, None),
           ("next", TC.Deferred(Recursive.tc), None),
         ),
-      )
+      ),
     )
   }
 
@@ -149,9 +149,9 @@ class TypeClassDerivationTest extends AnyFunSuite {
       IndiRec.tc == ApplyUnapplyTC(
         typeRepr[IndiRec],
         List(
-          ("children", ForList(TC.Deferred(IndiRec.tc)), None)
+          ("children", ForList(TC.Deferred(IndiRec.tc)), None),
         ),
-      )
+      ),
     )
   }
 
@@ -182,7 +182,7 @@ class TypeClassDerivationTest extends AnyFunSuite {
               ),
             ),
           ),
-        )
+        ),
       )
     }
     doTest[String]

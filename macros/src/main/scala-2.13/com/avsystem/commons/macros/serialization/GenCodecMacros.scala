@@ -412,7 +412,7 @@ class GenCodecMacros(ctx: blackbox.Context) extends CodecMacroCommons(ctx) with 
           ..$optionLikeDecls
           def dependencies = {
             ..${cachedImplicitDeclarations(ci =>
-          if (!allOptionLikes.contains(ci)) q"val ${ci.name} = ${ci.body}" else q"()"
+          if (!allOptionLikes.contains(ci)) q"val ${ci.name} = ${ci.body}" else q"()",
         )}
             ${mkArray(tq"$GenCodecCls[_]", params.map(fieldCodec))}
           }
@@ -509,7 +509,7 @@ class GenCodecMacros(ctx: blackbox.Context) extends CodecMacroCommons(ctx) with 
       } orElse singleValueFor(st).map { singleton =>
         CaseObjectInfo(idx, st, singleton)
       } getOrElse abort(
-        s"Cannot materialize flat codec for $tpe because $st is not a case class or case object"
+        s"Cannot materialize flat codec for $tpe because $st is not a case class or case object",
       )
     }
 
@@ -548,7 +548,7 @@ class GenCodecMacros(ctx: blackbox.Context) extends CodecMacroCommons(ctx) with 
       if (!isOutOfOrder(otherSym)) {
         abort(
           s"Out of order parameter $name must be marked as @outOfOrder in every case class " +
-            "(or the annotation may be inherited)"
+            "(or the annotation may be inherited)",
         )
       }
       if (!(otherTpe =:= ptpe)) {

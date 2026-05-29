@@ -5,8 +5,9 @@ import com.avsystem.commons.macros.MacroCommons
 
 import scala.reflect.macros.blackbox
 
-/** Author: ghik Created: 20/11/15.
-  */
+/**
+ * Author: ghik Created: 20/11/15.
+ */
 class LazyLoggingMacros(val c: blackbox.Context) extends MacroCommons {
 
   import c.universe._

@@ -3,12 +3,13 @@ package mongo.typed
 
 import com.mongodb.client.model._
 
-/** Represents a single MongoDB write operation in a
-  * [[https://docs.mongodb.com/manual/core/bulk-write-operations/ bulk write operation]].
-  *
-  * @tparam E
-  *   type of the entity
-  */
+/**
+ * Represents a single MongoDB write operation in a
+ * [[https://docs.mongodb.com/manual/core/bulk-write-operations/ bulk write operation]].
+ *
+ * @tparam E
+ *   type of the entity
+ */
 sealed trait MongoWrite[E] {
 
   import MongoWrite._
@@ -45,7 +46,7 @@ sealed trait MongoWrite[E] {
 }
 object MongoWrite {
   final case class InsertOne[E](
-    value: E
+    value: E,
   ) extends MongoWrite[E]
 
   final case class UpdateOne[E](

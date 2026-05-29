@@ -3,7 +3,7 @@ package testutil
 
 import org.scalatest.Assertions
 
-import scala.compiletime.testing.{Error, typeCheckErrors}
+import scala.compiletime.testing.{typeCheckErrors, Error}
 
 trait CompilationErrorAssertions extends Assertions {
   inline def typeErrorFor(inline code: String): String =

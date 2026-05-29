@@ -14,7 +14,7 @@ final class CheckBincompatTest extends AnyFunSuite with AnalyzerTest {
              |@bincompat object objekt {
              |  @bincompat def method: Int = 42
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 

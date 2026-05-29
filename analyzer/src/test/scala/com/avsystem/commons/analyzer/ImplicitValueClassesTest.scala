@@ -10,7 +10,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |implicit final class GoodImplicitClass(val x: Int) extends AnyVal {
              |  def double: Int = x * 2
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -42,7 +42,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |class RegularClass(val x: Int) {
              |  def double: Int = x * 2
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -52,7 +52,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |implicit final class ImplicitClassWithImplicitParameter(val x: Int)(implicit dummy: DummyImplicit) {
              |  def double: Int = x * 2
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -69,7 +69,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |implicit final class GoodImplicitClass2(val x: Int) extends SomeTrait {
              |  def double: Int = x * 2
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -90,12 +90,12 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
 
   test("nested implicit class not extending AnyVal should pass") {
     assertNoErrors(scala"""
-             |class Outer {
-             |  implicit final class NestedImplicitClass(val x: Int) {
-             |    def double: Int = x * 2
-             |  }
-             |}
-             |""".stripMargin)
+                          |class Outer {
+                          |  implicit final class NestedImplicitClass(val x: Int) {
+                          |    def double: Int = x * 2
+                          |  }
+                          |}
+                          |""".stripMargin)
   }
 
   test("implicit class for value class should not be affected") {
@@ -104,7 +104,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |implicit final class ValueClass(x: com.avsystem.commons.misc.Timestamp) {
              |  def sth: Long = x.millis
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -115,7 +115,7 @@ final class ImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTest {
              |implicit final class LazyValueClassOps(lvc: => ValueClass) {
              |  def someOp: Int = lvc.underlying
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -193,7 +193,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |class RegularClass(val x: Int) {
              | def double: Int = x * 2
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 
@@ -212,7 +212,7 @@ final class NestedImplicitValueClassesSuite extends AnyFunSuite with AnalyzerTes
              |   def double: Int = x * 2
              | }
              |}
-             |""".stripMargin
+             |""".stripMargin,
     )
   }
 

@@ -59,6 +59,6 @@ object JsonBenchmarks {
       Benchmark("Reading foos: GenCodec with Native Json format") {
         NativeJsonInput.readString[Map[String, Foo]](Foo.ExampleJsonString)
       },
-    )
+    ),
   )
 }

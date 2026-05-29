@@ -2,7 +2,7 @@ package com.avsystem.commons
 package ser
 
 import com.avsystem.commons.serialization.json.JsonStringOutput
-import com.avsystem.commons.serialization.{GenCodec, HasGenCodec, flatten}
+import com.avsystem.commons.serialization.{flatten, GenCodec, HasGenCodec}
 
 import scala.annotation.nowarn
 

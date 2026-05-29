@@ -136,7 +136,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                    |while (true) sth.$methodName(_ => throw ex)
                    |
                    |do sth.$methodName(_ => throw ex) while (true)
-                   |""".stripMargin
+                   |""".stripMargin,
           )
         }
       }
@@ -181,7 +181,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                  |f2(identity)(identity)
                  |f3(identity)(42)(identity)
                  |f4(42, 42, identity)
-                 |""".stripMargin
+                 |""".stripMargin,
         )
       }
 
@@ -227,7 +227,7 @@ final class NothingAsFunctionArgumentTest extends AnyWordSpec with AnalyzerTest 
                  |a.f2(identity)(identity)
                  |a.f3(identity)(42)(identity)
                  |a.f4(42, 42, identity)
-                 |""".stripMargin
+                 |""".stripMargin,
         )
       }
 

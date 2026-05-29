@@ -36,7 +36,7 @@ class KnownSubtypesTest[A, B <: AnyRef, C <: Ordered[C]] {
 
   testKnownSubtypes[InvGadt[_], (InvInt, InvString, InvGen[_], InvBounded[_], InvRecBounded[_])]
   testKnownSubtypes[InvGadt[
-    _ <: String
+    _ <: String,
   ], (InvInt, InvString, InvGen[_ <: String], InvBounded[_ <: String], InvRecBounded[_ <: String])]
   testKnownSubtypes[InvGadt[Set[_]], (InvInt, InvString, InvGen[Set[_]], InvBounded[Set[_]], InvRecBounded[Set[_]])]
   testKnownSubtypes[

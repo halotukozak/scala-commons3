@@ -7,13 +7,14 @@ import org.bson.types.ObjectId
 
 import scala.annotation.implicitNotFound
 
-/** Typeclass that distinguishes between manual-ID Mongo entities and automatic-ID Mongo entities. It is responsible for
-  * providing a [[MongoPropertyRef]] for ID of an entity.
-  */
+/**
+ * Typeclass that distinguishes between manual-ID Mongo entities and automatic-ID Mongo entities. It is responsible for
+ * providing a [[MongoPropertyRef]] for ID of an entity.
+ */
 @implicitNotFound(
   "Entity ${E} is invalid or has invalid ID type. " +
     "Note: entities must extend either `MongoEntity` or `AutoIdMongoEntity`. When extending `AutoIdMongoEntity` " +
-    "the ID type must be raw `ObjectId` or a transparent wrapper over `ObjectId` (see `ObjectIdWrapperCompanion`)."
+    "the ID type must be raw `ObjectId` or a transparent wrapper over `ObjectId` (see `ObjectIdWrapperCompanion`).",
 )
 sealed trait EntityIdMode[E, ID] {
   def idRef(format: MongoAdtFormat[E]): MongoPropertyRef[E, ID] = this match {
@@ -32,5 +33,6 @@ object EntityIdMode {
 
   given [E <: MongoEntity[ID], ID] => EntityIdMode[E, ID] = Explicit()
 
-  given [E <: AutoIdMongoEntity[ID], ID] => (idWrapping: TransparentWrapping[ObjectId, ID]) => EntityIdMode[E, ID] = Auto(idWrapping)
+  given [E <: AutoIdMongoEntity[ID], ID] => (idWrapping: TransparentWrapping[ObjectId, ID]) => EntityIdMode[E, ID] =
+    Auto(idWrapping)
 }

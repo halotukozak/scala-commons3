@@ -7,14 +7,14 @@ import org.bson.BsonDocument
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.conversions.Bson
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 trait MongoOps {
 
-  extension(db: MongoDatabase) {
-    def getCollection[A](name: String, codec: BsonCodec[A, BsonDocument])(using ct: ClassTag[A])
-      : MongoCollection[A] = {
+  extension (db: MongoDatabase) {
+    def getCollection[A](name: String, codec: BsonCodec[A, BsonDocument])(using ct: ClassTag[A]): MongoCollection[A] = {
       val mongoCodec = new MongoCodec[A, BsonDocument](codec, db.getCodecRegistry)
       val registry = CodecRegistries.fromRegistries(
         CodecRegistries.fromCodecs(mongoCodec),
@@ -24,7 +24,7 @@ trait MongoOps {
     }
   }
 
-  extension[T](find: FindIterable[T]) {
+  extension [T](find: FindIterable[T]) {
     def firstOpt: Option[T] = Option(find.first)
 
     def page(sort: Bson, offset: Int, maxItems: Int): Vector[T] = {

@@ -56,8 +56,8 @@ object GenericTrait {
 class GenericMetadataTest extends AnyFunSuite {
   test("generic metadata") {
     assert(GenericTrait.meta.repr == """GenericTrait[A, B] {
-        |  method(a: A, int: Int): List[A]
-        |  genericMethod[C](map: Map[A, C]): Map[B, C]
-        |}""".stripMargin)
+                                       |  method(a: A, int: Int): List[A]
+                                       |  genericMethod[C](map: Map[A, C]): Map[B, C]
+                                       |}""".stripMargin)
   }
 }

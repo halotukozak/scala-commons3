@@ -9,7 +9,7 @@ class HFloatTest extends AnyFunSuite {
     val float = java.lang.Float.intBitsToFloat(floatBits)
     test(name) {
       val hfloat = HFloat.fromFloat(float)
-      assert((hfloat.raw & 0xFFFF).toHexString == (hfloatBits & 0xFFFF).toHexString)
+      assert((hfloat.raw & 0xffff).toHexString == (hfloatBits & 0xffff).toHexString)
       assert(java.lang.Float.floatToIntBits(hfloat.toFloat).toHexString == roundedBits.toHexString)
     }
   }

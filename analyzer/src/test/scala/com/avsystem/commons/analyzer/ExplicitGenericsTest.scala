@@ -28,17 +28,17 @@ final class ExplicitGenericsTest extends AnyFunSuite with AnalyzerTest {
 
   test("explicit generic should not be rejected") {
     assertNoErrors(scala"""
-             |import com.avsystem.commons.analyzer.TestUtils
-             |
-             |val x = TestUtils.genericMethod[Int](123)
-             |""".stripMargin)
+                          |import com.avsystem.commons.analyzer.TestUtils
+                          |
+                          |val x = TestUtils.genericMethod[Int](123)
+                          |""".stripMargin)
   }
 
   test("explicit generic in macro should not be rejected") {
     assertNoErrors(scala"""
-             |import com.avsystem.commons.analyzer.TestUtils
-             |
-             |val x = TestUtils.genericMacro[Int](123)
-             |""".stripMargin)
+                          |import com.avsystem.commons.analyzer.TestUtils
+                          |
+                          |val x = TestUtils.genericMacro[Int](123)
+                          |""".stripMargin)
   }
 }

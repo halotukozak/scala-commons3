@@ -71,11 +71,12 @@ object HFloat {
     }
 }
 
-/** IEEE 754 half-precision floating point number [[https://en.wikipedia.org/wiki/Half-precision_floating-point_format]]
-  *
-  * This class only implements conversion to and from standard `Float` (single precision floating point). Arithmetic is
-  * not implemented.
-  */
+/**
+ * IEEE 754 half-precision floating point number [[https://en.wikipedia.org/wiki/Half-precision_floating-point_format]]
+ *
+ * This class only implements conversion to and from standard `Float` (single precision floating point). Arithmetic is
+ * not implemented.
+ */
 final class HFloat(val raw: Short) extends AnyVal {
 
   import HFloat._

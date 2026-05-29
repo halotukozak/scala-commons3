@@ -163,16 +163,16 @@ class JsonStringInputOutputTest
     val map = Map("a" -> List(1, 2), "b" -> List(3, 4, 5))
     val prettyJson = write[Map[String, List[Int]]](map, options)
     assert(prettyJson == """{
-        |  "a": [
-        |    1,
-        |    2
-        |  ],
-        |  "b": [
-        |    3,
-        |    4,
-        |    5
-        |  ]
-        |}""".stripMargin)
+                           |  "a": [
+                           |    1,
+                           |    2
+                           |  ],
+                           |  "b": [
+                           |    3,
+                           |    4,
+                           |    5
+                           |  ]
+                           |}""".stripMargin)
     assert(read[Map[String, List[Int]]](prettyJson, options) == map)
   }
 
@@ -366,7 +366,8 @@ class JsonStringInputOutputTest
     }
   }
 
-  /* @TodoScala3Migration: null tail in recursive structure */ ignore("serialize and deserialize huge case classes") {
+  /* @TodoScala3Migration: null tail in recursive structure */
+  ignore("serialize and deserialize huge case classes") {
     implicit val arbTree: Arbitrary[DeepNestedTestCC] =
       Arbitrary {
         def sized(sz: Int): Gen[DeepNestedTestCC] =
@@ -404,7 +405,8 @@ class JsonStringInputOutputTest
     assert(!oi.hasNext)
   }
 
-  /* @TodoScala3Migration: Opt.Empty mismatch in peek */ ignore("peeking fields - non empty object") {
+  /* @TodoScala3Migration: Opt.Empty mismatch in peek */
+  ignore("peeking fields - non empty object") {
     val json = """{"a": 25, "b": true, "c": [1,2,3], "d": {}}"""
     val oi = new JsonStringInput(new JsonReader(json)).readObject()
     assert(oi.peekField("a").map(GenCodec.read[Int]).contains(25))

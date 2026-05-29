@@ -9,10 +9,10 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
   test("base package only") {
     // language=Scala
     assertNoErrors("""
-        |package com.avsystem.commons
-        |
-        |object bar
-        |""".stripMargin)
+                     |package com.avsystem.commons
+                     |
+                     |object bar
+                     |""".stripMargin)
   }
 
   test("chained base package") {
@@ -23,7 +23,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package commons
         |
         |object bar
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -35,7 +35,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package core
         |
         |object bar
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -46,7 +46,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |package com.avsystem
         |
         |package object commons
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 
@@ -60,7 +60,7 @@ final class BasePackageTest extends AnyFunSuite with AnalyzerTest {
         |import scala.collection.mutable.Set
         |
         |package object commons
-        |""".stripMargin
+        |""".stripMargin,
     )
   }
 

@@ -17,10 +17,11 @@ object HoconInput {
     GenCodec.read[T](new HoconInput(config.root))
 }
 
-/** [[com.avsystem.commons.serialization.InputMetadata InputMetadata]] marker object which allows inspection of
-  * `com.typesafe.config.ConfigValueType` on a [[HoconInput]] in a
-  * [[com.avsystem.commons.serialization.GenCodec GenCodec]] implementation.
-  */
+/**
+ * [[com.avsystem.commons.serialization.InputMetadata InputMetadata]] marker object which allows inspection of
+ * `com.typesafe.config.ConfigValueType` on a [[HoconInput]] in a
+ * [[com.avsystem.commons.serialization.GenCodec GenCodec]] implementation.
+ */
 object ConfigValueTypeMarker extends InputMetadata[ConfigValueType]
 
 trait BaseHoconInput {
@@ -32,10 +33,11 @@ trait BaseHoconInput {
     }
 }
 
-/** An [[com.avsystem.commons.serialization.Input Input]] implementation which allows deserialization from HOCON
-  * (represented as `com.typesafe.config.Config` or `com.typesafe.config.ConfigValue`) using
-  * [[com.avsystem.commons.serialization.GenCodec GenCodec]].
-  */
+/**
+ * An [[com.avsystem.commons.serialization.Input Input]] implementation which allows deserialization from HOCON
+ * (represented as `com.typesafe.config.Config` or `com.typesafe.config.ConfigValue`) using
+ * [[com.avsystem.commons.serialization.GenCodec GenCodec]].
+ */
 class HoconInput(value: ConfigValue) extends InputAndSimpleInput with BaseHoconInput {
   // For wrapping ConfigValue into Config in order to use its rich API
   // Why is this API not available directly on ConfigValue?

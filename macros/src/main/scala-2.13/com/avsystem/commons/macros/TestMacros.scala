@@ -68,7 +68,7 @@ private[commons] class TestMacros(val c: blackbox.Context) extends TypeClassDeri
     val ftpe = weakTypeOf[F]
 
     val au = applyUnapplyFor(ttpe).getOrElse(
-      c.abort(c.enclosingPosition, s"Could not find unambiguous, matching pair of apply/unapply methods for $ttpe")
+      c.abort(c.enclosingPosition, s"Could not find unambiguous, matching pair of apply/unapply methods for $ttpe"),
     )
 
     val companion = au.unapply.owner.asClass.module

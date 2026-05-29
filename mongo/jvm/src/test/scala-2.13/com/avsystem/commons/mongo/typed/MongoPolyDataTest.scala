@@ -27,7 +27,7 @@ class MongoPolyDataTest extends AnyFunSuite {
       Pmu
         .dsl[PolyMongoUnion[Int]]
         .ref(x => x.as[PolyMongoUnion.CaseOne[PolyMongoUnion[Int]]].value.as[PolyMongoUnion.CaseOne[Int]].str)
-        .rawPath == "value.str"
+        .rawPath == "value.str",
     )
   }
 }

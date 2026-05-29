@@ -172,7 +172,7 @@ case class GetterMetadata[T](
   position: MethodPosition,
   @composite params: GetterParams,
   @infer @checked resultMetadata: NewRpcMetadata.Lazy[T],
-)(implicit val typeString: TypeString[T]
+)(implicit val typeString: TypeString[T],
 ) extends TypedMetadata[T]
     with MethodMetadata[T] {
   def repr(open: List[NewRpcMetadata[_]]): String =
@@ -185,7 +185,7 @@ case class PostMetadata[T: TypeString](
   @reifyAnnot post: POST,
   @tagged[header] @multi @verbatim @rpcParamMetadata headers: Vector[ParameterMetadata[String]],
   @multi @rpcParamMetadata body: MLinkedHashMap[String, ParameterMetadata[_]],
-)(implicit val typeString: TypeString[T]
+)(implicit val typeString: TypeString[T],
 ) extends TypedMetadata[T]
     with MethodMetadata[T] {
 
@@ -237,7 +237,7 @@ case class NameInfo(
 
 @allowIncomplete
 case class PartialMetadata[T](
-  @multi @rpcMethodMetadata @annotated[POST] @notAnnotated[negFilter] posts: List[PostMethod[_]]
+  @multi @rpcMethodMetadata @annotated[POST] @notAnnotated[negFilter] posts: List[PostMethod[_]],
 ) {
   def repr: String = posts.map(_.repr).mkString("\n")
 }
@@ -252,7 +252,7 @@ case class PostMethod[T](
 }
 
 case class HeaderParam[T](
-  @reifyAnnot header: header
+  @reifyAnnot header: header,
 ) extends TypedMetadata[T] {
   def repr: String = header.name
 }

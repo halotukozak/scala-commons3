@@ -142,7 +142,10 @@ object CborAdtMetadata extends AdtMetadataCompanion[CborAdtMetadata] {
 
             def caseDependencies: Array[GenCodec.OOOFieldsObjectCodec[?]] =
               (flatCodec.caseDependencies.iterator zip union.cases.iterator).map {
-                case (caseCodec: OOOFieldsObjectCodec[Any @unchecked], theCase: CborAdtMetadata.Record[Any @unchecked]) =>
+                case (
+                      caseCodec: OOOFieldsObjectCodec[Any @unchecked],
+                      theCase: CborAdtMetadata.Record[Any @unchecked],
+                    ) =>
                   theCase.adjustFlatCaseCodec(caseCodec)
                 case (codec, _) =>
                   codec

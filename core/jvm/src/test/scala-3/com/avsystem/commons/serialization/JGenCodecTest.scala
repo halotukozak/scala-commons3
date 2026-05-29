@@ -18,4 +18,4 @@ class JGenCodecTest extends JCodecTestBase with SimpleIOCodecTest {
     testWrite(RetentionPolicy.SOURCE, "SOURCE")
   }
 }
-*/
+ */

@@ -103,4 +103,4 @@ class HoconInputTest extends GenCodecRoundtripTest {
     assert(CustomCodecsClass.read(config) == expected)
   }
 }
-*/
+ */

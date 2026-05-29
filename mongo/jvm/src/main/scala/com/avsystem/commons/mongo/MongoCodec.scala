@@ -5,9 +5,10 @@ import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.{Codec, DecoderContext, EncoderContext}
 import org.bson.{BsonReader, BsonValue, BsonWriter}
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 class MongoCodec[A, BSON <: BsonValue](
   bsonCodec: BsonCodec[A, BSON],
   registry: CodecRegistry,

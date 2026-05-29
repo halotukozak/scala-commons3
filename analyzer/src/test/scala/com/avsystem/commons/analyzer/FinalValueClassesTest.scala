@@ -6,10 +6,10 @@ import org.scalatest.funsuite.AnyFunSuite
 final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
   test("final value class should pass") {
     assertNoErrors(scala"""
-             |final class GoodValueClass(val x: Int) extends AnyVal {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |final class GoodValueClass(val x: Int) extends AnyVal {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("value class not marked as final should fail") {
@@ -36,17 +36,17 @@ final class FinalValueClassesTest extends AnyFunSuite with AnalyzerTest {
 
   test("regular class with multiple parameters should not be affected") {
     assertNoErrors(scala"""
-             |class RegularClass(val x: Int, val y: Int) {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |class RegularClass(val x: Int, val y: Int) {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 
   test("regular class not extending AnyVal should not be affected") {
     assertNoErrors(scala"""
-             |class RegularClass2(val x: Int) {
-             |  def double: Int = x * 2
-             |}
-             |""".stripMargin)
+                          |class RegularClass2(val x: Int) {
+                          |  def double: Int = x * 2
+                          |}
+                          |""".stripMargin)
   }
 }

@@ -25,7 +25,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  final val Constant: Value = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -33,7 +33,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  private final val Constant: Value = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -41,7 +41,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  final def Constant: Value = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -49,7 +49,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  val Constant: Value = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -57,7 +57,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  final lazy val Constant: Value = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -65,7 +65,7 @@ class ValueEnumTest extends AnyFunSuite {
         |object Enumz extends AbstractValueEnumCompanion[Enumz] {
         |  final val Constant = new Enumz
         |}
-      """.stripMargin
+      """.stripMargin,
     )
     assertDoesNotCompile(
       """
@@ -75,7 +75,7 @@ class ValueEnumTest extends AnyFunSuite {
         |    final val Constant: Value = new Enumz
         |  }
         |}
-      """.stripMargin
+      """.stripMargin,
     )
   }
 }

@@ -51,7 +51,7 @@ trait AnnotationAggregate extends StaticAnnotation {
    */
   def aggregated: List[StaticAnnotation]
 
-  protected inline def reifyAggregated: List[StaticAnnotation] =
+  inline protected def reifyAggregated: List[StaticAnnotation] =
     ${ AnnotationAggregateMacros.reifyAggregatedImpl }
 }
 

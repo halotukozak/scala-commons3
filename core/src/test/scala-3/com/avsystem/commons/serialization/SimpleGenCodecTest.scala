@@ -145,7 +145,6 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
     testWrite(OnlyVarargsCaseClass("42", "420"), Map("strings" -> List("42", "420")))
   }
 
-
   test("case class with default values") {
     testWrite(HasDefaults(str = "lol"), Map("str" -> "lol"))
     testWrite(HasDefaults(43, "lol"), Map("int" -> 43, "str" -> "lol"))
@@ -311,9 +310,9 @@ class SimpleGenCodecTest extends SimpleIOCodecTest {
             "Branch" -> Map(
               "left" -> Map("Leaf" -> Map("value" -> 2)),
               "right" -> Map("Leaf" -> Map("value" -> 3)),
-            )
+            ),
           ),
-        )
+        ),
       ),
     )
   }

@@ -109,7 +109,7 @@ class SharedExtensionsTest extends AnyFunSuite with Matchers {
   test("IteratorOps.distinctBy") {
     assert(
       Iterator("ab", "ba", "ac", "cd", "ad", "bd", "be", "fu").distinctBy(_.charAt(0)).toList ==
-        List("ab", "ba", "cd", "fu")
+        List("ab", "ba", "cd", "fu"),
     )
   }
 
@@ -189,8 +189,8 @@ class SharedExtensionsTest extends AnyFunSuite with Matchers {
         |   abc""".stripMargin
 
     assert(str.stripCommonIndent == """abc
-        |  abc
-        | abc""".stripMargin)
+                                      |  abc
+                                      | abc""".stripMargin)
   }
 
   test("Try.tapFailure - Success case") {

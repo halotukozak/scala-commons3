@@ -50,20 +50,20 @@ class RPCMetadataTest extends AnyFunSuite {
       m.procedureSignatures("proc") == ProcedureSignature(
         "proc",
         List(
-          ParamMetadata("param", List(Annot("on subparam"), Annot("on base param")), new TypeString("String"))
+          ParamMetadata("param", List(Annot("on subparam"), Annot("on base param")), new TypeString("String")),
         ),
         List(Annot("on submethod"), Annot("on base method")),
-      )
+      ),
     )
 
     assert(
       m.procedureSignatures("genproc") == ProcedureSignature(
         "genproc",
         List(
-          ParamMetadata("p", Nil, new TypeString("String"))
+          ParamMetadata("p", Nil, new TypeString("String")),
         ),
         Nil,
-      )
+      ),
     )
 
     m.functionSignatures("function").uncheckedMatch {
@@ -88,20 +88,20 @@ class RPCMetadataTest extends AnyFunSuite {
       resultMetadata.procedureSignatures("proc") == ProcedureSignature(
         "proc",
         List(
-          ParamMetadata("p", List(Annot("on base param")), new TypeString("String"))
+          ParamMetadata("p", List(Annot("on base param")), new TypeString("String")),
         ),
         List(Annot("on base method")),
-      )
+      ),
     )
 
     assert(
       m.procedureSignatures("genproc") == ProcedureSignature(
         "genproc",
         List(
-          ParamMetadata("p", Nil, new TypeString("String"))
+          ParamMetadata("p", Nil, new TypeString("String")),
         ),
         Nil,
-      )
+      ),
     )
   }
 }

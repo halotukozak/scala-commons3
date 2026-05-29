@@ -168,7 +168,7 @@ trait JCollectionUtils extends JFactories {
   }
   object JSortedMapCreator {
     implicit def asJSortedMapFactory[M[X, Y] <: JSortedMap[X, Y], K: Ordering, V](
-      creator: JSortedMapCreator[M]
+      creator: JSortedMapCreator[M],
     ): Factory[(K, V), M[K, V]] =
       new JMapFactory(creator.empty[K, V])
   }

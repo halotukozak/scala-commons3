@@ -23,7 +23,7 @@ class JavaClassNameTest extends AnyFunSuite {
   // disambiguate test names with JavaClassName.of[T].
   def testCase[T: {ClassTag, JavaClassName, TypeString}](implicit pos: Position): Unit =
     test(s"${TypeString.of[T]} (${JavaClassName.of[T]})")(
-      assert(JavaClassName.of[T] == classTag[T].runtimeClass.getName)
+      assert(JavaClassName.of[T] == classTag[T].runtimeClass.getName),
     )
 
   testCase[Any]

@@ -3,13 +3,14 @@ package mongo.typed
 
 import org.bson.{BsonDocument, BsonValue}
 
-/** Represents a MongoDB order used to sort values. In most situations what you want is [[MongoDocumentOrder]]. The base
-  * `MongoOrder` type is used only in rare situations where `T` is not guaranteed to be a document, e.g. in array
-  * `$$push` operator (see `UpdateOperatorsDsl.ForCollection.push`).
-  *
-  * @tparam T
-  *   type of the value being sorted
-  */
+/**
+ * Represents a MongoDB order used to sort values. In most situations what you want is [[MongoDocumentOrder]]. The base
+ * `MongoOrder` type is used only in rare situations where `T` is not guaranteed to be a document, e.g. in array
+ * `$$push` operator (see `UpdateOperatorsDsl.ForCollection.push`).
+ *
+ * @tparam T
+ *   type of the value being sorted
+ */
 sealed trait MongoOrder[T] {
   def toBson: BsonValue
 }
@@ -29,29 +30,30 @@ object MongoOrder {
   }
 }
 
-/** Represents a MongoDB sort order. Sort order is used to sort documents, usually in results of a query.
-  *
-  * Examples:
-  * {{{
-  *   case class MyEntity(id: String, int: Int, num: Double) extends MongoEntity[String]
-  *   object MyEntity extends MongoEntityCompanion[MyEntity]
-  *
-  *   // {"_id": 1}
-  *   MyEntity.ref(_.id).ascending
-  *
-  *   // {"int": 1, "num": -1}
-  *   MyEntity.ref(_.int).ascending andThen MyEntity.ref(_.num).descending
-  *
-  *   // {"int": 1, "num": -1}
-  *   MongoDocumentOrder(MyEntity.ref(_.int) -> true, MyEntity.ref(_.num) -> false)
-  *
-  *   // {"int": 1, "num": 1}
-  *   MongoDocumentOrder.ascending(MyEntity.ref(_.int), MyEntity.ref(_.num))
-  * }}}
-  *
-  * @tparam E
-  *   type of the entity/document
-  */
+/**
+ * Represents a MongoDB sort order. Sort order is used to sort documents, usually in results of a query.
+ *
+ * Examples:
+ * {{{
+ *   case class MyEntity(id: String, int: Int, num: Double) extends MongoEntity[String]
+ *   object MyEntity extends MongoEntityCompanion[MyEntity]
+ *
+ *   // {"_id": 1}
+ *   MyEntity.ref(_.id).ascending
+ *
+ *   // {"int": 1, "num": -1}
+ *   MyEntity.ref(_.int).ascending andThen MyEntity.ref(_.num).descending
+ *
+ *   // {"int": 1, "num": -1}
+ *   MongoDocumentOrder(MyEntity.ref(_.int) -> true, MyEntity.ref(_.num) -> false)
+ *
+ *   // {"int": 1, "num": 1}
+ *   MongoDocumentOrder.ascending(MyEntity.ref(_.int), MyEntity.ref(_.num))
+ * }}}
+ *
+ * @tparam E
+ *   type of the entity/document
+ */
 case class MongoDocumentOrder[E](refs: Vector[(MongoPropertyRef[E, ?], Boolean)]) extends MongoOrder[E] {
   def andThen(other: MongoDocumentOrder[E]): MongoDocumentOrder[E] =
     MongoDocumentOrder(refs ++ other.refs)

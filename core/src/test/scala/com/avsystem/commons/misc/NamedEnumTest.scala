@@ -55,7 +55,7 @@ class NamedEnumTest extends AnyFunSuite with Matchers {
         "Another one" -> Fourth,
         "I am toplvl" -> TopLevel,
         "I am from withName" -> FromWithName,
-      )
+      ),
     )
   }
 

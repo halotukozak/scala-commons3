@@ -52,7 +52,7 @@ object TypeStringTest {
     testTypeString[Map[K, V] forSome { type K; type V <: List[K] }]("Map[K, V] forSome {type K; type V <: List[K]}")
     testTypeString[fu.z.type forSome { val fu: OFuu }]("fu.z.type forSome {val fu: TypeStringTest.OFuu}")
     testTypeString[fu.z.type forSome { val fu: OFuu with Singleton }](
-      "fu.z.type forSome {val fu: TypeStringTest.OFuu with Singleton}"
+      "fu.z.type forSome {val fu: TypeStringTest.OFuu with Singleton}",
     )
     testTypeString[fu.bar.q.type forSome { val fu: OFuu }]("fu.bar.q.type forSome {val fu: TypeStringTest.OFuu}")
     testTypeString[AnyRef with Serializable]("AnyRef with Serializable")
@@ -164,7 +164,7 @@ object UnrelatedTypeString {
     testTypeString[Map[K, V] forSome { type K; type V <: List[K] }]("Map[K, V] forSome {type K; type V <: List[K]}")
     testTypeString[fu.z.type forSome { val fu: OFuu }]("fu.z.type forSome {val fu: TypeStringTest.OFuu}")
     testTypeString[fu.z.type forSome { val fu: OFuu with Singleton }](
-      "fu.z.type forSome {val fu: TypeStringTest.OFuu with Singleton}"
+      "fu.z.type forSome {val fu: TypeStringTest.OFuu with Singleton}",
     )
     testTypeString[fu.bar.q.type forSome { val fu: OFuu }]("fu.bar.q.type forSome {val fu: TypeStringTest.OFuu}")
     testTypeString[AnyRef with Serializable]("AnyRef with Serializable")

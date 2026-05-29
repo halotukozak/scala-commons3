@@ -6,13 +6,14 @@ import com.avsystem.commons.misc.ImplicitNotFound
 
 import scala.annotation.implicitNotFound
 
-/** Base trait for companion objects of _metadata classes_. A metadata class is a generic class that captures metadata
-  * for some Scala type, typically an RPC interface ([[com.avsystem.commons.rpc.RpcMetadataCompanion
-  * RpcMetadataCompanion]]) or a data type ([[AdtMetadataCompanion]]).
-  *
-  * @tparam M
-  *   metadata class constructor
-  */
+/**
+ * Base trait for companion objects of _metadata classes_. A metadata class is a generic class that captures metadata
+ * for some Scala type, typically an RPC interface ([[com.avsystem.commons.rpc.RpcMetadataCompanion
+ * RpcMetadataCompanion]]) or a data type ([[AdtMetadataCompanion]]).
+ *
+ * @tparam M
+ *   metadata class constructor
+ */
 trait MetadataCompanion[M[_]] {
   final def apply[Real](implicit metadata: M[Real]): M[Real] = metadata
 
@@ -33,15 +34,16 @@ trait MetadataCompanion[M[_]] {
   }
 }
 
-/** Like [[MetadataCompanion]] but allows the metadata class' type parameter to be bounded
-  *
-  * @tparam Hi
-  *   higher bound of metadata class' type param
-  * @tparam Lo
-  *   lower bound of metadata class' type param
-  * @tparam M
-  *   metadata class type constructor
-  */
+/**
+ * Like [[MetadataCompanion]] but allows the metadata class' type parameter to be bounded
+ *
+ * @tparam Hi
+ *   higher bound of metadata class' type param
+ * @tparam Lo
+ *   lower bound of metadata class' type param
+ * @tparam M
+ *   metadata class type constructor
+ */
 // cannot share code with MetadataCompanion because of binary compatibility problems, must copy
 trait BoundedMetadataCompanion[Hi, Lo <: Hi, M[_ >: Lo <: Hi]] {
   final def apply[Real >: Lo <: Hi](implicit metadata: M[Real]): M[Real] = metadata

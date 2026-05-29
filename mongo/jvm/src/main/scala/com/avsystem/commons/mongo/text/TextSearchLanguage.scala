@@ -1,14 +1,16 @@
 package com.avsystem.commons
 package mongo.text
 
-/** Language supported by MongoDB text search.
-  *
-  * @param code
-  *   ISO 639-1, ISO 639-3 or RLP code used by Mongo \$text operator
-  * @see
-  *   [[https://docs.mongodb.com/manual/reference/text-search-languages/#text-search-languages]]
-  */
+/**
+ * Language supported by MongoDB text search.
+ *
+ * @param code
+ *   ISO 639-1, ISO 639-3 or RLP code used by Mongo \$text operator
+ * @see
+ *   [[https://docs.mongodb.com/manual/reference/text-search-languages/#text-search-languages]]
+ */
 enum TextSearchLanguage(val code: String) {
+
   /** Uses simple tokenization with no list of stop words and no stemming. */
   case None extends TextSearchLanguage("none")
   case Danish extends TextSearchLanguage("da")

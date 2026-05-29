@@ -163,9 +163,10 @@ object CborInput {
   private final val Two64 = BigInt(1) << 64
 }
 
-/** An [[com.avsystem.commons.serialization.Input Input]] implementation that deserializes from
-  * [[https://tools.ietf.org/html/rfc7049 CBOR]].
-  */
+/**
+ * An [[com.avsystem.commons.serialization.Input Input]] implementation that deserializes from
+ * [[https://tools.ietf.org/html/rfc7049 CBOR]].
+ */
 class CborInput(reader: CborReader, keyCodec: CborKeyCodec) extends InputAndSimpleInput {
 
   import reader._
@@ -443,20 +444,22 @@ class CborObjectInput(reader: CborReader, size: Int, keyCodec: CborKeyCodec)
   private[this] var forcedKeyCodec: CborKeyCodec = _
   private[this] def currentKeyCodec = if (forcedKeyCodec != null) forcedKeyCodec else keyCodec
 
-  /** Returns a [[CborOutput]] for reading a raw CBOR field key. This is an extension over standard [[ObjectOutput]]
-    * which only allows string-typed keys. If this method is used to read the key then value MUST be read with
-    * [[nextValue()]] and [[nextField()]] MUST NOT be used.
-    */
+  /**
+   * Returns a [[CborOutput]] for reading a raw CBOR field key. This is an extension over standard [[ObjectOutput]]
+   * which only allows string-typed keys. If this method is used to read the key then value MUST be read with
+   * [[nextValue()]] and [[nextField()]] MUST NOT be used.
+   */
   def nextKey(): CborInput = {
     prepareForNext()
     new CborInput(reader, keyCodec)
   }
 
-  /** Returns a [[CborOutput]] for reading the value of a CBOR field whose key was previously read with [[nextKey()]].
-    * This method MUST ONLY be used after the key was fully read using [[nextKey()]]. Fully reading the input means that
-    * all its bytes must be consumed. For example, if the key is an array or object then all its elements/fields must be
-    * consumed. If this method is used to read the field value then [[nextField()]] MUST NOT be used.
-    */
+  /**
+   * Returns a [[CborOutput]] for reading the value of a CBOR field whose key was previously read with [[nextKey()]].
+   * This method MUST ONLY be used after the key was fully read using [[nextKey()]]. Fully reading the input means that
+   * all its bytes must be consumed. For example, if the key is an array or object then all its elements/fields must be
+   * consumed. If this method is used to read the field value then [[nextField()]] MUST NOT be used.
+   */
   def nextValue(): CborInput =
     new CborInput(reader, keyCodec)
 

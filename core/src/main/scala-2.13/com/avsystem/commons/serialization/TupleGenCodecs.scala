@@ -394,7 +394,7 @@ object GenTupleDBCodecs {
         s"""
            |implicit def tuple${i}Codec[${types.mkString(",")}]($implicits): DBCodec[$tupleType] =
            |  mkTupleCodec(${(1 to i).map(j => s"r$j").mkString(",")})
-        """.stripMargin
+        """.stripMargin,
       )
     }
   }

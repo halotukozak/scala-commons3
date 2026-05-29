@@ -47,16 +47,33 @@ object BsonRef {
     bsonRef => new BsonRefIterableFiltering[E, C](bsonRef)
   given [S, T] => Conversion[BsonRef[S, T], BsonRefFiltering[T]] = new BsonRefFiltering(_)
 
-  @deprecated("Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableUpdating[E, C]]] or rely on implicit conversion", since = "scala-3")
-  def bsonRefIterableUpdating[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]]): BsonRefIterableUpdating[E, C] =
+  @deprecated(
+    "Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableUpdating[E, C]]] or rely on implicit conversion",
+    since = "scala-3",
+  )
+  def bsonRefIterableUpdating[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]])
+    : BsonRefIterableUpdating[E, C] =
     new BsonRefIterableUpdating[E, C](bsonRef)
-  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefUpdating[T]]] or rely on implicit conversion", since = "scala-3")
+  @deprecated(
+    "Use summon[Conversion[BsonRef[S, T], BsonRefUpdating[T]]] or rely on implicit conversion",
+    since = "scala-3",
+  )
   def bsonRefUpdating[S, T](bsonRef: BsonRef[S, T]): BsonRefUpdating[T] = new BsonRefUpdating(bsonRef)
-  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefSorting[T]]] or rely on implicit conversion", since = "scala-3")
+  @deprecated(
+    "Use summon[Conversion[BsonRef[S, T], BsonRefSorting[T]]] or rely on implicit conversion",
+    since = "scala-3",
+  )
   def bsonRefSorting[S, T](bsonRef: BsonRef[S, T]): BsonRefSorting[T] = new BsonRefSorting(bsonRef)
-  @deprecated("Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableFiltering[E, C]]] or rely on implicit conversion", since = "scala-3")
-  def bsonRefIterableFiltering[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]]): BsonRefIterableFiltering[E, C] =
+  @deprecated(
+    "Use summon[Conversion[BsonRef[S, C[E]], BsonRefIterableFiltering[E, C]]] or rely on implicit conversion",
+    since = "scala-3",
+  )
+  def bsonRefIterableFiltering[S, E: GenCodec, C[T] <: Iterable[T]](bsonRef: BsonRef[S, C[E]])
+    : BsonRefIterableFiltering[E, C] =
     new BsonRefIterableFiltering[E, C](bsonRef)
-  @deprecated("Use summon[Conversion[BsonRef[S, T], BsonRefFiltering[T]]] or rely on implicit conversion", since = "scala-3")
+  @deprecated(
+    "Use summon[Conversion[BsonRef[S, T], BsonRefFiltering[T]]] or rely on implicit conversion",
+    since = "scala-3",
+  )
   def bsonRefFiltering[S, T](bsonRef: BsonRef[S, T]): BsonRefFiltering[T] = new BsonRefFiltering(bsonRef)
 }

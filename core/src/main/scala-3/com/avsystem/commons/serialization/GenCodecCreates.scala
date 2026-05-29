@@ -27,11 +27,11 @@ trait GenCodecCreates { this: GenCodec.type =>
   }
 
   /**
-    * Helper method to manually implement a `GenCodec` that writes an object. NOTE: in most cases the easiest way to
-    * have a custom object codec is to manually implement `apply` and `unapply`/`unapplySeq` methods in companion object
-    * of your type or use [[fromApplyUnapplyProvider]] if the type comes from a third party code and you can't modify
-    * its companion object.
-    */
+   * Helper method to manually implement a `GenCodec` that writes an object. NOTE: in most cases the easiest way to
+   * have a custom object codec is to manually implement `apply` and `unapply`/`unapplySeq` methods in companion object
+   * of your type or use [[fromApplyUnapplyProvider]] if the type comes from a third party code and you can't modify
+   * its companion object.
+   */
   def createObject[T](readFun: ObjectInput => T, writeFun: (ObjectOutput, T) => Any): GenObjectCodec[T] =
     new ObjectCodec[T] {
       def readObject(input: ObjectInput): T = readFun(input)

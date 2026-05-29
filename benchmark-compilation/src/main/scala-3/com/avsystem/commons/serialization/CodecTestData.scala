@@ -19,7 +19,6 @@ object CodecTestData {
       case class InnerCaseClass(str: String = "kek") extends InnerBase
     }
   }
-  
 
   @flatten sealed trait FlatSealedBase derives GenCodec {
     def id: String
@@ -82,7 +81,8 @@ object CodecTestData {
   case class VarargsCaseClass(int: Int, strings: String*) derives GenCodec
 
   case class OnlyVarargsCaseClass(strings: String*) derives GenCodec
-  case class HasDefaults(@transientDefault int: Int = 42, @transientDefault @whenAbsent("dafuq") str: String = "kek") derives GenCodec
+  case class HasDefaults(@transientDefault int: Int = 42, @transientDefault @whenAbsent("dafuq") str: String = "kek")
+    derives GenCodec
 
   sealed trait CustomList derives GenCodec
   case object CustomTail extends CustomList

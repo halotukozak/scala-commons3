@@ -38,9 +38,10 @@ object TypedMongoClient {
     new TypedMongoClient(MongoClients.create(settings, driverInformation))
 }
 
-/** A better-typed wrapper over [[MongoClient]]. Uses Monix [[Task]] and [[Observable]] instead of
-  * [[org.reactivestreams.Publisher]]. Returns similar better-typed wrappers for database and client session objects.
-  */
+/**
+ * A better-typed wrapper over [[MongoClient]]. Uses Monix [[Task]] and [[Observable]] instead of
+ * [[org.reactivestreams.Publisher]]. Returns similar better-typed wrappers for database and client session objects.
+ */
 class TypedMongoClient(
   val nativeClient: MongoClient,
   val clientSession: OptArg[TypedClientSession] = OptArg.Empty,
@@ -69,36 +70,38 @@ class TypedMongoClient(
   // TODO: `watch` methods
 
   def startSession(
-    options: ClientSessionOptions = ClientSessionOptions.builder().build()
+    options: ClientSessionOptions = ClientSessionOptions.builder().build(),
   ): Task[TypedClientSession] =
     single(nativeClient.startSession(options)).map(new TypedClientSession(_))
 
-  /** Executes some code in context of a MongoDB client session. The session is closed afterwards.
-    *
-    * Note: in order for actual MongoDB operations to be associated with the session, you need to use `withSession` on
-    * [[TypedMongoClient]], [[TypedMongoDatabase]] or [[TypedMongoCollection]] and use the returned copy of these
-    * objects.
-    */
+  /**
+   * Executes some code in context of a MongoDB client session. The session is closed afterwards.
+   *
+   * Note: in order for actual MongoDB operations to be associated with the session, you need to use `withSession` on
+   * [[TypedMongoClient]], [[TypedMongoDatabase]] or [[TypedMongoCollection]] and use the returned copy of these
+   * objects.
+   */
   def inSession[T](
-    options: ClientSessionOptions = ClientSessionOptions.builder().build()
+    options: ClientSessionOptions = ClientSessionOptions.builder().build(),
   )(
-    task: TypedClientSession => Task[T]
+    task: TypedClientSession => Task[T],
   ): Task[T] =
     startSession(options).bracket(task)(s => Task(s.close()))
 
-  /** Executes some code in context of a MongoDB client session, within a transaction. After the [[Task]] finishes,
-    * fails or is cancelled, the transaction is either committed or aborted depending on the outcome and the session is
-    * closed.
-    *
-    * Note: in order for actual MongoDB operations to be associated with the session and the transaction, you need to
-    * use `withSession` on [[TypedMongoClient]], [[TypedMongoDatabase]] or [[TypedMongoCollection]] and use the returned
-    * copy of these objects.
-    */
+  /**
+   * Executes some code in context of a MongoDB client session, within a transaction. After the [[Task]] finishes,
+   * fails or is cancelled, the transaction is either committed or aborted depending on the outcome and the session is
+   * closed.
+   *
+   * Note: in order for actual MongoDB operations to be associated with the session and the transaction, you need to
+   * use `withSession` on [[TypedMongoClient]], [[TypedMongoDatabase]] or [[TypedMongoCollection]] and use the returned
+   * copy of these objects.
+   */
   def inTransaction[T](
     sessionOptions: ClientSessionOptions = ClientSessionOptions.builder().build(),
     transactionOptions: TransactionOptions = TransactionOptions.builder().build(),
   )(
-    task: TypedClientSession => Task[T]
+    task: TypedClientSession => Task[T],
   ): Task[T] =
     inSession(sessionOptions)(s => s.inTransaction(transactionOptions)(task(s)))
 

@@ -5,12 +5,12 @@ import com.avsystem.commons.serialization.{name, transparent, GenCodec}
 import org.scalatest.funsuite.AnyFunSuite
 
 case class InnerClass(
-  map: Map[String, String]
+  map: Map[String, String],
 )
 object InnerClass extends BsonRef.Creator[InnerClass] {
   implicit val codec: GenCodec[InnerClass] = GenCodec.materialize
 
-  final val MapRef: BsonRef[InnerClass,Map[String,String]] = ref(_.map)
+  final val MapRef: BsonRef[InnerClass, Map[String, String]] = ref(_.map)
 }
 
 @transparent

@@ -85,7 +85,9 @@ private[serialization] object GenRefBuilder {
               val perSub = subtypes.map { subSym =>
                 val subTpe = subSym.typeRef
                 val sub =
-                  subTpe.typeSymbol.methodMember(selSym.name).find(s => s == selSym || s.allOverriddenSymbols.contains(selSym))
+                  subTpe.typeSymbol
+                    .methodMember(selSym.name)
+                    .find(s => s == selSym || s.allOverriddenSymbols.contains(selSym))
                     .orElse(subTpe.typeSymbol.fieldMember(selSym.name) match {
                       case s if s.exists => Some(s)
                       case _ => None
@@ -158,7 +160,8 @@ private[serialization] object GenRefBuilder {
   }
 
   /** Unwrap `fun` to extract the lambda's parameter symbol and body Term. */
-  private def extractLambda(using quotes: Quotes)(t: quotes.reflect.Term): (quotes.reflect.Symbol, quotes.reflect.Term) = {
+  private def extractLambda(using quotes: Quotes)(t: quotes.reflect.Term)
+    : (quotes.reflect.Symbol, quotes.reflect.Term) = {
     import quotes.reflect.*
     def loop(tree: Term): (Symbol, Term) = tree match {
       case Inlined(_, _, inner) => loop(inner)

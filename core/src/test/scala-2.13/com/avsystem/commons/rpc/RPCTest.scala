@@ -44,11 +44,11 @@ class RPCTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       rawRpc.get(RawInvocation("innerRpc", List(js"innerName"))).fire(RawInvocation("proc", Nil))
       assert(
         js"innerRpc.funcResult" ==
-          get(rawRpc.get(RawInvocation("innerRpc", List(js"innerName"))).call(RawInvocation("func", List("bul:42"))))
+          get(rawRpc.get(RawInvocation("innerRpc", List(js"innerName"))).call(RawInvocation("func", List("bul:42")))),
       )
       assert(
         js"generallyDoStuffResult" ==
-          get(rawRpc.call(RawInvocation("generallyDoStuff", List(js"String", "[\"generallyDoStuffResult\"]"))))
+          get(rawRpc.call(RawInvocation("generallyDoStuff", List(js"String", "[\"generallyDoStuffResult\"]")))),
       )
 
       assert(
@@ -69,7 +69,7 @@ class RPCTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
           RawInvocation("innerRpc", List(js"innerName")),
           RawInvocation("innerRpc.func", List("42")),
           RawInvocation("generallyDoStuff", List(js"String", "[\"generallyDoStuffResult\"]")),
-        )
+        ),
       )
     }
 
@@ -136,7 +136,7 @@ class RPCTest extends AnyWordSpec with Matchers with BeforeAndAfterAll {
           RawInvocation("moreInner", List(js"evenMoreInner")),
           RawInvocation("func", List("bul:42")),
           RawInvocation("generallyDoStuff", List(js"String", "[\"generallyDoStuffResult\"]")),
-        )
+        ),
       )
     }
   }

@@ -3,8 +3,9 @@ package misc
 
 import scala.annotation.{implicitNotFound, nowarn}
 
-/** Macro materialized typeclass which captures the single value of a singleton type.
-  */
+/**
+ * Macro materialized typeclass which captures the single value of a singleton type.
+ */
 @implicitNotFound("Cannot derive value of ${T} - is not a singleton type")
 @deprecated(
   "Use scala.ValueOf[T] from the standard library - it is auto-materialized by the compiler for singleton types since Scala 2.13",

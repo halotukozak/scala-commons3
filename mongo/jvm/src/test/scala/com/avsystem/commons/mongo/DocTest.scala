@@ -4,9 +4,10 @@ package mongo
 import org.bson.BsonString
 import org.scalatest.funsuite.AnyFunSuite
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 class DocTest extends AnyFunSuite {
 
   import DocTest._
@@ -44,7 +45,7 @@ object DocTest {
   val Cool = "cool"
   val Shiny = "shiny"
 
-  val something: DocKey[Something,BsonString] = new BsonCodec[Something, BsonString] {
+  val something: DocKey[Something, BsonString] = new BsonCodec[Something, BsonString] {
     override def fromBson(bson: BsonString) = bson.getValue match {
       case Cool => SomethingCool
       case Shiny => SomethingShiny
@@ -55,7 +56,7 @@ object DocTest {
     })
   }.key("something")
 
-  val somethingCool: DocKey[SomethingCool.type,BsonString] = new BsonCodec[SomethingCool.type, BsonString] {
+  val somethingCool: DocKey[SomethingCool.type, BsonString] = new BsonCodec[SomethingCool.type, BsonString] {
     override def fromBson(bson: BsonString) = SomethingCool
     override def toBson(a: SomethingCool.type) = new BsonString(Cool)
   }.key("somethingCool")

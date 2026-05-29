@@ -27,9 +27,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case Enumz.One =>
-        |case null =>
-      """.stripMargin
+          |case Enumz.One =>
+          |case null =>
+      """.stripMargin,
       ),
     )
   }
@@ -39,9 +39,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case Enumz.One =>
-        |case Enumz.Two =>
-      """.stripMargin
+          |case Enumz.One =>
+          |case Enumz.Two =>
+      """.stripMargin,
       ),
     )
   }
@@ -51,8 +51,8 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
       1,
       source(
         """
-        |case One | Two =>
-      """.stripMargin
+          |case One | Two =>
+      """.stripMargin,
       ),
     )
   }
@@ -61,9 +61,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case _ =>
-      """.stripMargin
-      )
+          |case _ =>
+      """.stripMargin,
+      ),
     )
   }
 
@@ -71,9 +71,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case x if x.ordinal > 1 =>
-      """.stripMargin
-      )
+          |case x if x.ordinal > 1 =>
+      """.stripMargin,
+      ),
     )
   }
 
@@ -81,9 +81,9 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case One | Two | Three =>
-      """.stripMargin
-      )
+          |case One | Two | Three =>
+      """.stripMargin,
+      ),
     )
   }
 
@@ -91,11 +91,11 @@ final class ValueEnumExhaustiveMatchTest extends AnyFunSuite with AnalyzerTest {
     assertNoErrors(
       source(
         """
-        |case Enumz.One =>
-        |case Enumz.Two =>
-        |case Three =>
-      """.stripMargin
-      )
+          |case Enumz.One =>
+          |case Enumz.Two =>
+          |case Three =>
+      """.stripMargin,
+      ),
     )
   }
 }

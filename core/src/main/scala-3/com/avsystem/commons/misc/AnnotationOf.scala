@@ -1,7 +1,7 @@
 package com.avsystem.commons
 package misc
 
-import scala.annotation.{RefiningAnnotation, implicitNotFound}
+import scala.annotation.{implicitNotFound, RefiningAnnotation}
 
 /**
  * A typeclass which captures an annotation of type `A` applied on a class/trait/object associated with type `T`. If
