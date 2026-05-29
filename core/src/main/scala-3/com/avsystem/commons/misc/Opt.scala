@@ -46,7 +46,9 @@ object Opt extends OptCompat {
     inline def unless(inline cond: Boolean): Opt[A] = when(!cond)
   }
 
-  given [A] => Default[Opt[A]] = () => Opt.Empty
+  // Cast through Default[AnyRef] to avoid erased bridge clash on value class Opt.
+  private val emptyDefault: Default[AnyRef] = () => Opt.Empty.asInstanceOf[AnyRef]
+  given [A] => Default[Opt[A]] = emptyDefault.asInstanceOf[Default[Opt[A]]]
 }
 
 /**

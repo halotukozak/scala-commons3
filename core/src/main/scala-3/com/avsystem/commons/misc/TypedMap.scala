@@ -106,7 +106,7 @@ object TypedMap {
   trait GenCodecMapping[K[_]] {
     def valueCodec[T](key: K[T]): GenCodec[T]
   }
-  into case class Entry[K[_], T](pair: (K[T], T))
+  case class Entry[K[_], T](pair: (K[T], T))
   object Entry {
     given [K[_], T] => Conversion[(K[T], T), Entry[K, T]] = Entry(_)
   }

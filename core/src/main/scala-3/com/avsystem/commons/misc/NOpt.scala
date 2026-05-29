@@ -39,7 +39,9 @@ object NOpt extends NOptCompat {
     def withFilter(q: A => Boolean): WithFilter[A] = new WithFilter[A](self, x => p(x) && q(x))
   }
 
-  given [A] => Default[NOpt[A]] = () => NOpt.Empty
+  // Cast through Default[AnyRef] to avoid erased bridge clash on value class NOpt.
+  private val emptyDefault: Default[AnyRef] = () => NOpt.Empty.asInstanceOf[AnyRef]
+  given [A] => Default[NOpt[A]] = emptyDefault.asInstanceOf[Default[NOpt[A]]]
 }
 
 /**

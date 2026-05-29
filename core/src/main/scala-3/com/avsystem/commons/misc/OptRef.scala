@@ -31,7 +31,9 @@ object OptRef extends OptRefCompat {
     def withFilter(q: A => Boolean): WithFilter[A] = new WithFilter[A](self, x => p(x) && q(x))
   }
 
-  given [A] => Default[OptRef[A]] = () => OptRef.Empty
+  // Cast through Default[AnyRef] to avoid erased bridge clash on value class OptRef.
+  private val emptyDefault: Default[AnyRef] = () => OptRef.Empty.asInstanceOf[AnyRef]
+  given [A] => Default[OptRef[A]] = emptyDefault.asInstanceOf[Default[OptRef[A]]]
 }
 
 /**

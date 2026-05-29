@@ -32,7 +32,9 @@ object OptArg {
   val Empty: OptArg[Nothing] = new OptArg(EmptyMarker)
   def empty[A]: OptArg[A] = Empty
 
-  given [A] => Default[OptArg[A]] = () => OptArg.Empty
+  // Cast through Default[AnyRef] to avoid erased bridge clash on value class OptArg.
+  private val emptyDefault: Default[AnyRef] = () => OptArg.Empty.asInstanceOf[AnyRef]
+  given [A] => Default[OptArg[A]] = emptyDefault.asInstanceOf[Default[OptArg[A]]]
 }
 
 /**
