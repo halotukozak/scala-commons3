@@ -77,8 +77,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs {
    *     GenCodec.fromApplyUnapplyProvider[ThirdParty](ThirdPartyFakeCompanion)
    * }}}
    */
-  def fromApplyUnapplyProvider[T](applyUnapplyProvider: Any): GenCodec[T] = macro
-    macros.serialization.GenCodecMacros.fromApplyUnapplyProvider[T]
+  def fromApplyUnapplyProvider[T](applyUnapplyProvider: Any): GenCodec[T] = macro macros.serialization.GenCodecMacros.fromApplyUnapplyProvider[T]
 
   @deprecated("Use GenCodec.materialize instead; ApplyUnapplyCodec is being removed.", since = "3.0.0")
   def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = macro macros.serialization.GenCodecMacros.applyUnapplyCodec[T]
@@ -94,8 +93,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs {
    * @param build
    *   a function that builds the final value (typically `_.build()` or `_.get()`)
    */
-  def fromJavaBuilder[T, B](newBuilder: => B)(build: B => T): GenCodec[T] = macro
-    macros.serialization.GenCodecMacros.fromJavaBuilder[T, B]
+  def fromJavaBuilder[T, B](newBuilder: => B)(build: B => T): GenCodec[T] = macro macros.serialization.GenCodecMacros.fromJavaBuilder[T, B]
 
   @explicitGenerics
   def read[T: GenCodec](input: Input): T =
@@ -659,6 +657,5 @@ trait RecursiveAutoCodecs { this: GenCodec.type =>
   /**
    * INTERNAL API. Should not be used directly.
    */
-  implicit def materializeImplicitly[T](implicit allow: AllowImplicitMacro[GenCodec[T]]): GenCodec[T] = macro
-    macros.serialization.GenCodecMacros.materializeImplicitly[T]
+  implicit def materializeImplicitly[T](implicit allow: AllowImplicitMacro[GenCodec[T]]): GenCodec[T] = macro macros.serialization.GenCodecMacros.materializeImplicitly[T]
 }
