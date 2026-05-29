@@ -10,9 +10,10 @@ import java.time.Instant
 import _root_.scala.collection.Factory
 import _root_.scala.language.higherKinds
 
-/** @author
-  *   MKej
-  */
+/**
+ * @author
+ *   MKej
+ */
 trait BsonCodec[A, BSON <: BsonValue] { self =>
   def fromBson(bson: BSON): A
   def toBson(a: A): BSON
@@ -41,21 +42,21 @@ object BsonCodec {
     override def fromBson(bson: BsonValue) = bson
     override def toBson(a: BsonValue) = a
   }
-  def identity[B <: BsonValue]: BsonCodec[B,B] = _identity.asInstanceOf[BsonCodec[B, B]]
+  def identity[B <: BsonValue]: BsonCodec[B, B] = _identity.asInstanceOf[BsonCodec[B, B]]
 
-  val objectId: BsonCodec[ObjectId,BsonObjectId] = create[ObjectId, BsonObjectId](_.getValue, new BsonObjectId(_))
+  val objectId: BsonCodec[ObjectId, BsonObjectId] = create[ObjectId, BsonObjectId](_.getValue, new BsonObjectId(_))
 
-  val byteArray: BsonCodec[Array[Byte],BsonBinary] = create[Array[Byte], BsonBinary](_.getData, new BsonBinary(_))
+  val byteArray: BsonCodec[Array[Byte], BsonBinary] = create[Array[Byte], BsonBinary](_.getData, new BsonBinary(_))
 
-  val boolean: BsonCodec[Boolean,BsonBoolean] = create[Boolean, BsonBoolean](_.getValue, new BsonBoolean(_))
-  val int32: BsonCodec[Int,BsonInt32] = create[Int, BsonInt32](_.getValue, new BsonInt32(_))
-  val int64: BsonCodec[Long,BsonInt64] = create[Long, BsonInt64](_.getValue, new BsonInt64(_))
-  val double: BsonCodec[Double,BsonDouble] = create[Double, BsonDouble](_.getValue, new BsonDouble(_))
+  val boolean: BsonCodec[Boolean, BsonBoolean] = create[Boolean, BsonBoolean](_.getValue, new BsonBoolean(_))
+  val int32: BsonCodec[Int, BsonInt32] = create[Int, BsonInt32](_.getValue, new BsonInt32(_))
+  val int64: BsonCodec[Long, BsonInt64] = create[Long, BsonInt64](_.getValue, new BsonInt64(_))
+  val double: BsonCodec[Double, BsonDouble] = create[Double, BsonDouble](_.getValue, new BsonDouble(_))
 
-  val string: BsonCodec[String,BsonString] = create[String, BsonString](_.getValue, new BsonString(_))
+  val string: BsonCodec[String, BsonString] = create[String, BsonString](_.getValue, new BsonString(_))
 
-  val doc: BsonCodec[Doc,BsonDocument] = create[Doc, BsonDocument](new Doc(_), _.toBson)
-  val instant: BsonCodec[Instant,BsonDateTime] = create[Instant, BsonDateTime](
+  val doc: BsonCodec[Doc, BsonDocument] = create[Doc, BsonDocument](new Doc(_), _.toBson)
+  val instant: BsonCodec[Instant, BsonDateTime] = create[Instant, BsonDateTime](
     bdt => Instant.ofEpochMilli(bdt.getValue),
     i => new BsonDateTime(i.toEpochMilli),
   )

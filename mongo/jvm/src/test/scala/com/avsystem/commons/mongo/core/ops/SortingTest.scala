@@ -26,7 +26,7 @@ class SortingTest extends AnyFunSuite {
     assert(descending(someDocKey, otherDocKey) === Sorts.descending(someKey, otherKey))
     assert(
       orderBy(someDocKey.ascending, otherDocKey.descending) ===
-        Sorts.orderBy(Sorts.ascending(someKey), Sorts.descending(otherKey))
+        Sorts.orderBy(Sorts.ascending(someKey), Sorts.descending(otherKey)),
     )
   }
 
@@ -42,7 +42,7 @@ class SortingTest extends AnyFunSuite {
     assert(descending(someRef, otherRef) === Sorts.descending(someKey, otherKey))
     assert(
       orderBy(someRef.ascending, otherRef.descending) ===
-        Sorts.orderBy(Sorts.ascending(someKey), Sorts.descending(otherKey))
+        Sorts.orderBy(Sorts.ascending(someKey), Sorts.descending(otherKey)),
     )
   }
 }

@@ -7,9 +7,9 @@ import made.*
 import com.avsystem.commons.serialization.*
 import com.avsystem.commons.serialization.GenCodec.OOOFieldsObjectCodec
 import made.annotation.*
-extension [T](instances: (stdCodec: GenObjectCodec[T], metadata: CborAdtMetadata[T])) private def cborCodec
-  : GenObjectCodec[T] =
-  instances.metadata.setup(_.validate()).adjustCodec(instances.stdCodec)
+extension [T](instances: (stdCodec: GenObjectCodec[T], metadata: CborAdtMetadata[T]))
+  private def cborCodec: GenObjectCodec[T] =
+    instances.metadata.setup(_.validate()).adjustCodec(instances.stdCodec)
 
 /**
  * Like [[HasGenCodec]] but generates a codec optimized for writing and reading CBOR via [[CborOutput]] and

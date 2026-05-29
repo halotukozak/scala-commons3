@@ -143,8 +143,9 @@ def valNameImpl[T <: ValueEnum: Type, ValName: Type, Owner: Type](
       owner.owner.owner
     else owner
 
-  extension (s: Symbol) def isPublic: Boolean =
-    !s.flags.is(Flags.Protected) && !s.flags.is(Flags.Private) && !s.flags.is(Flags.PrivateLocal)
+  extension (s: Symbol)
+    def isPublic: Boolean =
+      !s.flags.is(Flags.Protected) && !s.flags.is(Flags.Private) && !s.flags.is(Flags.PrivateLocal)
 
   val owner = omitAnonClass(Symbol.spliceOwner.owner)
 

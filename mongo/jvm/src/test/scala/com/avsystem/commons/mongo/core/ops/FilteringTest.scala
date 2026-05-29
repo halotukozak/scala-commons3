@@ -55,7 +55,6 @@ class FilteringTest extends AnyFunSuite {
   testCase("regexString")(_.regex(regexString))(Filters.regex(_, regexString))
   testCase("regexOptions")(_.regex(regexString, "ops"))(Filters.regex(_, regexString, "ops"))
 
-
   test("contains") {
     assert(aRef.contains("elem") === Filters.eq("a", "elem"))
   }

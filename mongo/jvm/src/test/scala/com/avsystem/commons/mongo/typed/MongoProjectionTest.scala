@@ -44,7 +44,7 @@ class MongoProjectionTest extends AnyFunSuite {
     assert(Rte.ref(_.union.str).decodeFrom(rteBson) == "ustr")
     assert((Rte.IdRef zip Rte.ref(_.int)).decodeFrom(rteBson) == ("rid", 42))
     assert(
-      MongoProjection.zip(Rte.IdRef, Rte.ref(_.int), Rte.ref(_.union.str)).decodeFrom(rteBson) == ("rid", 42, "ustr")
+      MongoProjection.zip(Rte.IdRef, Rte.ref(_.int), Rte.ref(_.union.str)).decodeFrom(rteBson) == ("rid", 42, "ustr"),
     )
     assert(Rte.ref(_.intList.head).decodeFrom(rteBson) == 1)
     assert(Rte.ref(_.intList).map(_.head).decodeFrom(rteBson) == 1)

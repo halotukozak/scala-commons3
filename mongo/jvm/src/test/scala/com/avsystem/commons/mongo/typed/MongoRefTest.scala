@@ -26,7 +26,7 @@ class MongoRefTest extends AnyFunSuite {
     assert(Rte.ref(_.complex.get.apply(InnerId("foo")).apply(5).int).rawPath == "complex.foo.5.int")
     assert(
       Rte.ref(_.complex).ref(_.get).ref(_.apply(InnerId("foo"))).ref(_.apply(5)).ref(_.int).rawPath ==
-        "complex.foo.5.int"
+        "complex.foo.5.int",
     )
     assert(Rte.ref(_.props.map("key")).rawPath == "props.key")
     assert(Rte.ref(_.union.str).rawPath == "union.str")
@@ -61,7 +61,7 @@ class MongoRefTest extends AnyFunSuite {
     assert(impliedFilterStr(Ute.as[HasInner]) == """{"_case": {"$in": ["CaseTwo", "CaseThree"]}}""")
     assert(
       impliedFilterStr(Ute.ref(_.as[HasInner].inner.innerOpt.get)) ==
-        """{"inner.innerOpt": {"$ne": null}, "_case": {"$in": ["CaseTwo", "CaseThree"]}}"""
+        """{"inner.innerOpt": {"$ne": null}, "_case": {"$in": ["CaseTwo", "CaseThree"]}}""",
     )
   }
 }

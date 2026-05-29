@@ -113,7 +113,7 @@ class TypedMongoCollectionTest extends AnyFunSuite with ScalaFutures with Before
     })
     assert(
       rteColl.find(Rte.ref(_.int) < 10, projection = Rte.ref(_.union.as[CaseOne].id)).toListL.value ==
-        entities.filter(_.int < 10).map(_.union).collect { case c1: CaseOne => c1.id }
+        entities.filter(_.int < 10).map(_.union).collect { case c1: CaseOne => c1.id },
     )
   }
 
@@ -191,7 +191,7 @@ class TypedMongoCollectionTest extends AnyFunSuite with ScalaFutures with Before
     val filter = Rte.IdRef.in(entities.map(_.id))
     assert(rteColl.updateMany(filter, Rte.ref(_.int).inc(5)).value.getModifiedCount == entities.size)
     assert(
-      rteColl.find(filter, sort = Rte.ref(_.int).ascending).toListL.value == entities.map(e => e.copy(int = e.int + 5))
+      rteColl.find(filter, sort = Rte.ref(_.int).ascending).toListL.value == entities.map(e => e.copy(int = e.int + 5)),
     )
   }
 
@@ -203,7 +203,7 @@ class TypedMongoCollectionTest extends AnyFunSuite with ScalaFutures with Before
         .multiResultNativeOp(_.aggregate(pipeline, classOf[Document]))
         .map(_.getInteger("intSum", 0))
         .toListL
-        .value == entities.map(_.intList.sum)
+        .value == entities.map(_.intList.sum),
     )
   }
 

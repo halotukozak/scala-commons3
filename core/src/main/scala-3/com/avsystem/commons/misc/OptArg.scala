@@ -31,7 +31,7 @@ object OptArg {
 
   val Empty: OptArg[Nothing] = new OptArg(EmptyMarker)
   def empty[A]: OptArg[A] = Empty
-  
+
   given [A] => Default[OptArg[A]] = () => OptArg.Empty
 }
 
