@@ -56,6 +56,7 @@ trait DelegationApplyMacros[B] {
 }
 
 object MiscMacros {
+
   /**
    * Scala-3 port of the scala-2 `optionalizeFirstArg` macro. Rewrites `f.call(arg, more*)` into
    * `if (arg ne null) f.call(arg, more*) else f.call(more*)` — used by mongo driver wrappers to
@@ -76,14 +77,17 @@ object MiscMacros {
               other.pos,
             )
         }
-        val condExpr = Select.unique(Select.unique(head, "asInstanceOf").appliedToType(TypeRepr.of[Object]), "ne").appliedTo('{ null }.asTerm)
+        val condExpr = Select
+          .unique(Select.unique(head, "asInstanceOf").appliedToType(TypeRepr.of[Object]), "ne")
+          .appliedTo('{ null }.asTerm)
         val fallback = Select.overloaded(receiver, methodName, targs, tail)
         If(condExpr, t, fallback).asExprOf[T].asTerm
       case TypeApply(inner, targs) =>
         // strip type-args, recurse, re-apply
-        go(inner) match
+        go(inner) match {
           case ifExpr: If => ifExpr // already complete
           case other => TypeApply(other, targs)
+        }
       case Block(stats, expr) => Block(stats, go(expr))
       case Inlined(_, Nil, expr) => go(expr)
       case Typed(expr, _) => go(expr)
