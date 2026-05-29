@@ -235,10 +235,16 @@ lazy val jvm = project
 //    analyzer,
     macros,
     core,
-    jetty,
 //    mongo,
     hocon,
   )
+  .settings(aggregateProjectSettings)
+
+// Scala 2.13-only JVM modules — aggregated separately so a default Scala 3 build
+// does not try to resolve Scala 3 transitive deps for them (sbt 1.12 Smorrebrod).
+lazy val jvm2 = project
+  .in(file(".jvm2"))
+  .aggregate(jetty)
   .settings(aggregateProjectSettings)
 
 lazy val js = project
@@ -399,6 +405,12 @@ lazy val jetty = project
     // so this module stays Scala 2.13-only.
     crossScalaVersions := Seq(scala2Version),
     scalaVersion := scala2Version,
+    // When the build is switched to Scala 3, skip update/compile so sbt's Smorrebrod
+    // resolver does not try to pull Scala 3 transitive deps into this Scala 2.13-only project.
+    update / skip := scalaBinaryVersion.value != "2.13",
+    Compile / skip := scalaBinaryVersion.value != "2.13",
+    Test / skip := scalaBinaryVersion.value != "2.13",
+    publish / skip := scalaBinaryVersion.value != "2.13",
     libraryDependencies ++= Seq(
       "org.eclipse.jetty" % "jetty-client" % jettyVersion,
       "org.eclipse.jetty.ee10" % "jetty-ee10-servlet" % jettyVersion,
