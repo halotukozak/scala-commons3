@@ -55,6 +55,33 @@ the bottom of this file. Restoration ships incrementally per feature area.
 - `enum` was renamed to `e` at one call site in `GenKeyCodec` (`enum` is reserved in Scala 3).
 - `@targetName` annotation added to `CloseableIterator` overloaded methods.
 
+### core — misc TypeString + JavaClassName (slice 5.4)
+
+- `misc/TypeString.scala` ported from
+  `origin/master:core/src/main/scala-3/com/avsystem/commons/misc/TypeString.scala` — a single fork file
+  covers both leaves. `TypeString` uses companion-local `materializeImpl[T: Type]` via
+  `Printer.TypeReprShortCode`; `JavaClassName` uses top-level `derivedImpl[T: Type]` referenced from the
+  `JavaClassNameLowPriority` trait via `inline given derived[T]`.
+- **Source-compat shape change** — `GenKeyCodec[TypeString[T]]` / `GenCodec[TypeString[T]]` switched from
+  the Phase-1 stub's single existential `implicit val ...[TypeString[_]]` to per-T
+  `given [T] => ...[TypeString[T]]` (per Pitfall 7). No production callers in the tree depended on the
+  existential shape (verified via `git grep`).
+- **Note on `Function1` printing** — `TypeString.of[String => Int]` prints as `"Function1[String, Int]"`
+  (not `"String => Int"`) because `Printer.TypeReprShortCode` does not desugar function arrows. Matches
+  fork behaviour; documented in the SharedExtensionsTest smoke case.
+- New file `misc/compat.scala` introduces only the `TypeStringCompat` + `JavaClassNameCompat` traits
+  (deprecated `keyCodec` / `codec` / per-primitive `JavaClassName` accessors → `summon`). Other compat
+  traits from the fork's `compat.scala` (Boxing / Unboxing / Opt / Timestamp / NamedEnumCompanion / etc.)
+  are deferred to their owning leaves.
+- Adjustments from fork verbatim: explicit `import scala.quoted.*` added; `GenCodec.createSimple` (2-arg
+  in fork) → `GenCodec.nonNullSimple` (the 2-arg overload doesn't exist in the current tree — `createSimple`
+  requires `allowNull: Boolean`).
+- `SharedExtensionsTest` adds runtime smoke for `TypeString.of` and `JavaClassName.of` (fork commit
+  `dcf60e5d` context; fork's own SharedExtensionsTest does not include these references, smoke was added
+  as part of slice 5.4 to satisfy VALIDATION.md).
+- `core/src/test/scala/com/avsystem/commons/macros/{JavaClassNameTest,TypeStringTest}.scala` remain
+  `???`-stubbed — depend on `TestMacros` (scala-2 `def ... = macro ...`), out of scope per VALIDATION.md.
+
 ### mongo
 
 - `BsonRef.Creator.ref`, `DataTypeDsl.{ref, as, is, isNot}`, `TypedMongoUtils.optionalizeFirstArg` are stubbed with
@@ -175,8 +202,6 @@ Full per-file list with locations is in the Backlog table below (filter rows whe
 | `core/src/main/scala/com/avsystem/commons/misc/SimpleClassName.scala:8`                           | SimpleClassName.materialize (Scala 2 macro def)                                                       | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/SourceInfo.scala:28`                               | SourceInfo.here (Scala 2 macro def)                                                                   | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/Timestamp.scala:13`                                | Comparable[Timestamp] (Scala 3 forbids AnyVal inheriting Object-derived traits)                       | S      |
-| `core/src/main/scala/com/avsystem/commons/misc/TypeString.scala:31`                               | TypeString.materialize (Scala 2 macro def)                                                            | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/TypeString.scala:90`                               | JavaClassName.materialize (Scala 2 macro def)                                                         | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/ValueEnum.scala:125`                               | ValueEnumCompanion.valName (Scala 2 macro def)                                                        | L      |
 | `core/src/main/scala/com/avsystem/commons/rpc/AsRawReal.scala:100`                                | AsRawReal.materialize (Scala 2 macro def)                                                             | L      |
 | `core/src/main/scala/com/avsystem/commons/rpc/AsRawReal.scala:113`                                | RpcMetadata.materialize (Scala 2 macro def)                                                           | L      |
