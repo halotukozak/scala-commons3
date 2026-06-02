@@ -55,6 +55,15 @@ the bottom of this file. Restoration ships incrementally per feature area.
 - `enum` was renamed to `e` at one call site in `GenKeyCodec` (`enum` is reserved in Scala 3).
 - `@targetName` annotation added to `CloseableIterator` overloaded methods.
 
+### core — serialization GenCodec foundation traits (slice 6.1)
+
+- `GenCodec.scala` companion split into two new self-typed traits to match fork shape:
+  - `GenCodecFailures` (new file `serialization/GenCodecFailures.scala`) — holds `ReadFailure`, `WriteFailure`, and all `*Failed`/`Missing*`/`NotSingleField`/`UnknownCase`/`UnknownWrittenCase`/`UnapplyFailed` case classes.
+  - `GenCodecUtils` (new file `serialization/GenCodecUtils.scala`) — holds `writeToList`/`writeToObject`/`collectTo` extension methods (was private `implicit class IterableOps`/`PairIterableOps`/`ListInputOps`/`ObjectInputOps`).
+- `object GenCodec extends ... with GenCodecFailures with GenCodecUtils` — same public surface, just organized into traits.
+- `ReadFailure`/`WriteFailure` ctors switched to `Throwable | Null` union type (fork idiom).
+- Pure refactor — no behavior change, no public-API change. Sets up clean slot for the rest of Phase 6 GenCodec slices.
+
 ### mongo
 
 - `BsonRef.Creator.ref`, `DataTypeDsl.{ref, as, is, isNot}`, `TypedMongoUtils.optionalizeFirstArg` are stubbed with
