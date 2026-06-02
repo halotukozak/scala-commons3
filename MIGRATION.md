@@ -63,6 +63,15 @@ the bottom of this file. Restoration ships incrementally per feature area.
 - `object GenCodec extends ... with GenCodecFailures with GenCodecUtils` — same public surface, just organized into traits.
 - `ReadFailure`/`WriteFailure` ctors switched to `Throwable | Null` union type (fork idiom).
 - Pure refactor — no behavior change, no public-API change. Sets up clean slot for the rest of Phase 6 GenCodec slices.
+- `GenCodecFailures` / `GenCodecUtils` declared as `transparent trait` (Scala 3 — invisible in inferred types).
+
+### core — serialization GenCodec companion sweep (slice 6.2)
+
+- `GenCodec.apply[T](implicit codec)` → `using` (Scala 3 context-bound syntax).
+- `GenCodec.fromKeyCodec[T](implicit keyCodec)` → `using`.
+- `GenCodec.fromApplyUnapplyProvider` REMOVED — Scala 2 whitebox-macro helper with no Scala 3 counterpart. Replacement: `GenCodec.derived[T]` for case classes or manual `apply`/`unapply` overrides.
+- `GenCodec.applyUnapplyCodec` REMOVED — paired with the upcoming deletion of `HasApplyUnapplyCodec`. Replacement: `GenCodec.derived[T]`.
+- Scaladoc references to `fromApplyUnapplyProvider` updated to point at `GenCodec.derived[T]`.
 
 ### mongo
 
