@@ -6,6 +6,20 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 class SharedExtensionsTest extends AnyFunSuite with Matchers {
+  test("TypeString.of materializes short type representation") {
+    TypeString.of[Int] shouldEqual "Int"
+    TypeString.of[List[Int]] shouldEqual "List[Int]"
+    TypeString.of[String => Int] shouldEqual "Function1[String, Int]"
+  }
+
+  test("JavaClassName.of matches classOf.getName") {
+    JavaClassName.of[String] shouldEqual classOf[String].getName
+    JavaClassName.of[Integer] shouldEqual classOf[Integer].getName
+    JavaClassName.of[SharedExtensionsTest] shouldEqual classOf[SharedExtensionsTest].getName
+    JavaClassName.of[Int] shouldEqual "int"
+    JavaClassName.of[Unit] shouldEqual "void"
+  }
+
   test("mkMap") {
     List.range(0, 3).mkMap(identity, _.toString) shouldEqual Map(0 -> "0", 1 -> "1", 2 -> "2")
   }
