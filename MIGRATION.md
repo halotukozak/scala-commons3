@@ -55,6 +55,33 @@ the bottom of this file. Restoration ships incrementally per feature area.
 - `enum` was renamed to `e` at one call site in `GenKeyCodec` (`enum` is reserved in Scala 3).
 - `@targetName` annotation added to `CloseableIterator` overloaded methods.
 
+### core — misc AnnotationOf family (slice 5.5)
+
+- Ported `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala`. Covers seven leaves:
+  `AnnotationOf`, `OptAnnotationOf`, `AnnotationsOf`, `HasAnnotation`, `SelfAnnotation`,
+  `SelfOptAnnotation`, `SelfAnnotations`. Each companion declares its own `inline given`
+  splicing into a sibling `private def …Impl[…](using Quotes): Expr[…]` defined in the same
+  file. No central `MiscMacros.scala` bundle; no `extends *Macros` trait-shells. Shared
+  reflection plumbing (`annotsOfT` / `annotsOfSym` / `enclosingClass` / `expandAggregates` +
+  helpers) lives in a file-local `private object AnnotationOfMacros`, cribbed verbatim
+  per-method from `origin/master:core/src/main/scala-3/com/avsystem/commons/misc/MiscMacros.scala`.
+- **API reshape (source-compat + bincompat break):**
+  `final class HasAnnotation[A, T] private ()` → `opaque type HasAnnotation[A <: RefiningAnnotation, T] = A`.
+  The `RefiningAnnotation` bound is tightened (downstream callers that previously passed a
+  plain `StaticAnnotation` type parameter must switch to a `RefiningAnnotation` subtype).
+  The `HasAnnotation.create[A, T]` factory is removed (pre-port `git grep` confirmed zero
+  internal callers). Companion exposes new `transparent inline def check[A, T]` /
+  `get[A, T]` quoted impls.
+- Removed seven Phase-1 `implicit def materialize[...]: X = ???` stubs. Call sites switch
+  from `AnnotationOf.materialize[A, T]` to `summon[AnnotationOf[A, T]]` (and analogous for
+  the other six leaves). `AnnotationOfTest` un-wrapped — all 3 cases green.
+- Fork commits: `31970ec7` (AnnotationOf/Opt/Annotations real impls) + `24e801ec` (Self*
+  real impls).
+
+| File                      | Slice | Status                                                              |
+| ------------------------- | ----- | ------------------------------------------------------------------- |
+| `misc/AnnotationOf.scala` | 5.5   | Ported (7 leaves; `HasAnnotation` reshaped to opaque type)          |
+
 ### mongo
 
 - `BsonRef.Creator.ref`, `DataTypeDsl.{ref, as, is, isNot}`, `TypedMongoUtils.optionalizeFirstArg` are stubbed with
@@ -71,6 +98,16 @@ the bottom of this file. Restoration ships incrementally per feature area.
 ## 4. Binary-compat breaks
 
 *Empty in Phase 1 — no Scala 3 baseline released yet. MiMa activation deferred to the first `_3` release tag.*
+
+### core — slice 5.5 bincompat-break (HasAnnotation reshape)
+
+- `misc.HasAnnotation`: **bincompat-break**. `final class HasAnnotation[A, T] private ()` →
+  `opaque type HasAnnotation[A <: RefiningAnnotation, T] = A`. The private no-arg ctor and the
+  `HasAnnotation.create[A, T]` factory are removed; the bound `A <: RefiningAnnotation` is
+  tightened. Downstream consumers must use the new `HasAnnotation.check[A, T]` /
+  `HasAnnotation.get[A, T]` companion methods (transparent inline, quoted impls). Pre-port
+  `git grep` audit confirmed zero internal callers of `HasAnnotation.create` and zero external
+  references to `HasAnnotation` outside `AnnotationOf.scala` itself.
 
 ## 5. Disabled tests / modules
 
@@ -140,21 +177,6 @@ Full per-file list with locations is in the Backlog table below (filter rows whe
 | `core/src/main/scala/com/avsystem/commons/di/Components.scala:55`                                 | noneComponent (depends on stubbed singleton macro)                                                    | S      |
 | `core/src/main/scala/com/avsystem/commons/di/Components.scala:58`                                 | sequenceOpt (depends on stubbed component macro)                                                      | S      |
 | `core/src/main/scala/com/avsystem/commons/di/Components.scala:61`                                 | sequenceOption (depends on stubbed component macro)                                                   | S      |
-| `core/src/main/scala/com/avsystem/commons/meta/AdtMetadataCompanion.scala:15`                     | materialize (Scala 2 macro def)                                                                       | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/AdtMetadataCompanion.scala:18`                     | fromApplyUnapplyProvider (Scala 2 macro def)                                                          | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/AdtMetadataCompanion.scala:33`                     | materialize (bounded) (Scala 2 macro def)                                                             | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/AdtMetadataCompanion.scala:36`                     | fromApplyUnapplyProvider (bounded) (Scala 2 macro def)                                                | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/MacroInstances.scala:47`                           | materialize (Scala 2 macro def)                                                                       | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/MetadataCompanion.scala:27`                        | lazyMetadata (Scala 2 macro def)                                                                      | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/MetadataCompanion.scala:58`                        | lazyMetadata (bounded) (Scala 2 macro def)                                                            | L      |
-| `core/src/main/scala/com/avsystem/commons/meta/metaAnnotations.scala:193`                         | value (Scala 2 macro def)                                                                             | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:114`                            | SelfAnnotations.materialize (Scala 2 macro def)                                                       | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:12`                             | AnnotationOf.materialize (Scala 2 macro def)                                                          | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:22`                             | OptAnnotationOf.materialize (Scala 2 macro def)                                                       | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:31`                             | AnnotationsOf.materialize (Scala 2 macro def)                                                         | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:46`                             | HasAnnotation.materialize (Scala 2 macro def)                                                         | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:69`                             | SelfAnnotation.materialize (Scala 2 macro def)                                                        | L      |
-| `core/src/main/scala/com/avsystem/commons/misc/AnnotationOf.scala:92`                             | SelfOptAnnotation.materialize (Scala 2 macro def)                                                     | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/ApplierUnapplier.scala:13`                         | Applier.materialize (Scala 2 macro def)                                                               | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/ApplierUnapplier.scala:25`                         | Unapplier.materialize (Scala 2 macro def)                                                             | L      |
 | `core/src/main/scala/com/avsystem/commons/misc/ApplierUnapplier.scala:37`                         | ApplierUnapplier.materialize (Scala 2 macro def)                                                      | L      |
