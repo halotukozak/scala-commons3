@@ -39,16 +39,10 @@ trait GenCodec[T] {
 }
 
 object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs with GenCodecFailures with GenCodecUtils {
-  def apply[T](implicit codec: GenCodec[T]): GenCodec[T] = codec
+  def apply[T](using codec: GenCodec[T]): GenCodec[T] = codec
 
   // TODO[scala3-port]: GenCodec.materialize (Scala 2 macro def) (L)
   def materialize[T]: GenCodec[T] = ???
-
-  // TODO[scala3-port]: GenCodec.fromApplyUnapplyProvider (Scala 2 macro def) (L)
-  def fromApplyUnapplyProvider[T](applyUnapplyProvider: Any): GenCodec[T] = ???
-
-  // TODO[scala3-port]: GenCodec.applyUnapplyCodec (Scala 2 macro def) (L)
-  def applyUnapplyCodec[T]: ApplyUnapplyCodec[T] = ???
 
   // TODO[scala3-port]: GenCodec.fromJavaBuilder (Scala 2 macro def) (L)
   def fromJavaBuilder[T, B](newBuilder: => B)(build: B => T): GenCodec[T] = ???
@@ -122,8 +116,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs with GenCodecFai
 
   /** Helper method to manually implement a `GenCodec` that writes an object. NOTE: in most cases the easiest way to
     * have a custom object codec is to manually implement `apply` and `unapply`/`unapplySeq` methods in companion object
-    * of your type or use [[fromApplyUnapplyProvider]] if the type comes from a third party code and you can't modify
-    * its companion object.
+    * of your type, or use `GenCodec.derived[T]` (named-tuple based) for case classes.
     */
   def createObject[T](readFun: ObjectInput => T, writeFun: (ObjectOutput, T) => Any, allowNull: Boolean)
     : GenObjectCodec[T] =
@@ -139,7 +132,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs with GenCodecFai
   def nonNullObject[T](readFun: ObjectInput => T, writeFun: (ObjectOutput, T) => Any): GenObjectCodec[T] =
     createObject(readFun, writeFun, allowNull = false)
 
-  def fromKeyCodec[T](implicit keyCodec: GenKeyCodec[T]): GenCodec[T] = create(
+  def fromKeyCodec[T](using keyCodec: GenKeyCodec[T]): GenCodec[T] = create(
     input => keyCodec.read(input.readSimple().readString()),
     (output, value) => output.writeSimple().writeString(keyCodec.write(value)),
   )
@@ -198,7 +191,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs with GenCodecFai
 
   /** Convenience base class for `GenCodec`s that serialize values as objects. NOTE: if you need to implement a custom
     * `GenCodec` that writes an object, the best way to do it is to have manually implemented `apply` and `unapply` in
-    * companion object or by using [[GenCodec.fromApplyUnapplyProvider]].
+    * the companion object, or use `GenCodec.derived[T]` for case classes.
     */
   trait ObjectCodec[T] extends GenObjectCodec[T] with NullSafeCodec[T] {
     def readObject(input: ObjectInput): T
@@ -486,7 +479,7 @@ object GenCodec extends RecursiveAutoCodecs with TupleGenCodecs with GenCodecFai
     fallback.value
 }
 
-trait RecursiveAutoCodecs { this: GenCodec.type =>
+transparent trait RecursiveAutoCodecs { this: GenCodec.type =>
   // TODO[scala3-port]: GenCodec.materializeRecursively (Scala 2 macro def) (L)
   def materializeRecursively[T]: GenCodec[T] = ???
 

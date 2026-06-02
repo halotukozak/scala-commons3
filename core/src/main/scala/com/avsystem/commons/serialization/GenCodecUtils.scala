@@ -5,7 +5,7 @@ import com.avsystem.commons.BIterable
 import scala.collection.Factory
 import scala.util.control.NonFatal
 
-trait GenCodecUtils { this: GenCodec.type =>
+transparent trait GenCodecUtils { this: GenCodec.type =>
   extension [A](coll: BIterable[A]) {
     def writeToList(lo: ListOutput)(using writer: GenCodec[A]): Unit = {
       lo.declareSizeOf(coll)
