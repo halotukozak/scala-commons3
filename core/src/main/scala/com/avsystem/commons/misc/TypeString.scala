@@ -3,6 +3,8 @@ package misc
 
 import com.avsystem.commons.serialization.{GenCodec, GenKeyCodec}
 
+import scala.quoted.*
+
 /** Typeclass that contains string representation of a concrete type. This representation should correctly parse and
   * typecheck when used as a type in Scala source code.
   *
@@ -24,18 +26,20 @@ import com.avsystem.commons.serialization.{GenCodec, GenKeyCodec}
 class TypeString[T](val value: String) extends AnyVal {
   override def toString: String = value
 }
-object TypeString {
-  def apply[T](implicit ts: TypeString[T]): TypeString[T] = ts
+object TypeString extends TypeStringCompat {
+  inline given [T] => TypeString[T] = ${ materializeImpl[T] }
   def of[T: TypeString]: String = TypeString[T].value
-
-  // TODO[scala3-port]: TypeString.materialize (Scala 2 macro def) (L)
-  implicit def materialize[T]: TypeString[T] = ???
-
-  implicit val keyCodec: GenKeyCodec[TypeString[_]] =
-    GenKeyCodec.create[TypeString[_]](new TypeString(_), _.value)
-
-  implicit val codec: GenCodec[TypeString[_]] =
-    GenCodec.nonNullSimple[TypeString[_]](i => new TypeString(i.readString()), (o, ts) => o.writeString(ts.value))
+  def apply[T](using ts: TypeString[T]): TypeString[T] = ts
+  given [T] => GenKeyCodec[TypeString[T]] =
+    GenKeyCodec.create[TypeString[T]](new TypeString(_), _.value)
+  given [T] => GenCodec[TypeString[T]] =
+    GenCodec.nonNullSimple[TypeString[T]](i => new TypeString(i.readString()), (o, ts) => o.writeString(ts.value))
+  private def materializeImpl[T: Type](using quotes: Quotes) = {
+    import quotes.reflect.*
+    val tpe = TypeRepr.of[T].dealias
+    val typeString = Expr(tpe.show(using Printer.TypeReprShortCode))
+    '{ new TypeString[T]($typeString) }
+  }
 }
 
 /** Typeclass that contains JVM fully qualified class name corresponding to given type. `JavaClassName.of[T]` is always
@@ -47,23 +51,23 @@ object TypeString {
 class JavaClassName[T](val value: String) extends AnyVal {
   override def toString: String = value
 }
-object JavaClassName extends JavaClassNameLowPrio {
-  def apply[T](implicit ts: JavaClassName[T]): JavaClassName[T] = ts
+object JavaClassName extends JavaClassNameCompat with JavaClassNameLowPriority {
+  def apply[T](using ts: JavaClassName[T]): JavaClassName[T] = ts
   def of[T: JavaClassName]: String = JavaClassName[T].value
-
-  implicit val NothingClassName: JavaClassName[Nothing] = new JavaClassName("scala.runtime.Nothing$")
-  implicit val NothingArrayClassName: JavaClassName[Array[Nothing]] = new JavaClassName("[Lscala.runtime.Nothing$;")
-  implicit val UnitClassName: JavaClassName[Unit] = new JavaClassName("void")
-  implicit val BooleanClassName: JavaClassName[Boolean] = new JavaClassName("boolean")
-  implicit val ByteClassName: JavaClassName[Byte] = new JavaClassName("byte")
-  implicit val ShortClassName: JavaClassName[Short] = new JavaClassName("short")
-  implicit val IntClassName: JavaClassName[Int] = new JavaClassName("int")
-  implicit val LongClassName: JavaClassName[Long] = new JavaClassName("long")
-  implicit val FloatClassName: JavaClassName[Float] = new JavaClassName("float")
-  implicit val DoubleClassName: JavaClassName[Double] = new JavaClassName("double")
-  implicit val CharClassName: JavaClassName[Char] = new JavaClassName("char")
-
-  implicit def arrayClassName[T: JavaClassName]: JavaClassName[Array[T]] = {
+  given JavaClassName[Nothing] = new JavaClassName("scala.runtime.Nothing$")
+  given JavaClassName[Array[Nothing]] = new JavaClassName("[Lscala.runtime.Nothing$;")
+  given JavaClassName[Unit] = new JavaClassName("void")
+  given JavaClassName[Boolean] = new JavaClassName("boolean")
+  given JavaClassName[Byte] = new JavaClassName("byte")
+  given JavaClassName[Short] = new JavaClassName("short")
+  given JavaClassName[Int] = new JavaClassName("int")
+  given JavaClassName[Long] = new JavaClassName("long")
+  given JavaClassName[Float] = new JavaClassName("float")
+  given JavaClassName[Double] = new JavaClassName("double")
+  given JavaClassName[Char] = new JavaClassName("char")
+  given JavaClassName[Any] = new JavaClassName("java.lang.Object")
+  given JavaClassName[AnyVal] = new JavaClassName("java.lang.Object")
+  given [T: JavaClassName] => JavaClassName[Array[T]] = {
     val elementName = JavaClassName.of[T] match {
       case "void" => "Lscala.runtime.BoxedUnit;"
       case "boolean" => "Z"
@@ -79,14 +83,38 @@ object JavaClassName extends JavaClassNameLowPrio {
     }
     new JavaClassName("[" + elementName)
   }
-
-  implicit val keyCodec: GenKeyCodec[JavaClassName[_]] =
-    GenKeyCodec.create[JavaClassName[_]](new JavaClassName(_), _.value)
-
-  implicit val codec: GenCodec[JavaClassName[_]] =
-    GenCodec.nonNullSimple[JavaClassName[_]](i => new JavaClassName(i.readString()), (o, ts) => o.writeString(ts.value))
+  given GenKeyCodec[JavaClassName[?]] =
+    GenKeyCodec.create[JavaClassName[?]](new JavaClassName(_), _.value)
+  given GenCodec[JavaClassName[?]] =
+    GenCodec.nonNullSimple[JavaClassName[?]](i => new JavaClassName(i.readString()), (o, ts) => o.writeString(ts.value))
 }
-trait JavaClassNameLowPrio { this: JavaClassName.type =>
-  // TODO[scala3-port]: JavaClassName.materialize (Scala 2 macro def) (L)
-  implicit def materialize[T]: JavaClassName[T] = ???
+trait JavaClassNameLowPriority { this: JavaClassName.type =>
+  inline given derived[T]: JavaClassName[T] = ${ derivedImpl[T] }
+  @deprecated("Use JavaClassName.derived instead", since = "3.0.0")
+  inline def materialize[T]: JavaClassName[T] = derived
+}
+
+def derivedImpl[T: Type](using quotes: Quotes) = {
+  import quotes.reflect.*
+  def javaClassName(sym: Symbol): String = {
+    // Scala 3 already reports module class names with a trailing `$`; normalise before re-adding so
+    // companion objects don't produce a double `$$` suffix.
+    val baseName = sym.name.stripSuffix("$")
+    val nameSuffix = if (sym.flags.is(Flags.Module) && !sym.flags.is(Flags.Package)) "$" else ""
+    val selfName = baseName + nameSuffix
+    val owner = sym.owner
+    val prefix =
+      if (owner == defn.RootClass) ""
+      else if (owner.flags.is(Flags.Package)) javaClassName(owner) + "."
+      else if (owner.flags.is(Flags.Module)) javaClassName(owner)
+      else javaClassName(owner) + "$"
+    prefix + selfName
+  }
+
+  val tpe = TypeRepr.of[T].dealias
+  if (tpe.typeSymbol.isClassDef && tpe.typeSymbol != defn.ArrayClass) {
+    val name = Expr(javaClassName(tpe.typeSymbol))
+    '{ new JavaClassName[T]($name) }
+  } else
+    report.errorAndAbort(s"${Type.show[T]} does not represent a regular class")
 }
